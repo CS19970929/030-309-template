@@ -138,12 +138,12 @@ void InitADC_ADC1(void)
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_ADC1, ENABLE); // 开启ADC1外设时钟
 
 	// ADC初始化
-	ADC_DeInit(ADC1);									// ADC恢复默认设置
-	ADC_StructInit(&ADC_InitStruct);					// 初始化ADC结构体
-	ADC_InitStruct.ADC_Resolution = ADC_Resolution_12b; // 配置ADC1在连续模式下分辨率为12bits
-	ADC_InitStruct.ADC_ContinuousConvMode = DISABLE;	// 禁止连续模式，连续采样的话，次数由DMA决定，DMA采样完产生中断，停止ADC便可
-													 // 这句话后面再看看，别的解释是采样一次后后续的转换就会永不停歇，不是DMA触发
-													 // 也就是转换一次后，接着进行下一次转换，不断连续。
+	ADC_DeInit(ADC1);														   // ADC恢复默认设置
+	ADC_StructInit(&ADC_InitStruct);										   // 初始化ADC结构体
+	ADC_InitStruct.ADC_Resolution = ADC_Resolution_12b;						   // 配置ADC1在连续模式下分辨率为12bits
+	ADC_InitStruct.ADC_ContinuousConvMode = DISABLE;						   // 禁止连续模式，连续采样的话，次数由DMA决定，DMA采样完产生中断，停止ADC便可
+																			   // 这句话后面再看看，别的解释是采样一次后后续的转换就会永不停歇，不是DMA触发
+																			   // 也就是转换一次后，接着进行下一次转换，不断连续。
 	ADC_InitStruct.ADC_ExternalTrigConv = ADC_ExternalTrigConv_T15_TRGO;	   // 外部触发设置为TIM15
 	ADC_InitStruct.ADC_ExternalTrigConvEdge = ADC_ExternalTrigConvEdge_Rising; // 上升沿触发，使用计时器
 	ADC_InitStruct.ADC_DataAlign = ADC_DataAlign_Right;						   // ADC数据右对齐
@@ -152,9 +152,9 @@ void InitADC_ADC1(void)
 	ADC_ChannelConfig(ADC1, ADC_Channel_8,
 					  ADC_SampleTime_55_5Cycles); // ADC总转换时间=采样时间+12.5个ADC时钟周期(信号量转换时间)
 												  // 所以总共55.5+12.5 = 68个ADC周期。时间为 68/8 us
-	ADC_OverrunModeCmd(ADC1, ENABLE); // 使能数据覆盖模式
-	ADC_GetCalibrationFactor(ADC1);	  // ADC校准
-	ADC_Cmd(ADC1, ENABLE);			  // ADC使能
+	ADC_OverrunModeCmd(ADC1, ENABLE);			  // 使能数据覆盖模式
+	ADC_GetCalibrationFactor(ADC1);				  // ADC校准
+	ADC_Cmd(ADC1, ENABLE);						  // ADC使能
 	while (!ADC_GetFlagStatus(ADC1, ADC_FLAG_ADEN))
 		; // 等待ADEN(ADC1->CR)使能。ADC_Cmd(ADC1, ENABLE)。
 

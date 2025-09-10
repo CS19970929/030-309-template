@@ -444,7 +444,7 @@ void Sci_ACK_0x03_ReadRegs_LCD(struct RS485MSG *s, UINT8 t_u8BuffTemp[])
 		t_u8BuffTemp[i++] = (u16SciTemp >> 8) & 0x00FF;
 		t_u8BuffTemp[i++] = u16SciTemp & 0x00FF;
 
-		//u16SciTemp = System_OnOFF_Func.bits.b1OnOFF_Heat; // 加热
+		// u16SciTemp = System_OnOFF_Func.bits.b1OnOFF_Heat; // 加热
 		u16SciTemp = SystemStatus.bits.b1Status_Heat; // 加热
 		t_u8BuffTemp[i++] = (u16SciTemp >> 8) & 0x00FF;
 		t_u8BuffTemp[i++] = u16SciTemp & 0x00FF;
@@ -842,8 +842,8 @@ void Sci1_CommonUpper_FaultChk(void)
 	}
 
 	if (USART1->ISR & 0x04)
-	{ // 检测到噪声，默认开，不开的话CR3的ONEBIT置1，不开
-	  // USART_CR3的EIE使能中断
+	{						   // 检测到噪声，默认开，不开的话CR3的ONEBIT置1，不开
+							   // USART_CR3的EIE使能中断
 		USART1->ICR |= 1 << 2; // 清除
 		FaultCnt++;
 	}
@@ -1155,8 +1155,8 @@ void Sci2_CommonUpper_FaultChk(void)
 	}
 
 	if (USART2->ISR & 0x04)
-	{ // 检测到噪声，默认开，不开的话CR3的ONEBIT置1，不开
-	  // USART_CR3的EIE使能中断
+	{						   // 检测到噪声，默认开，不开的话CR3的ONEBIT置1，不开
+							   // USART_CR3的EIE使能中断
 		USART2->ICR |= 1 << 2; // 清除
 		FaultCnt++;
 	}

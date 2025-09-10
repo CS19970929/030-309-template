@@ -1047,7 +1047,7 @@ void App_SleepDeal(void)
 	if (!System_OnOFF_Func.bits.b1OnOFF_Sleep)
 	{			// 有个疑问，是不是立刻关了，不需要复原呢，均衡是需要关掉复原。
 		return; // Sleep的话，如果直接不进去，后续打开会接着上次的步伐
-	}			// 暂且先这么做，后续如果要全盘复原，计时清零再说，目前是接着上次的步伐
+	} // 暂且先这么做，后续如果要全盘复原，计时清零再说，目前是接着上次的步伐
 
 	if (SystemStatus.bits.b1StartUpBMS)
 	{ // 开机完毕再进入

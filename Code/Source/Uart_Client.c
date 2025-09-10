@@ -220,8 +220,8 @@ void UartClient_FaultChk(void)
 	}
 
 	if (USART1->SR & 0x04)
-	{ // 检测到噪声，默认开，不开的话CR3的ONEBIT置1，不开
-	  // USART_CR3的EIE使能中断
+	{							// 检测到噪声，默认开，不开的话CR3的ONEBIT置1，不开
+								// USART_CR3的EIE使能中断
 		ClearRead = USART1->SR; // 清除
 		ClearRead = USART1->DR;
 		FaultCnt++;
@@ -470,8 +470,8 @@ void UartClient_FaultChk(void)
 	}
 
 	if (USART2->SR & 0x04)
-	{ // 检测到噪声，默认开，不开的话CR3的ONEBIT置1，不开
-	  // USART_CR3的EIE使能中断
+	{							// 检测到噪声，默认开，不开的话CR3的ONEBIT置1，不开
+								// USART_CR3的EIE使能中断
 		ClearRead = USART2->SR; // 清除
 		ClearRead = USART2->DR;
 		FaultCnt++;
@@ -718,8 +718,8 @@ void UartClient_FaultChk(void)
 	}
 
 	if (USART3->SR & 0x04)
-	{ // 检测到噪声，默认开，不开的话CR3的ONEBIT置1，不开
-	  // USART_CR3的EIE使能中断
+	{							// 检测到噪声，默认开，不开的话CR3的ONEBIT置1，不开
+								// USART_CR3的EIE使能中断
 		ClearRead = USART3->SR; // 清除
 		ClearRead = USART3->DR;
 		FaultCnt++;

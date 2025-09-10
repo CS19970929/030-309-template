@@ -1169,7 +1169,7 @@ void App_DI1_Switch(void)
 
 #ifdef _DI_SWITCH_longKEY_ONOFF
 	static UINT16 su16_AntiShake_Cnt2 = 0;
-	//static uint8_t sleepflag = 0;
+	// static uint8_t sleepflag = 0;
 
 	if (0 == MCUI_ENI_DI1)
 	{
@@ -1179,7 +1179,7 @@ void App_DI1_Switch(void)
 			su16_AntiShake_Cnt2 = 0;
 			Sleep_Mode.bits.b1ForceToSleep_L2 = 1;
 
-			//sleepflag = 1;
+			// sleepflag = 1;
 		}
 	}
 #endif // _DI_SWITCH_longKEY_ONOFF

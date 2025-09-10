@@ -151,7 +151,7 @@ void App_SH367309_Supplement(void)
 			if (g_stCellInfoReport.unMdlFault_First.bits.b1IdischgOcp)
 			{										   // 这个写法其实不太好，用并联判断最好
 				SH367309_DriverMos_Ctrl(GPIO_CHG, ON); // 如果后续不添加新保护功能，问题不大。
-			}										   // 如果加了，就要思考并联恢复问题了
+			} // 如果加了，就要思考并联恢复问题了
 			else if (g_stCellInfoReport.unMdlFault_First.bits.b1IchgOcp)
 			{
 				SH367309_DriverMos_Ctrl(GPIO_DSG, ON);
@@ -204,7 +204,7 @@ void Refresh_Parameters(void)
 #ifdef _SLEEP_WITH_CURRENT
 		// 休眠带电暂且不需要预充功能
 		// 宏定义少个括号，出事了，计算优先级问题
-		ucMTPBuffer[1] = (BYTE_01H_SCONF2)&0xF3;
+		ucMTPBuffer[1] = (BYTE_01H_SCONF2) & 0xF3;
 #endif
 		memcpy((UINT8 *)&AFE_ROM_PARAMETERS_Struction, ucMTPBuffer, 26);
 	}

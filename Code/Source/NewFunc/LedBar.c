@@ -42,8 +42,8 @@ void LedBar_Show_Normal(void)
         if (MCUI_SOC_KEY == 0)
         {
             su8_ShowStatus = 1;
-            
-            //MCUO_DO1_EN = !MCUO_DO1_EN;
+
+            // MCUO_DO1_EN = !MCUO_DO1_EN;
         }
 
         if (g_stCellInfoReport.u16Ichg)

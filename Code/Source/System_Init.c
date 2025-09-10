@@ -53,8 +53,8 @@ void __delay_us(UINT32 nus)
 	{
 		temp = SysTick->CTRL;
 	} while ((temp & 0x01) && !(temp & (1 << 16))); // 等待时间到达
-	SysTick->CTRL &= ~SysTick_CTRL_ENABLE_Msk;		// 关闭计数器
-	SysTick->VAL = 0X00;							// 清空计数器
+	SysTick->CTRL &= ~SysTick_CTRL_ENABLE_Msk; // 关闭计数器
+	SysTick->VAL = 0X00;					   // 清空计数器
 }
 
 // 这个是非中断方式的延时，倘若使用中断式延时，在中断中使用延时会出现中断嵌套问题，很容易出错
@@ -126,7 +126,7 @@ void InitIO(void)
 	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL; // 设置引脚模式为上拉输入模式
 	GPIO_Init(GPIOC, &GPIO_InitStructure);
 
-	//DO唤醒
+	// DO唤醒
 	{
 		GPIO_InitStructure.GPIO_Pin = PIN_DO1_EN;
 		GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
@@ -138,7 +138,7 @@ void InitIO(void)
 	}
 	// MCUO_DEBUG_LED1 = 1;
 
-//soc提前初始化	解决20%问题，暂时没时间找问题出在哪儿
+	// soc提前初始化	解决20%问题，暂时没时间找问题出在哪儿
 	GPIO_InitStructure.GPIO_Pin = PIN_SOC_20 | PIN_SOC_40 | PIN_SOC_60 | PIN_SOC_80 | PIN_SOC_100;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;	 // 推挽输出
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz; // IO口速度为2MHz
@@ -156,11 +156,11 @@ void InitIO(void)
 	// GPIO_InitStructure.GPIO_Mode = GPIO_PuPd_NOPULL;
 	GPIO_Init(PORT_SOC_KEY, &GPIO_InitStructure);
 
-	//LedBar_Command = LED_BAR_NORMAL;
+	// LedBar_Command = LED_BAR_NORMAL;
 
-	//MCUO_SOC_BLE = 0;
+	// MCUO_SOC_BLE = 0;
 
-	//MCUO_DO1_EN = 0;
+	// MCUO_DO1_EN = 0;
 }
 
 void InitTimer(void)

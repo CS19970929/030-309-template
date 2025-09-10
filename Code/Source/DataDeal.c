@@ -225,7 +225,7 @@ void DataLoad_TemperatureMaxMinFind(void)
 		if (g_stCellInfoReport.u16Temperature[i] == 0)
 		{			  // 这段代码什么意思，断了就不判断吗？
 			continue; // 有的，则必定会被赋值，要么-29摄氏度。
-		}			  // 空的，则就是默认刚上电的值0
+		} // 空的，则就是默认刚上电的值0
 		t_u16VcellTemp = g_stCellInfoReport.u16Temperature[i];
 		if (t_u16VcellMaxTemp < t_u16VcellTemp)
 		{
