@@ -187,10 +187,6 @@ void App_RTC(void)
 {
 #ifndef _HALT_ACTIVE_MODE
 	static UINT8 u8RTCcnt = 0;
-	if (0 == g_st_SysTimeFlag.bits.b1Sys200msFlag1)
-	{
-		return;
-	}
 	if (++u8RTCcnt < 5)
 	{
 		return;

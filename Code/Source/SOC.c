@@ -113,11 +113,6 @@ void InitData_SOC(void)
 
 void App_SOC(void)
 {
-	if (STARTUP_CONT == System_FUNC_StartUp(SYSTEM_FUNC_STARTUP_SOC))
-	{
-		return;
-	}
-
 	/*	//放这里，开机会出现电量过低保护，因为200ms后才赋值，该时间内使保护逻辑(10ms时基)运行完毕
 		//太细了
 	if(SOC_Enhance_Element.u16_SOC_InitOver) {
@@ -125,10 +120,7 @@ void App_SOC(void)
 	}
 	*/
 
-	if (0 == gu8_200msAccClock_Flag)
-	{
-		return;
-	}
+	MCUO_DEBUG_LED1 = ~MCUO_DEBUG_LED1;
 
 	RefreshData_SOC();
 	GetData_SOC();
@@ -136,7 +128,6 @@ void App_SOC(void)
 
 	// 要精确统计，不能在别的地方置零。200ms以内执行一次，然后置零便可。这样就不会被拉长时间导致容量计算有问题。
 	// 例如200ms时基变为240ms，误差就是40/200 = 20%，20Ah统计最后就18Ah。
-	gu8_200msAccClock_Flag = 0;
 
 	if (SOC_Enhance_Element.u16_SOC_InitOver)
 	{

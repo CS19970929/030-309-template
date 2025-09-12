@@ -94,9 +94,6 @@ void PendSV_Handler(void)
  * @param  None
  * @retval None
  */
-void SysTick_Handler(void)
-{
-}
 
 /******************************************************************************/
 /*                 STM32F0xx Peripherals Interrupt Handlers                   */
@@ -127,10 +124,8 @@ void SysTick_Handler(void)
 // 外部中断0服务程序，没用
 void EXTI0_1_IRQHandler(void)
 {
-  // delay_ms(10);//消抖
   if (EXTI_GetITStatus(EXTI_Line0) != RESET)
   {
-    // WKUP
     EXTI_ClearITPendingBit(EXTI_Line0);
     ChargerLoad_Func.bits.b1ON_Charger_AllSeries = 1;
   }
@@ -144,13 +139,6 @@ void EXTI4_15_IRQHandler(void)
 {
   if (EXTI_GetITStatus(EXTI_Line12) != RESET)
   {
-    MCUO_MOS_DSG = CLOSE;
-    MCUO_RELAY_DSG = CLOSE;
-    MCUO_RELAY_PRE = CLOSE;
-    MCUO_RELAY_MAIN = CLOSE;
-    CBC_Element.u8CBC_DSG_ErrFlag = 1;
-    // App_MOS_Relay_Ctrl();
-    System_ERROR_UserCallback(ERROR_CBC_DSG);
     EXTI_ClearITPendingBit(EXTI_Line12);
   }
 
@@ -178,20 +166,17 @@ void EXTI4_15_IRQHandler(void)
   {
     EXTI_ClearITPendingBit(EXTI_Line5);
   }
-  
 }
 
 void USART1_IRQHandler(void)
 {
+  Sci1_CommonUpper_FaultChk();
+
   if (USART_GetITStatus(USART1, USART_IT_RXNE) != RESET)
   {
     RTC_ExtComCnt++;
-
     RTC_ExtComCnt1++;
-    //lcd_com_cnt++;
-
 #if (defined _COMMOM_UPPER_SCI1)
-    Sci1_CommonUpper_FaultChk();
     Sci1_CommonUpper_Rx_Deal(&g_stCurrentMsgPtr_SCI1);
 #endif
   }
@@ -199,16 +184,12 @@ void USART1_IRQHandler(void)
 
 void USART2_IRQHandler(void)
 {
+  Sci2_CommonUpper_FaultChk();
+
   if (USART_GetITStatus(USART2, USART_IT_RXNE) != RESET)
   {
     RTC_ExtComCnt++;
-
-    //RTC_ExtComCnt1++;
-
-    lcd_com_cnt++;
-
 #ifdef _COMMOM_UPPER_SCI2
-    Sci2_CommonUpper_FaultChk();
     Sci2_CommonUpper_Rx_Deal(&g_stCurrentMsgPtr_SCI2);
 #endif
   }

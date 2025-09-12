@@ -339,7 +339,7 @@
               <MiscControls>--C99</MiscControls>
               <Define>USE_STDPERIPH_DRIVER STM32F0XX</Define>
               <Undefine></Undefine>
-              <IncludePath>.\Code\Drivers;.\Code\Lib;.\Code\STM32F0xx_StdPeriph_Driver\inc;.\Code\Source\NewFunc;.\Code\Source</IncludePath>
+              <IncludePath>.\Code\Drivers;.\Code\Lib;.\Code\STM32F0xx_StdPeriph_Driver\inc;.\Code\Source\NewFunc;.\Code\Source;.\Code\Source\conf;.\Code\Source\BSP</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -436,21 +436,6 @@
           </Files>
         </Group>
         <Group>
-          <GroupName>Lib</GroupName>
-          <Files>
-            <File>
-              <FileName>SocIntegral_030.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\Code\Lib\SocIntegral_030.h</FilePath>
-            </File>
-            <File>
-              <FileName>SocIntegral_030.lib</FileName>
-              <FileType>4</FileType>
-              <FilePath>.\Code\Lib\SocIntegral_030.lib</FilePath>
-            </File>
-          </Files>
-        </Group>
-        <Group>
           <GroupName>Source</GroupName>
           <Files>
             <File>
@@ -499,16 +484,6 @@
               <FilePath>.\Code\Source\I2C_AFE1.c</FilePath>
             </File>
             <File>
-              <FileName>I2C_Slave.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Code\Source\I2C_Slave.c</FilePath>
-            </File>
-            <File>
-              <FileName>LED_Buzzer.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Code\Source\LED_Buzzer.c</FilePath>
-            </File>
-            <File>
               <FileName>LogRecord.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\Code\Source\LogRecord.c</FilePath>
@@ -527,11 +502,6 @@
               <FileName>PubFunc.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\Code\Source\PubFunc.c</FilePath>
-            </File>
-            <File>
-              <FileName>PWM.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Code\Source\PWM.c</FilePath>
             </File>
             <File>
               <FileName>RTC.c</FileName>
@@ -574,9 +544,24 @@
               <FilePath>.\Code\Source\System_Monitor.c</FilePath>
             </File>
             <File>
-              <FileName>Uart_Client.c</FileName>
+              <FileName>ShortFunc.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\Code\Source\Uart_Client.c</FilePath>
+              <FilePath>.\Code\Source\NewFunc\ShortFunc.c</FilePath>
+            </File>
+            <File>
+              <FileName>SocEnhance.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Code\Source\SocEnhance.c</FilePath>
+            </File>
+            <File>
+              <FileName>IODrivers.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Code\Source\IODrivers.c</FilePath>
+            </File>
+            <File>
+              <FileName>IO_Control.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Code\Source\IO_Control.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -827,6 +812,36 @@
               <FileName>LedBar.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\Code\Source\NewFunc\LedBar.h</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>conf</GroupName>
+          <Files>
+            <File>
+              <FileName>conf.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Code\Source\conf\conf.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>bsp</GroupName>
+          <Files>
+            <File>
+              <FileName>bsp.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Code\Source\BSP\bsp.c</FilePath>
+            </File>
+            <File>
+              <FileName>bsp_timer.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Code\Source\BSP\bsp_timer.c</FilePath>
+            </File>
+            <File>
+              <FileName>Time_Triggered.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Code\Source\BSP\Time_Triggered.c</FilePath>
             </File>
           </Files>
         </Group>

@@ -23,153 +23,6 @@ extern UINT16 iSheldTemp_10K_NTC[141];
 #define OFF 0
 #define ON 1
 
-/* 一级过流保护标志 */
-void Ocp_MosJudge(UINT16 Current, UINT16 Ocp_First, UINT16 Ocp_Filter, UINT8 *flag, UINT8 Type)
-{
-	static UINT8 Ocp_MosCtrl_flag[2] = {0};
-	static UINT16 ocpFitleCount[2] = {0};
-	static UINT32 ocpRecoverCount[2] = {0};
-
-	switch (Ocp_MosCtrl_flag[Type])
-	{
-	case 0:
-		if (Current > Ocp_First)
-		{
-			if (Ocp_Filter <= ocpFitleCount[Type]++)
-			{
-				ocpFitleCount[Type] = 0;
-				*flag = 1;
-				Ocp_MosCtrl_flag[Type] = 1;
-			}
-		}
-		else
-		{
-			if (ocpFitleCount[Type])
-			{
-				ocpFitleCount[Type]--;
-			}
-		}
-		break;
-	case 1:
-		/* 延时30s控制权交给AFE */
-		if (DSG_CHG_OCP_DELAY_TIME <= ocpRecoverCount[Type]++)
-		{
-			ocpRecoverCount[Type] = 0;
-			*flag = 0;
-			Ocp_MosCtrl_flag[Type] = 0;
-		}
-		break;
-	}
-}
-
-void App_SH367309_Supplement(void)
-{
-	UINT8 flag = 0;
-	static UINT8 IchgOcp_Flag = 0;
-	static UINT8 IdischgOcp_Flag = 0;
-	static UINT8 TmosOtp_Flag = 0;
-
-	if (g_st_SysTimeFlag.bits.b1Sys10msFlag1 == 0)
-	{
-		return;
-	}
-
-	/* 充电过流判断 */
-	flag = g_stCellInfoReport.unMdlFault_First.bits.b1IchgOcp;
-	Ocp_MosJudge(g_stCellInfoReport.u16Ichg,
-				 AFE_Parameters_RS485_Struction.u16IchgOcp_First.curValue, AFE_Parameters_RS485_Struction.u16IchgOcp_Filter_First.curValue, &flag, 0);
-	g_stCellInfoReport.unMdlFault_First.bits.b1IchgOcp = flag;
-
-	/*放电过流判断*/
-	flag = g_stCellInfoReport.unMdlFault_First.bits.b1IdischgOcp;
-	Ocp_MosJudge(g_stCellInfoReport.u16IDischg,
-				 AFE_Parameters_RS485_Struction.u16IdsgOcp_First.curValue, AFE_Parameters_RS485_Struction.u16IdsgOcp_Filter_First.curValue, &flag, 1);
-	g_stCellInfoReport.unMdlFault_First.bits.b1IdischgOcp = flag;
-
-	switch (IchgOcp_Flag)
-	{
-	case 0:
-		if (g_stCellInfoReport.unMdlFault_First.bits.b1IchgOcp)
-		{
-			FaultWarnRecord2(IchgOcp_First);
-			/* 强行关闭充电管 */
-			SH367309_DriverMos_Ctrl(GPIO_CHG, OFF);
-			IchgOcp_Flag = 1;
-		}
-		break;
-	case 1:
-		if (!g_stCellInfoReport.unMdlFault_First.bits.b1IchgOcp)
-		{
-			/* MCU不控制充电管，由AFE控制 */
-			SH367309_DriverMos_Ctrl(GPIO_CHG, ON);
-			IchgOcp_Flag = 0;
-		}
-		break;
-	default:
-		break;
-	}
-
-	switch (IdischgOcp_Flag)
-	{
-	case 0:
-		if (g_stCellInfoReport.unMdlFault_First.bits.b1IdischgOcp)
-		{
-			FaultWarnRecord2(IdischgOcp_First);
-			/* 强行关闭放电管 */
-			SH367309_DriverMos_Ctrl(GPIO_DSG, OFF);
-			IdischgOcp_Flag = 1;
-		}
-		break;
-	case 1:
-		if (!g_stCellInfoReport.unMdlFault_First.bits.b1IdischgOcp)
-		{
-			/* MCU不控制放电管，由AFE控制 */
-			SH367309_DriverMos_Ctrl(GPIO_DSG, ON);
-			IdischgOcp_Flag = 0;
-		}
-		break;
-	default:
-		break;
-	}
-
-	switch (TmosOtp_Flag)
-	{
-	case 0:
-		if (g_stCellInfoReport.unMdlFault_Third.bits.b1TmosOtp)
-		{
-			SH367309_DriverMos_Ctrl(GPIO_CHG, OFF);
-			SH367309_DriverMos_Ctrl(GPIO_DSG, OFF);
-			TmosOtp_Flag = 1;
-		}
-		break;
-
-	case 1:
-		if (!g_stCellInfoReport.unMdlFault_Third.bits.b1TmosOtp)
-		{
-			/* MCU不控制放电管，由AFE控制 */
-
-			if (g_stCellInfoReport.unMdlFault_First.bits.b1IdischgOcp)
-			{										   // 这个写法其实不太好，用并联判断最好
-				SH367309_DriverMos_Ctrl(GPIO_CHG, ON); // 如果后续不添加新保护功能，问题不大。
-			} // 如果加了，就要思考并联恢复问题了
-			else if (g_stCellInfoReport.unMdlFault_First.bits.b1IchgOcp)
-			{
-				SH367309_DriverMos_Ctrl(GPIO_DSG, ON);
-			}
-			else
-			{
-				SH367309_DriverMos_Ctrl(GPIO_CHG, ON);
-				SH367309_DriverMos_Ctrl(GPIO_DSG, ON);
-			}
-			TmosOtp_Flag = 0;
-		}
-		break;
-
-	default:
-		break;
-	}
-}
-
 /* 找出要写入AFE寄存器的值：参数1：当前要写的值，参数2：AFE参数列表的地址 */
 int Choose_Right_Value(UINT16 cur_Value, const UINT16 *AFE_list)
 {
@@ -199,69 +52,42 @@ void Refresh_Parameters(void)
 	{
 		SH367309_Reg_Store.TR_ResRef = 680 + 5 * (TR & 0x7F);
 		ucMTPBuffer[25] = TR & 0x7F;
-
-/* 把默认的数据放在参数结构体里 */
-#ifdef _SLEEP_WITH_CURRENT
-		// 休眠带电暂且不需要预充功能
-		// 宏定义少个括号，出事了，计算优先级问题
-		ucMTPBuffer[1] = (BYTE_01H_SCONF2) & 0xF3;
-#endif
 		memcpy((UINT8 *)&AFE_ROM_PARAMETERS_Struction, ucMTPBuffer, 26);
 	}
 
 	g_u32CS_Res_AFE = ((UINT32)OtherElement.u16Sys_CS_Res_Num * 1000) / OtherElement.u16Sys_CS_Res;
 
-	/* 串数 */
 	AFE_ROM_PARAMETERS_Struction.m00H_01H.CN = OtherElement.u16Sys_SeriesNum % 16;
 
-	/* 充电过压 */
-	AFE_ROM_PARAMETERS_Struction.m02H_03H.OVH = ((AFE_Parameters_RS485_Struction.u16VcellOvp.curValue / 5) >> 8) & 0x3;
-	AFE_ROM_PARAMETERS_Struction.m02H_03H.OVL = (AFE_Parameters_RS485_Struction.u16VcellOvp.curValue / 5) & 0x00FF;
-	/* 充电过压延时时间 */
-	temp = AFE_Parameters_RS485_Struction.u16VcellOvp_Filter.curValue * 10;
-	AFE_ROM_PARAMETERS_Struction.m02H_03H.OVT = Choose_Right_Value(temp, AFE_OVT_UVT);
-	/* 充电过压恢复 */
-	AFE_ROM_PARAMETERS_Struction.m04H_05H.OVRH = ((AFE_Parameters_RS485_Struction.u16VcellOvp_Rcv.curValue / 5) >> 8) & 0x3;
-	AFE_ROM_PARAMETERS_Struction.m04H_05H.OVRL = (AFE_Parameters_RS485_Struction.u16VcellOvp_Rcv.curValue / 5) & 0x00FF;
+	// AFE_ROM_PARAMETERS_Struction.m00H_01H.CTLC = (0xff >> 6);
 
-	/*放电低压延时时间 */
-	temp = AFE_Parameters_RS485_Struction.u16VcellUvp_Filter.curValue * 10;
-	AFE_ROM_PARAMETERS_Struction.m04H_05H.UVT = Choose_Right_Value(temp, AFE_OVT_UVT);
-	/* 放电低压 */
-	AFE_ROM_PARAMETERS_Struction.m06H_07H.UV = (AFE_Parameters_RS485_Struction.u16VcellUvp.curValue / 20) & 0x00FF;
-	/* 放电低压恢复 */
-	AFE_ROM_PARAMETERS_Struction.m06H_07H.UVR = (AFE_Parameters_RS485_Struction.u16VcellUvp_Rcv.curValue / 20) & 0x00FF;
+	AFE_ROM_PARAMETERS_Struction.m02H_03H.OVH = ((4300 / 5) >> 8) & 0x3;
+	AFE_ROM_PARAMETERS_Struction.m02H_03H.OVL = (4300 / 5) & 0x00FF;
+	AFE_ROM_PARAMETERS_Struction.m02H_03H.OVT = 0;
+	AFE_ROM_PARAMETERS_Struction.m04H_05H.OVRH = ((4100 / 5) >> 8) & 0x3;
+	AFE_ROM_PARAMETERS_Struction.m04H_05H.OVRL = (4100 / 5) & 0x00FF;
 
-	/* 放电过流:     二级过流值（A*10）/         */
-	temp = AFE_Parameters_RS485_Struction.u16IdsgOcp_Second.curValue * 100 / g_u32CS_Res_AFE; // 当前对应多少mv
-	AFE_ROM_PARAMETERS_Struction.m0CH_0DH.OCD1V = Choose_Right_Value(temp, AFE_OCD1V_OCCV);
-	/* 放电过流滤波时间 */
-	temp = AFE_Parameters_RS485_Struction.u16IdsgOcp_Filter_Second.curValue * 10; // 当前对应多少ms
-	AFE_ROM_PARAMETERS_Struction.m0CH_0DH.OCD1T = Choose_Right_Value(temp, AFE_OCD1T);
+	AFE_ROM_PARAMETERS_Struction.m04H_05H.UVT = 0;
+	AFE_ROM_PARAMETERS_Struction.m06H_07H.UV = (2600 / 20) & 0x00FF;
+	AFE_ROM_PARAMETERS_Struction.m06H_07H.UVR = (2700 / 20) & 0x00FF;
 
-	/* 充电过流 */
-	temp = AFE_Parameters_RS485_Struction.u16IchgOcp_Second.curValue * 100 / g_u32CS_Res_AFE; // 当前对应多少mv
-	AFE_ROM_PARAMETERS_Struction.m0EH_0FH.OCCV = Choose_Right_Value(temp, AFE_OCD1V_OCCV);
-	/* 充电过流滤波时间 */
-	temp = AFE_Parameters_RS485_Struction.u16IchgOcp_Filter_Second.curValue * 10; // 当前对应多少ms
-	AFE_ROM_PARAMETERS_Struction.m0EH_0FH.OCCT = Choose_Right_Value(temp, AFE_OCCT_OCD2T);
+	//todo
+	AFE_ROM_PARAMETERS_Struction.m0CH_0DH.OCD1V = 5;
+	AFE_ROM_PARAMETERS_Struction.m0CH_0DH.OCD1T = 0;
 
-	/* 短路延时 */
-	temp = AFE_Parameters_RS485_Struction.u16CBC_DelayT.curValue;
-	AFE_ROM_PARAMETERS_Struction.m0EH_0FH.SCT = Choose_Right_Value(temp, AFE_SCT);
-	/* 短路电压 */
-	temp = AFE_Parameters_RS485_Struction.u16CBC_Cur_DSG.curValue * 1000 / g_u32CS_Res_AFE; // 当前对应多少mv
-	AFE_ROM_PARAMETERS_Struction.m0EH_0FH.SCV = Choose_Right_Value(temp, AFE_SCV);
+	AFE_ROM_PARAMETERS_Struction.m0EH_0FH.OCCV = 0;
+	AFE_ROM_PARAMETERS_Struction.m0EH_0FH.OCCT = 0;
 
-	/* 所有的温度保护 */
-	AFE_TEMPERATURE[0] = AFE_Parameters_RS485_Struction.u16TChgOTp.curValue / 10;		 /* 充电高温保护 */
-	AFE_TEMPERATURE[1] = AFE_Parameters_RS485_Struction.u16TChgOTp_Rcv.curValue / 10;	 /* 充电高温保护恢复 */
-	AFE_TEMPERATURE[2] = AFE_Parameters_RS485_Struction.u16TchgUTp.curValue / 10;		 /* 充电低温保护 */
-	AFE_TEMPERATURE[3] = AFE_Parameters_RS485_Struction.u16TchgUTp_Rcv.curValue / 10;	 /* 充电低温保护恢复 */
-	AFE_TEMPERATURE[4] = AFE_Parameters_RS485_Struction.u16TdischgOTp.curValue / 10;	 /* 放电高温保护 */
-	AFE_TEMPERATURE[5] = AFE_Parameters_RS485_Struction.u16TdischgOTp_Rcv.curValue / 10; /* 放电高温保护恢复 */
-	AFE_TEMPERATURE[6] = AFE_Parameters_RS485_Struction.u16TdischgUTp.curValue / 10;	 /* 放电低温保护 */
-	AFE_TEMPERATURE[7] = AFE_Parameters_RS485_Struction.u16TdischgUTp_Rcv.curValue / 10; /* 放电低温保护恢复 */
+	InitShortCur();
+
+	AFE_TEMPERATURE[0] = (55 + 40);		 /* 充电高温保护 */
+	AFE_TEMPERATURE[1] = (45 + 40);	 /* 充电高温保护恢复 */
+	AFE_TEMPERATURE[2] = (-5 + 40);		 /* 充电低温保护 */
+	AFE_TEMPERATURE[3] = (5 + 40);	 /* 充电低温保护恢复 */
+	AFE_TEMPERATURE[4] = (70 + 40);	 /* 放电高温保护 */
+	AFE_TEMPERATURE[5] = (60 + 40); /* 放电高温保护恢复 */
+	AFE_TEMPERATURE[6] = (-25 + 40);	 /* 放电低温保护 */
+	AFE_TEMPERATURE[7] = (-15 + 40); /* 放电低温保护恢复 */
 
 	for (i = 0; i < 8; i++)
 	{
@@ -341,7 +167,7 @@ UINT8 Sci_WrRegs_0x10_AFE_Parameters(UINT16 u16Channel, struct RS485MSG *s)
 			*(P + (i + offset) * 4) = s->u16Buffer[8 + i * 2] + (s->u16Buffer[7 + i * 2] << 8);
 
 			/* 直接写道EEPROM中 */
-			WriteEEPROM_Word_WithZone(E2P_ADDR_E2POS_AFE_Parameters + ((i + offset) << 1), *(P + (i + offset) * 4));
+			WriteEEPROM_Word_NoZone(E2P_ADDR_E2POS_AFE_Parameters + ((i + offset) << 1), *(P + (i + offset) * 4));
 		}
 		Feed_IWatchDog;
 		AFE_PARAM_WRITE_Flag = 1;
@@ -391,7 +217,7 @@ void EEPROM_ResetData_AFE_ParametersToDefault(void)
 	for (i = 0; i < AFE_PARAMETES_TOTAL_LENGTH; ++i)
 	{
 		*(P + i * 4 - 1) = *(P + i * 4); // 当前值变为默认值
-		WriteEEPROM_Word_WithZone(E2P_ADDR_E2POS_AFE_Parameters + (i << 1), *(P + i * 4));
+		WriteEEPROM_Word_NoZone(E2P_ADDR_E2POS_AFE_Parameters + (i << 1), *(P + i * 4));
 	}
 	Feed_IWatchDog;
 }
@@ -403,7 +229,7 @@ void ReadEEPROM_AFE_Parameters(void)
 	AFE_Value_Typedef *P = &AFE_Parameters_RS485_Struction.u16VcellOvp;
 	for (i = 0; i < AFE_PARAMETES_TOTAL_LENGTH; ++i)
 	{
-		(P + i)->curValue = ReadEEPROM_Word_WithZone(E2P_ADDR_E2POS_AFE_Parameters + (i << 1));
+		(P + i)->curValue = ReadEEPROM_Word_NoZone(E2P_ADDR_E2POS_AFE_Parameters + (i << 1));
 
 		if (((P + i)->curValue < (P + i)->minValue) || ((P + i)->curValue > (P + i)->maxValue))
 		{

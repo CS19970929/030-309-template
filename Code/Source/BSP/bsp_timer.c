@@ -119,14 +119,14 @@ void bsp_InitTimer(void)
 	
 	//SysTick_Config(SystemCoreClock / 2000);
 
-// 	if(SysTick_Config(SystemCoreClock / 1000))
-// 	{
-// 		DEBUG_LINE();
+	if(SysTick_Config(SystemCoreClock / 1000))
+	{
+		// DEBUG_LINE();
 
-// 		while (1);
-// 	}
+		while (1);
+	}
 	
-// 	SysTick_CLKSourceConfig(SysTick_CLKSource_HCLK);
+	SysTick_CLKSourceConfig(SysTick_CLKSource_HCLK);
 	
 // #if defined (USE_TIM2) || defined (USE_TIM3)  || defined (USE_TIM4)	|| defined (USE_TIM5)
 // 	bsp_InitHardTimer();
@@ -146,13 +146,12 @@ void bsp_InitTimer(void)
 extern void bsp_RunPer1ms(void);
 extern void bsp_RunPer10ms(void);
 extern void bsp_RunPer500ms(void);
+extern void bsp_RunPer200ms(void);
 void SysTick_ISR(void)
 {
 	static uint8_t s_count = 0;
 	static uint16_t s_count500 = 0;
 	uint8_t i;
-
-	//MCUO_DEBUG_LED1 = ~MCUO_DEBUG_LED1;
 
 	/* 每隔1ms进来1次 （仅用于 bsp_DelayMS） */
 	if (s_uiDelayCount > 0)
@@ -180,16 +179,18 @@ void SysTick_ISR(void)
 
 	if (++s_count >= 10)
 	{
+extern UINT8 gu8_10msCnt ;
 		s_count = 0;
+		gu8_10msCnt = 1;
 
 		bsp_RunPer10ms();	/* 每隔10ms调用一次此函数，此函数在 bsp.c */
 	}
 
-	if (++s_count500 >= 500)
+	if (++s_count500 >= 200)
 	{
 		s_count500 = 0;
 
-		bsp_RunPer500ms();	/* 每隔10ms调用一次此函数，此函数在 bsp.c */
+		bsp_RunPer200ms();	/* 每隔10ms调用一次此函数，此函数在 bsp.c */
 	}
 }
 

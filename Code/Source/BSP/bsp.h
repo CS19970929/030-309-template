@@ -1,72 +1,175 @@
 /*
 *********************************************************************************************************
 *
-*	Ä£¿éÃû³Æ : BSPÄ£¿é
-*	ÎÄ¼şÃû³Æ : bsp.h
-*	Ëµ    Ã÷ : ÕâÊÇµ×²ãÇı¶¯Ä£¿éËùÓĞµÄhÎÄ¼şµÄ»ã×ÜÎÄ¼ş¡£ Ó¦ÓÃ³ÌĞòÖ»Ğè #include bsp.h ¼´¿É£¬
-*			  ²»ĞèÒª#include Ã¿¸öÄ£¿éµÄ h ÎÄ¼ş
+*    æ¨¡å—åç§° : BSPæ¨¡å—(For STM32H7)
+*    æ–‡ä»¶åç§° : bsp.h
+*    ç‰ˆ    æœ¬ : V1.0
+*    è¯´    æ˜ : è¿™æ˜¯ç¡¬ä»¶åº•å±‚é©±åŠ¨ç¨‹åºçš„ä¸»æ–‡ä»¶ã€‚æ¯ä¸ªcæ–‡ä»¶å¯ä»¥ #include "bsp.h" æ¥åŒ…å«æ‰€æœ‰çš„å¤–è®¾é©±åŠ¨æ¨¡å—ã€‚
+*               bsp = Borad surport packet æ¿çº§æ”¯æŒåŒ…
+*    ä¿®æ”¹è®°å½• :
+*        ç‰ˆæœ¬å·  æ—¥æœŸ         ä½œè€…       è¯´æ˜
+*        V1.0    2018-07-29  Eric2013   æ­£å¼å‘å¸ƒ
 *
-*	Copyright (C), 2013-2014, °²¸»À³µç×Ó www.armfly.com
+*    Copyright (C), 2018-2030, å®‰å¯Œè±ç”µå­ www.armfly.com
 *
 *********************************************************************************************************
 */
 
-#ifndef _BSP_H_
+#ifndef _BSP_H
 #define _BSP_H
 
-#define STM32_V4
-//#define STM32_X2
+/* å®šä¹‰ BSP ç‰ˆæœ¬å· */
+#define __STM32H7_BSP_VERSION "1.2"
 
-/* ¼ì²éÊÇ·ñ¶¨ÒåÁË¿ª·¢°åĞÍºÅ */
-#if !defined (STM32_V4) && !defined (STM32_X2)
-	#error "Please define the board model : STM32_X2 or STM32_V4"
+#define  USE_RTX    0
+
+/* CPUç©ºé—²æ—¶æ‰§è¡Œçš„å‡½æ•° */
+//#define CPU_IDLE()        bsp_Idle()
+
+/* å¼€å…³å…¨å±€ä¸­æ–­çš„å® */
+#define ENABLE_INT()    __set_PRIMASK(0)    /* ä½¿èƒ½å…¨å±€ä¸­æ–­ */
+#define DISABLE_INT()   __set_PRIMASK(1)    /* ç¦æ­¢å…¨å±€ä¸­æ–­ */
+
+/* è¿™ä¸ªå®ä»…ç”¨äºè°ƒè¯•é˜¶æ®µæ’é”™ */
+//#define BSP_Printf printf
+// #define BSP_Printf(...)
+
+#define ERROR_HANDLER()     Error_Handler(__FILE__, __LINE__)
+
+#define BSP_SET_GPIO_1(gpio, pin)   gpio->BSRR = pin
+#define BSP_SET_GPIO_0(gpio, pin)   gpio->BSRR = (uint32_t)(pin) << 16U
+
+/* é»˜è®¤æ˜¯å…³é—­çŠ¶æ€ */
+#define Enable_EventRecorder 0
+
+#if Enable_EventRecorder == 1
+#include "EventRecorder.h"
 #endif
 
-/* ¶¨Òå BSP °æ±¾ºÅ */
-#define __STM32F1_BSP_VERSION		"1.1"
-
-/* CPU¿ÕÏĞÊ±Ö´ĞĞµÄº¯Êı */
-//#define CPU_IDLE()		bsp_Idle()
-
-/* ¿ª¹ØÈ«¾ÖÖĞ¶ÏµÄºê */
-#define ENABLE_INT()	__set_PRIMASK(0)	/* Ê¹ÄÜÈ«¾ÖÖĞ¶Ï */
-#define DISABLE_INT()	__set_PRIMASK(1)	/* ½ûÖ¹È«¾ÖÖĞ¶Ï */
-
-
-#define DEBUG_LINE() 																												\
-  BSP_Printf("Log: [%s:%s] line = %d\n", __FILE__, __func__, __LINE__)
-#define DEBUG_INFO(fmt, ...)                                                \
-  BSP_Printf("Log: [%s:%s] line = %d\n" fmt "\n", __FILE__, __func__, __LINE__, \
-         ##__VA_ARGS__)
-
-
-/* Õâ¸öºê½öÓÃÓÚµ÷ÊÔ½×¶ÎÅÅ´í */
-#define BSP_Printf		printf
-//#define BSP_Printf(...)
-
-//#include "stm32f0xx.h"
-#include "stm32f10x.h"
+//#include "stm32h7xx_hal.h"
+#include "stm32f0xx.h"
+// #include "stm32f10x.h"
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
 #include <stdlib.h>
+#include <math.h>
 
-//todo ÖØ¸´ÁË
-// #ifndef TRUE
-// 	#define TRUE  1
-// #endif
-
-// #ifndef FALSE
-// 	#define FALSE 0
-// #endif
-
-//#include "bsp_led.h"
-#include "bsp_timer.h"
-#include "bsp_key.h"
-
-/* Ìá¹©¸øÆäËûCÎÄ¼şµ÷ÓÃµÄº¯Êı */
-void bsp_Init(void);
-void bsp_Idle(void);
-
+#ifndef TRUE
+#define TRUE 1
 #endif
 
-/***************************** °²¸»À³µç×Ó www.armfly.com (END OF FILE) *********************************/
+#ifndef FALSE
+#define FALSE 0
+#endif
+
+/* å®šä¹‰ä¼˜å…ˆçº§åˆ†ç»„ */
+#define NVIC_PREEMPT_PRIORITY 4
+
+/* é€šè¿‡å–æ¶ˆæ³¨é‡Šæˆ–è€…æ·»åŠ æ³¨é‡Šçš„æ–¹å¼æ§åˆ¶æ˜¯å¦åŒ…å«åº•å±‚é©±åŠ¨æ¨¡å— */
+
+// #include "bsp_msg.h"
+// #include "bsp_user_lib.h"
+#include "bsp_timer.h"
+// #include "bsp_led.h"
+// #include "bsp_key.h"
+// #include "bsp_msg.h"
+
+// #include "bsp_cpu_adc.h"
+// #include "bsp_cpu_dac.h"
+// #include "bsp_cpu_flash.h"
+// #include "bsp_uart_fifo.h"
+// #include "bsp_cpu_rtc.h"
+// #include "bsp_esp32_at.h"
+
+// #include "bsp_spi_bus.h"
+// #include "bsp_qspi_w25q256.h"
+
+// #include "bsp_fmc_io.h"
+
+// #include "bsp_i2c_gpio.h"
+// #include "bsp_i2c_gpio_ext.h"
+// #include "bsp_i2c_eeprom_24xx.h"
+// #include "bsp_i2c_mcp4018.h"
+// #include "bsp_i2c_mcp4725.h"
+// #include "bsp_power_tvcc.h"
+
+// #include "bsp_tft_st7789.h"
+// #include "bsp_tft_lcd.h"
+
+// #include "bsp_beep.h"
+// #include "param.h"
+// #include "bsp_tim_pwm.h"
+// #include "bsp_fmc_io.h"
+
+// #include "bsp_period_ctrl.h"
+
+// #include "bsp_tim_dma.h"
+// #include "bsp_tim_capture.h"
+
+// #include "bsp_74hc595_io.h"
+
+// #include "bsp_emmc.h"
+// #include "bsp_ntc.h"
+// #include "bsp_ext_io.h"
+
+// #include "bsp_rng.h"
+// #include "bsp_ds18b20.h"
+
+
+
+
+#define HARD_MODEL              0x0750
+#define BOOT_VERSION            *(uint16_t *)(0x08000000 + 28)
+#define APP_VERSION             *(uint16_t *)(0x08020000 + 28)
+
+/* æä¾›ç»™å…¶ä»–Cæ–‡ä»¶è°ƒç”¨çš„å‡½æ•° */
+void bsp_Init(void);
+void bsp_DeInit(void);
+void bsp_Idle(void);
+
+void bsp_GetCpuID(uint32_t *_id);
+void Error_Handler(char *file, uint32_t line);
+void System_Init(void);
+/* ç”¨äºè°ƒè¯•æµ‹è¯•æ—¶é—´ D2 å’Œ D0 */
+#define DEBUG_D2_TRIG()                     \
+    if (s_D2State == 0)                     \
+    {                                       \
+        BSP_SET_GPIO_1(GPIOE, GPIO_PIN_6);  \
+        s_D2State = 1;                      \
+    }                                       \
+    else if (s_D2State == 1)                \
+    {                                       \
+        BSP_SET_GPIO_0(GPIOE, GPIO_PIN_6);  \
+        s_D2State = 0;                      \
+    }                                       \
+    else                                    \
+    {                                       \
+        EIO_D2_Config(ES_GPIO_OUT);         \
+        BSP_SET_GPIO_1(GPIOE, GPIO_PIN_6);  \
+        s_D2State = 1;                      \
+    }                                       
+extern uint8_t s_D2State;
+
+#define DEBUG_D0_TRIG()                     \
+    if (s_D0State == 0)                     \
+    {                                       \
+        BSP_SET_GPIO_1(GPIOI, GPIO_PIN_0);  \
+        s_D0State = 1;                      \
+    }                                       \
+    else if (s_D0State == 1)                \
+    {                                       \
+        BSP_SET_GPIO_0(GPIOI, GPIO_PIN_0);  \
+        s_D0State = 0;                      \
+    }                                       \
+    else                                    \
+    {                                       \
+        EIO_D0_Config(ES_GPIO_OUT);         \
+        BSP_SET_GPIO_1(GPIOI, GPIO_PIN_0);  \
+        s_D0State = 1;                      \
+    }                                       
+extern uint8_t s_D0State;
+    
+#endif
+
+/***************************** å®‰å¯Œè±ç”µå­ www.armfly.com (END OF FILE) *********************************/

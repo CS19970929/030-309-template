@@ -987,7 +987,6 @@ void IsSleepStartUp(void)
 		if (FLASH_COMPLETE == FlashWriteOneHalfWord(FLASH_ADDR_SLEEP_FLAG, FLASH_SLEEP_RESET_VALUE))
 		{
 			InitIO();
-			InitDelay();
 			InitSystemWakeUp();
 			InitE2PROM(); // 内部EEPROM，不需要初始化
 			Init_RTC();
@@ -1003,7 +1002,6 @@ void IsSleepStartUp(void)
 		if (FLASH_COMPLETE == FlashWriteOneHalfWord(FLASH_ADDR_SLEEP_FLAG, FLASH_SLEEP_RESET_VALUE))
 		{
 			InitIO();
-			InitDelay();
 			InitSystemWakeUp();
 
 			IOstatus_NormalMode();
@@ -1016,7 +1014,6 @@ void IsSleepStartUp(void)
 		if (FLASH_COMPLETE == FlashWriteOneHalfWord(FLASH_ADDR_SLEEP_FLAG, FLASH_SLEEP_RESET_VALUE))
 		{
 			InitIO();
-			InitDelay();
 			InitSystemWakeUp();
 
 			IOstatus_DeepMode();
@@ -1064,10 +1061,11 @@ void App_SleepDeal(void)
 		return;
 	}
 
-	if (0 == g_st_SysTimeFlag.bits.b1Sys1000msFlag1 && !Sleep_Mode.bits.b1ForceToSleep_L1 && !Sleep_Mode.bits.b1ForceToSleep_L2 && !Sleep_Mode.bits.b1ForceToSleep_L3)
-	{
-		return; // 如果是强制进入休眠的则必须快点进入休眠，不能拖
-	}
+	//todo
+	// if (0 == g_st_SysTimeFlag.bits.b1Sys1000msFlag1 && !Sleep_Mode.bits.b1ForceToSleep_L1 && !Sleep_Mode.bits.b1ForceToSleep_L2 && !Sleep_Mode.bits.b1ForceToSleep_L3)
+	// {
+	// 	return; // 如果是强制进入休眠的则必须快点进入休眠，不能拖
+	// }
 
 	switch (Sleep_Status)
 	{
@@ -1146,11 +1144,6 @@ void App_NormalSleepTest(void)
 {
 	static UINT16 s_u16HaltTestCnt = 0;
 
-	if (0 == g_st_SysTimeFlag.bits.b1Sys1000msFlag1)
-	{ // 休眠起来等待系统初始化完成
-		return;
-	}
-
 	if (++s_u16HaltTestCnt >= 5)
 	{ // 10s——Test
 		s_u16HaltTestCnt = 0;
@@ -1174,10 +1167,6 @@ void App_RTCSleepTest(void)
 {
 	static UINT16 s_u16HaltTestCnt = 0;
 
-	if (0 == g_st_SysTimeFlag.bits.b1Sys1000msFlag1)
-	{ // 休眠起来等待系统初始化完成
-		return;
-	}
 
 	if (++s_u16HaltTestCnt >= 5)
 	{ // 10s——Test
@@ -1201,74 +1190,31 @@ void App_RTCSleepTest(void)
 		*/
 	}
 }
-UINT8 lcd_com_cnt = 0;
-void APP_WAKEUP_LCD(void)
+
+void entersleep(enum _SLEEP_MODE mode)
 {
-	static UINT8 wakeTimcnt = 0;
-	static UINT8 su8_ShowStatus = 0; // 开机亮5s
+    switch (mode)
+    {
+    case HICCUP_MODE:
+        Sleep_Mode.bits.b1ForceToSleep_L1 = 1;
+        // g_sleepModeSelect = HICCUP_MODE;
+        break;
+    case NORMAL_MODE:
 
-	static UINT8 su8_SleepExtComCnt = 0;
-
-	if (g_st_SysTimeFlag.bits.b1Sys100msFlag == 0)
-		return;
-
-	if (su8_SleepExtComCnt != lcd_com_cnt)
-	{
-		su8_SleepExtComCnt = lcd_com_cnt;
-
-		// MCUO_DO1_EN = 0;
-	}
-	else
-	{
-		if ((g_stCellInfoReport.u16Ichg > 0) || (BlueToothFlag == 1) || (System_OnOFF_Func.bits.b1OnOFF_Heat == 1))
-		// if ((g_stCellInfoReport.u16Ichg > 0) || (BlueToothFlag == 1))
-		{
-			// MCUO_DO1_EN = !MCUO_DO1_EN;
-			MCUO_DO1_EN = 1;
-			MCUO_DO1_EN = 0;
-
-			// MCUO_DO1_EN = 1;
-			// MCUO_DO1_EN = 0;
-		}
-	}
-
-	// if ((g_stCellInfoReport.u16Ichg > 0) || (BlueToothFlag == 1) || (System_OnOFF_Func.bits.b1OnOFF_Heat == 1))
-	// {
-
-	// 	switch (su8_ShowStatus)
-	// 	{
-	// 	case 0:
-	// 		// MCUO_SOC_BLE = 1;
-
-	// 		if (MCUI_SOC_KEY == 0)
-	// 		{
-	// 			su8_ShowStatus = 1;
-	// 		}
-
-	// 		if (g_stCellInfoReport.u16Ichg)
-	// 		{
-	// 			LedBar_Command = LED_BAR_CHG;
-	// 		}
-
-	// 		if (g_stCellInfoReport.u16IDischg)
-	// 		{
-	// 			LedBar_Command = LED_BAR_DSG;
-	// 		}
-	// 		break;
-	// 		// fixme 不起作用
-
-	// 	case 1:
-	// 		// 5s
-	// 		if (++su16_ShowDelay_Tcnt <= 10 * 5)
-	// 		{
-	// 		}
-	// 		else
-	// 		{
-	// 		}
-
-	// 		break;
-	// 	default:
-	// 		break;
-	// 	}
-	// }
+        break;
+    case DEEP_MODE:
+        Sleep_Mode.bits.b1ForceToSleep_L3 = 1;
+        // g_sleepModeSelect = DEEP_MODE;
+#ifdef __FUNC__LED__
+        set_LED_state(LED_BAR_NORMAL, 4);
+#endif // DEBUG
+        break;
+    // case NO_SLEEP:
+    //     // g_sleepModeSelect = NO_SLEEP;
+    //     Sleep_Status = SLEEP_HICCUP_SHIFT;
+    //     Sleep_Mode.all = 0;
+    //     break;
+    default:
+        break;
+    }
 }

@@ -65,21 +65,6 @@ Others:
 *******************************************************************************/
 void Delay4us(void)
 {
-	//	UINT8 i;
-
-#if 0
-	for(j=0; j<8; j++) {	//72MHz
-		for(i=0; i<13; i++) {
-			//system clock = 24MHz
-		}
-	}
-#endif
-
-#if 0
-	for(i=0; i<4; i++) {
-		//system clock = 8MHz
-	}
-#endif
 	__delay_us(4);
 }
 
@@ -103,106 +88,6 @@ UINT8 CRC8cal(UINT8 *p, UINT8 Length)
 
 	return (crc8);
 }
-
-void F_TWI_CLK_OUT(void)
-{
-	GPIO_InitTypeDef GPIO_InitStructure;
-
-	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOB, ENABLE);
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6;
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
-	GPIO_InitStructure.GPIO_OType = GPIO_OType_OD;
-	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_Init(GPIOB, &GPIO_InitStructure);
-}
-
-void F_TWI_CLK_IN(void)
-{
-	GPIO_InitTypeDef GPIO_InitStructure;
-
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6;
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
-	//	GPIO_InitStructure.GPIO_OType = GPIO_OType_OD;
-	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;  //????
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz; // IO????50MHz
-	GPIO_Init(GPIOB, &GPIO_InitStructure);
-}
-
-void F_TWI_CLK_HIGH(void)
-{
-	// TWI_CLK_OUT();
-	GPIO_SetBits(GPIOB, GPIO_Pin_6);
-}
-
-void F_TWI_CLK_LOW(void)
-{
-	// TWI_CLK_OUT();
-	GPIO_ResetBits(GPIOB, GPIO_Pin_6);
-}
-
-void F_TWI_DAT_OUT(void)
-{
-	GPIO_InitTypeDef GPIO_InitStructure;
-
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_7;
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT; //????
-	GPIO_InitStructure.GPIO_OType = GPIO_OType_OD;
-	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL; //????
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_Init(GPIOB, &GPIO_InitStructure);
-}
-
-void F_TWI_DAT_IN(void)
-{
-	GPIO_InitTypeDef GPIO_InitStructure;
-
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_7;
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;	  //??
-													  //	GPIO_InitStructure.GPIO_OType = GPIO_OType_OD;
-	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;  //????
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz; // IO????50MHz
-	GPIO_Init(GPIOB, &GPIO_InitStructure);
-}
-
-void F_TWI_DAT_HIGH(void)
-{
-	//	TWI_DAT_OUT();
-	GPIO_SetBits(GPIOB, GPIO_Pin_7);
-}
-
-void F_TWI_DAT_LOW(void)
-{
-	//	TWI_DAT_OUT();
-	GPIO_ResetBits(GPIOB, GPIO_Pin_7);
-}
-
-uint8_t F_TWI_RD_DAT(void)
-{
-	uint8_t ii;
-
-	ii = GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_7);
-
-	return ii;
-}
-
-uint8_t F_TWI_RD_CLK(void)
-{
-	uint8_t ii;
-
-	ii = GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_6);
-
-	return ii;
-}
-
-/*******************************************************************************
-Function:
-1. TwiStart()
-2. TwiReStart()
-3. TwiStop()
-Input:
-Output:
-********************************************************************************/
 void TwiStart(void)
 {
 	TWI_DAT_HIGH;
@@ -887,14 +772,6 @@ void InitAFE1(void)
 	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
 	GPIO_Init(GPIOA, &GPIO_InitStructure);
 
-#ifdef _SLEEP_WITH_CURRENT
-	if (FLASH_309_RTC_RTC_VALUE == FlashReadOneHalfWord(FLASH_ADDR_SH367309_FLAG) || FLASH_309_RTC_NORMAL_VALUE == FlashReadOneHalfWord(FLASH_ADDR_SH367309_FLAG))
-	{
-		AFE_PARAM_WRITE_Flag = 0; // 如果是RTC起来的，则不需要进入烧写模式，烧写模式会短暂关闭MOS，这个岂不是可以直接控制MOS关掉了嘛？
-	}
-#endif
-
-	//__delay_ms(10);
 	AFE_IsReady();
 	SH367309_UpdataAfeConfig();
 	SH367309_Enable_AFE_Wdt_Cadc_Drivers();

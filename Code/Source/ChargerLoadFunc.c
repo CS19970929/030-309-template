@@ -89,7 +89,7 @@ void AllSeriesDeal_Sleep_Or_None(void)
 
 	if (ChargerLoad_Func.bits.b1OFFDriver_AFE_ERR || ChargerLoad_Func.bits.b1OFFDriver_EEPROM_ERR)
 	{
-		// Sleep_Mode.bits.b1ForceToSleep_L2 = 1;
+		Sleep_Mode.bits.b1ForceToSleep_L2 = 1;
 		// 直接进入休眠，这里不作处理，万一起来了就好了呢
 	}
 
@@ -240,10 +240,6 @@ void Init_ChargerLoad_Det(void)
 
 void App_ChargerLoad_Det(void)
 {
-	if (0 == g_st_SysTimeFlag.bits.b1Sys1000msFlag2)
-	{
-		return;
-	}
 	// 电枪插入解除类型，全系列都有，PA0信号，下降沿起作用
 	AllSeriesDeal_Charger_ON(); // 包括三次低压，三次放电过流，CBC
 
