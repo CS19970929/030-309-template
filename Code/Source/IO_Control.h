@@ -4,6 +4,16 @@
 // #include "IODrivers_030.h"
 #include "IODrivers.h"
 
+enum system_status
+{
+	S_DSG = 0,
+	S_CHG,
+	S_CHARGESIG,
+	S_STARTUP,
+	S_IDLE,
+	S_PRECHG,
+};
+
 typedef enum _IO_STATUS {
 OPEN = 1, CLOSE = 0
 }IO_STATUS;

@@ -34,7 +34,7 @@ void InitWakeUp_Base(void)
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;	   // 使能外部中断通道
 	NVIC_Init(&NVIC_InitStructure);
 
-	// DI
+#if 1
 	{
 		GPIO_InitStructure.GPIO_Pin = GPIO_Pin_13; // 选择要用的GPIO引脚
 		GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
@@ -55,17 +55,18 @@ void InitWakeUp_Base(void)
 		NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;		// 使能外部中断通道
 		NVIC_Init(&NVIC_InitStructure);
 	}
+#endif
 	// SOC KEY
 	{
-		GPIO_InitStructure.GPIO_Pin = PIN_SOC_KEY; // 选择要用的GPIO引脚
+		GPIO_InitStructure.GPIO_Pin = PIN_LED_KEY; // 选择要用的GPIO引脚
 		GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
 		GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL; // 设置引脚模式为上拉输入模式
-		GPIO_Init(PORT_SOC_KEY, &GPIO_InitStructure);
+		GPIO_Init(GPIO_LED_KEY, &GPIO_InitStructure);
 
 		// 设置中断线0，EXTI0和PA0挂钩
-		SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOB, EXTI_PinSource5);
+		SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOA, EXTI_PinSource15);
 		// 配置PA0_WKUP外部上升沿中断
-		EXTI_InitStruct.EXTI_Line = EXTI_Line5;
+		EXTI_InitStruct.EXTI_Line = EXTI_Line15;
 		EXTI_InitStruct.EXTI_Mode = EXTI_Mode_Interrupt;
 		EXTI_InitStruct.EXTI_Trigger = EXTI_Trigger_Falling; // 上升沿中断
 		EXTI_InitStruct.EXTI_LineCmd = ENABLE;
@@ -199,86 +200,18 @@ void IOstatus_Base(void)
 	GPIOC->MODER = 0XFFFFFFFF;
 	GPIOF->PUPDR = 0;
 	GPIOF->MODER = 0XFFFFFFFF;
-
-	/*
-	//没用，还是要把CLTL的影响去掉。不然各种休眠断一下，开机断一下。
-	//PB14_CTLC_保持输出高电平，不然会断，上面的操作ns的断应该问题不大。
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_14;
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
-	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_Level_1;
-	GPIO_Init(GPIOB, &GPIO_InitStructure);
-	GPIO_SetBits(GPIOB, GPIO_InitStructure.GPIO_Pin);
-	*/
-
-	// PA0_WKUP
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0; // 选择要用的GPIO引脚
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
-	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL; // 设置引脚模式为上拉输入模式
-	GPIO_Init(GPIOA, &GPIO_InitStructure);
-
-	// PB5_PWSV_LDO
-	// GPIO_InitStructure.GPIO_Pin = GPIO_Pin_5;
-	// GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
-	// GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-	// GPIO_InitStructure.GPIO_Speed = GPIO_Speed_Level_1;
-	// GPIO_Init(GPIOB, &GPIO_InitStructure);
-	// GPIO_ResetBits(GPIOB, GPIO_InitStructure.GPIO_Pin);
-	// delay(1500000);
-
-	// PB1_PWSV_STB
-
-	/**********************A8 B1 B15*/
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_1;
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
-	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_Level_1;
-	GPIO_Init(GPIOB, &GPIO_InitStructure);
-	GPIO_ResetBits(GPIOB, GPIO_InitStructure.GPIO_Pin);
-	delay(1000000);
-
-	// PB15_MCUO_PWSV_CTR
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_15;
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
-	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_Level_1;
-	GPIO_Init(GPIOB, &GPIO_InitStructure);
-	GPIO_ResetBits(GPIOB, GPIO_InitStructure.GPIO_Pin);
-
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_8;
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
-	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_Level_1;
-	GPIO_Init(GPIOA, &GPIO_InitStructure);
-	GPIO_ResetBits(GPIOA, GPIO_InitStructure.GPIO_Pin);
-
-	MCUO_PWSV_CTR = 0;
-
-	// PB6_MCUO_DRV_WLM_PW
-	// GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6;
-	// GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
-	// GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-	// GPIO_InitStructure.GPIO_Speed = GPIO_Speed_Level_1;
-	// GPIO_Init(GPIOB, &GPIO_InitStructure);
-	// GPIO_ResetBits(GPIOB, GPIO_InitStructure.GPIO_Pin);
-
-	// AFE_Sleep();
 }
 
 // 第二级休眠的AFE只有Sleep模式
 // 第二级还是不要仓运模式，有可能要通过Alarm信号唤醒
 void IOstatus_NormalMode(void)
 {
-	InitAFE1_Sleep(0);
-	AFE_Sleep();
 	IOstatus_Base();
 }
 
 // 高压的时候，默认是进入IDLE模式，如果IDLE模式不允许进去，则还是进Sleep模式，但是MCU还是RTC模式
 void IOstatus_RTCMode(void)
 {
-	InitAFE1_Sleep(1);
-	AFE_IDLE();
 	IOstatus_Base();
 }
 
@@ -288,9 +221,8 @@ void IOstatus_DeepMode(void)
 	// AFE_SHIP(); // 不需要准备，直接控引脚进入ship模式
 	// IOstatus_Base();
 
-	InitAFE1_Sleep(0);
-	AFE_Sleep();
 	IOstatus_Base();
+	__delay_ms(100);
 }
 
 void IORecover_RTCMode(void)
@@ -431,6 +363,9 @@ void SleepDeal_Continue(void)
 
 	if (u8FlashWriteOK_flag)
 	{
+		InitAFE1_Sleep(0);
+		AFE_Sleep();
+		Board_PowerOff();
 		MCU_RESET();
 	}
 }
@@ -986,10 +921,6 @@ void IsSleepStartUp(void)
 	case FLASH_HICCUP_SLEEP_VALUE:
 		if (FLASH_COMPLETE == FlashWriteOneHalfWord(FLASH_ADDR_SLEEP_FLAG, FLASH_SLEEP_RESET_VALUE))
 		{
-			InitIO();
-			InitDelay();
-			InitSystemWakeUp();
-			InitE2PROM(); // 内部EEPROM，不需要初始化
 			Init_RTC();
 
 			IOstatus_RTCMode();
@@ -1002,10 +933,6 @@ void IsSleepStartUp(void)
 	case FLASH_NORMAL_SLEEP_VALUE:
 		if (FLASH_COMPLETE == FlashWriteOneHalfWord(FLASH_ADDR_SLEEP_FLAG, FLASH_SLEEP_RESET_VALUE))
 		{
-			InitIO();
-			InitDelay();
-			InitSystemWakeUp();
-
 			IOstatus_NormalMode();
 			InitWakeUp_NormalMode();
 			Sys_StopMode();
@@ -1015,10 +942,6 @@ void IsSleepStartUp(void)
 	case FLASH_DEEP_SLEEP_VALUE:
 		if (FLASH_COMPLETE == FlashWriteOneHalfWord(FLASH_ADDR_SLEEP_FLAG, FLASH_SLEEP_RESET_VALUE))
 		{
-			InitIO();
-			InitDelay();
-			InitSystemWakeUp();
-
 			IOstatus_DeepMode();
 			InitWakeUp_DeepMode();
 			// Sys_StandbyMode();		//不能掌控外部IO，弃用
@@ -1058,11 +981,11 @@ void App_SleepDeal(void)
 		SystemStatus.bits.b1Status_ToSleep = 1;
 	}
 
-	if (Sleep_Mode.bits.b1_ToSleepFlag)
-	{
-		LogRecord_Flag.bits.Log_Sleep = 1;
-		return;
-	}
+	// if (Sleep_Mode.bits.b1_ToSleepFlag)
+	// {
+	// 	LogRecord_Flag.bits.Log_Sleep = 1;
+	// 	return;
+	// }
 
 	if (0 == g_st_SysTimeFlag.bits.b1Sys1000msFlag1 && !Sleep_Mode.bits.b1ForceToSleep_L1 && !Sleep_Mode.bits.b1ForceToSleep_L2 && !Sleep_Mode.bits.b1ForceToSleep_L3)
 	{
@@ -1204,29 +1127,29 @@ void App_RTCSleepTest(void)
 
 void entersleep(enum _SLEEP_MODE mode)
 {
-    switch (mode)
-    {
-    case HICCUP_MODE:
-        Sleep_Mode.bits.b1ForceToSleep_L1 = 1;
-        // g_sleepModeSelect = HICCUP_MODE;
-        break;
-    case NORMAL_MODE:
-        Sleep_Mode.bits.b1ForceToSleep_L2 = 1;
-        // g_sleepModeSelect = NORMAL_MODE;
-        break;
-    case DEEP_MODE:
-        Sleep_Mode.bits.b1ForceToSleep_L3 = 1;
-        // g_sleepModeSelect = DEEP_MODE;
+	switch (mode)
+	{
+	case HICCUP_MODE:
+		Sleep_Mode.bits.b1ForceToSleep_L1 = 1;
+		// g_sleepModeSelect = HICCUP_MODE;
+		break;
+	case NORMAL_MODE:
+		Sleep_Mode.bits.b1ForceToSleep_L2 = 1;
+		// g_sleepModeSelect = NORMAL_MODE;
+		break;
+	case DEEP_MODE:
+		Sleep_Mode.bits.b1ForceToSleep_L3 = 1;
+		// g_sleepModeSelect = DEEP_MODE;
 #ifdef __FUNC__LED__
-        // set_LED_state(LED_BAR_NORMAL, 4);
+		// set_LED_state(LED_BAR_NORMAL, 4);
 #endif // DEBUG
-        break;
-    // case NO_SLEEP:
-    //     // g_sleepModeSelect = NO_SLEEP;
-    //     Sleep_Status = SLEEP_HICCUP_SHIFT;
-    //     Sleep_Mode.all = 0;
-    //     break;
-    default:
-        break;
-    }
+		break;
+	// case NO_SLEEP:
+	//     // g_sleepModeSelect = NO_SLEEP;
+	//     Sleep_Status = SLEEP_HICCUP_SHIFT;
+	//     Sleep_Mode.all = 0;
+	//     break;
+	default:
+		break;
+	}
 }

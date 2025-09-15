@@ -147,9 +147,9 @@ void App_DI1_Switch(void)
 #ifdef _DI_SWITCH_longKEY_ONOFF
 	static UINT16 su16_AntiShake_Cnt2 = 0;
 
-	if (0 == MCUI_ENI_DI1)
+	if (0 == MCUI_ENI_DI1 || 0 == MCUI_SOC_KEY)
 	{
-		if (++su16_AntiShake_Cnt2 >= 100)
+		if (++su16_AntiShake_Cnt2 >= 500)
 		{
 			su16_AntiShake_Cnt2 = 0;
 			entersleep(DEEP_MODE);
@@ -270,10 +270,189 @@ void App_DI1_Switch(void)
 #endif
 }
 
+enum system_status bms_status = S_STARTUP;
+
+void close_dsg(void)
+{
+	SH367309_DriverMos_Ctrl(GPIO_DSG, CLOSE);
+	// AFE2_DriverMos_Ctrl(GPIO_DSG, CLOSE);
+}
+void open_dsg(void)
+{
+	// AFE2_DriverMos_Ctrl(GPIO_DSG, OPEN);
+	SH367309_DriverMos_Ctrl(GPIO_DSG, OPEN);
+}
+void close_chg(void)
+{
+	SH367309_DriverMos_Ctrl(GPIO_CHG, CLOSE);
+	// AFE2_DriverMos_Ctrl(GPIO_CHG, CLOSE);
+	GPIO_WriteBit(GPIO_MCU_DRV, PIN_MCU_DRV, 0);
+}
+void open_chg(void)
+{
+	GPIO_WriteBit(GPIO_MCU_DRV, PIN_MCU_DRV, 1);
+	// AFE2_DriverMos_Ctrl(GPIO_CHG, OPEN);
+	SH367309_DriverMos_Ctrl(GPIO_CHG, OPEN);
+}
+
+void DriverMos_Ctrl(GPIO_Type Type, UINT8 OnOFF)
+{
+	switch (Type)
+	{
+	case GPIO_PreCHG:
+		// SH367309_Reg_Store.REG_MTP_CONF.bits.PCHMOS = OnOFF;
+		break;
+	case GPIO_CHG:
+		if (OnOFF)
+		{
+			open_chg();
+		}
+		else
+		{
+			close_chg();
+		}
+		break;
+	case GPIO_DSG:
+		if (OnOFF)
+		{
+			open_dsg();
+		}
+		else
+		{
+			close_dsg();
+		}
+		break;
+	default:
+		break;
+	}
+}
+
+bool isCHGsig(void)
+{
+	static uint16_t cnt_chg_sig = 0;
+	bool result = false;
+
+	if (GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_0))
+	{
+		if (++cnt_chg_sig >= 10)
+		{
+			cnt_chg_sig = 0;
+
+			result = true;
+		}
+	}
+	else
+	{
+		cnt_chg_sig = 0;
+	}
+
+	return result;
+}
+
 void Drivers_External_Ctrl(void)
 {
-#if 1
 	static UINT8 su8_Ctrl_Tcnt = 0;
+#if 1
+#if 0
+
+	static bool openDriver = false;
+
+	switch (bms_status)
+	{
+	case S_IDLE:
+		Driver_Element.MosRelay_Status.bits.b1Status_MOS_DSG = 0;
+		Driver_Element.MosRelay_Status.bits.b1Status_MOS_CHG = 0;
+
+		if (0 == MCUI_ENI_DI1)
+		{
+			bms_status = S_DSG;
+		}
+		// todo 奇怪，昨天是怎么冲电的，得测试下
+		if (isCHGsig())
+		{
+			Driver_Element.MosRelay_Status.bits.b1Status_MOS_DSG = 0;
+
+			bms_status = S_CHG;
+		}
+		break;
+	case S_STARTUP:
+		static uint16_t cnt = 0;
+
+		if (GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_0))
+		{
+			bms_status = S_CHG;
+			// GPIO_WriteBit(GPIO_MCU_RES, PIN_MCU_RES, 0);
+			close_dsg();
+			openDriver = true;
+			Driver_Element.MosRelay_Status.bits.b1Status_MOS_DSG = 0;
+		}
+		else
+		{
+			// GPIO_WriteBit(GPIO_MCU_RES, PIN_MCU_RES, 1);
+			// todo 去掉延时 state ma
+			// if (++cnt >= (10))
+			{
+				cnt = 0;
+				open_dsg();
+
+				// __delay_ms(1 * 1);
+				// // todo test 预充
+				// GPIO_WriteBit(GPIO_MCU_RES, PIN_MCU_RES, 0);
+
+				bms_status = S_DSG;
+				openDriver = true;
+				Driver_Element.MosRelay_Status.bits.b1Status_MOS_CHG = 0;
+			}
+		}
+		GPIO_WriteBit(GPIO_AFE1_CTL, PIN_AFE1_CTL, 1);
+		break;
+	// case S_PRECHG:
+	// break;
+	case S_DSG:
+		Driver_Element.MosRelay_Status.bits.b1Status_MOS_CHG = 0;
+		if (isCHGsig())
+		{
+			Driver_Element.MosRelay_Status.bits.b1Status_MOS_DSG = 0;
+
+			bms_status = S_CHG;
+		}
+		break;
+	case S_CHG:
+		Driver_Element.MosRelay_Status.bits.b1Status_MOS_DSG = 0;
+
+		static UINT16 I_cnt = 0;
+
+		if (!g_stCellInfoReport.u16Ichg)
+		{
+			if (++I_cnt >= 100)
+			{
+				// bms_status = S_CHARGESIG;
+				I_cnt = 0;
+
+				close_chg();
+				if (!GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_0))
+				{
+					// GPIO_WriteBit(GPIO_Meter_EN, PIN_Meter_En, 0);
+					// if (MCUI_ENI_DI1 == 0)
+					// {
+					bms_status = S_DSG;
+					// }
+					// else
+					// {
+					// 	bms_status = S_IDLE;
+					// }
+				}
+			}
+		}
+		else
+		{
+			I_cnt = 0;
+		}
+		break;
+	default:
+		break;
+	}
+#endif
 
 	if (Driver_Element.u8_DriverCtrl_Right)
 	{
@@ -281,8 +460,8 @@ void Drivers_External_Ctrl(void)
 		if (++su8_Ctrl_Tcnt >= 10)
 		{
 			su8_Ctrl_Tcnt = 0;
-			SH367309_DriverMos_Ctrl(GPIO_CHG, Driver_Element.MosRelay_Status.bits.b1Status_MOS_CHG);
-			SH367309_DriverMos_Ctrl(GPIO_DSG, Driver_Element.MosRelay_Status.bits.b1Status_MOS_DSG);
+			DriverMos_Ctrl(GPIO_CHG, Driver_Element.MosRelay_Status.bits.b1Status_MOS_CHG);
+			DriverMos_Ctrl(GPIO_DSG, Driver_Element.MosRelay_Status.bits.b1Status_MOS_DSG);
 		}
 	}
 #else

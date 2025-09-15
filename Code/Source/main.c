@@ -48,13 +48,14 @@ int main(void)
 		App_SysTime();
 		App_CommonUpper();
 		App_AFEGet();
+		SOC_LED_Update();
 		App_SH367309();
 		App_AnlogCal();
 
 		// App_E2promDeal();
 		App_SleepDeal(); // 放在App_MOS_Relay_Control()后面
-		// App_SOC();
-		App_CellBalance();
+		App_SOC();
+		// App_CellBalance();
 		App_WarnCtrl();
 		App_MOS_Relay_Ctrl();
 
@@ -63,9 +64,9 @@ int main(void)
 		// App_ChargerLoad_Det();
 		// App_Heat_Cool_Ctrl();
 
-		App_FlashUpdateDet();
-		App_LogRecord();
-		App_ProID_Deal();
+		// App_FlashUpdateDet();
+		// App_LogRecord();
+		// App_ProID_Deal();
 
 		Feed_IWatchDog;
 #endif
@@ -94,14 +95,25 @@ void InitDevice(void)
 	InitE2PROM(); // 内部EEPROM，不需要初始化
 	InitUSART_CommonUpper();
 	InitADC();
-	// InitData_SOC();
+	InitData_SOC();
 	Init_ChargerLoad_Det();
 	// InitHeat_Cool();
 	InitAFE1();
 	InitMosRelay_DOx();
 
+	UpdateVoltageFromBqMaximo();
+	DataLoad_CellVolt();
+	DataLoad_CellVoltMaxMinFind();
+	DataLoad_Temperature();
+	DataLoad_TemperatureMaxMinFind();
+	DataLoad_Current();
+
+	sys_time.sample_voltage = (float)g_stCellInfoReport.u16VCellTotle / 100;
+	SOC_LED_Init(sys_time.sample_voltage);
+	Board_PowerOn(); // 上电动画
+
 #ifndef _DEBUG_
-	Init_IWDG();
+	// Init_IWDG();
 #endif // !1
 
 #endif
@@ -109,12 +121,15 @@ void InitDevice(void)
 
 void InitVar(void)
 {
+	
+
 	InitSystemMonitorData_EEPROM();
 	SeriesNum = OtherElement.u16Sys_SeriesNum;
 	g_u32CS_Res_AFE = ((UINT32)OtherElement.u16Sys_CS_Res_Num * 1000) / OtherElement.u16Sys_CS_Res;
 
-	SystemStatus.bits.b4Status_ProjectVer = 1;
+	// SystemStatus.bits.b4Status_ProjectVer = 1;
 	LogRecord_Flag.bits.Log_StartUp = 1;
+	SystemStatus.bits.b1StartUpBMS = 0;
 }
 
 void App_WakeUpAFE(void)
@@ -128,18 +143,8 @@ UINT8 App_AFEshutdown(void)
 
 void InitSystemWakeUp(void)
 {
-	// MCUO_SD_DRV_CHG = 0;
-
-	MCUO_PWSV_STB = 1;
-
-	// MCUO_PWSV_LDO = 1;
-	MCUO_PWSV_CTR = 1;
-
-	// MCUO_DRV_WLM_PW = 1;
-
-	MCUO_AFE_CTLC = 0; // 刚上电，默认高阻态，所以不慌AFE刚开机瞬间打开MOS
-	// bug fixme 注意
-	MCUO_AFE_SHIP = 0;
+	MCUO_AFE_CTLC = 1; // 刚上电，默认高阻态，所以不慌AFE刚开机瞬间打开MOS
+	// MCUO_AFE_SHIP = 0;
 	MCUO_AFE_MODE = 0;
 
 	__delay_ms(10);

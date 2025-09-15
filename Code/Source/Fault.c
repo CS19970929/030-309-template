@@ -1289,16 +1289,10 @@ void App_VdeltaOp_ThirdCheck(void)
  ******************************************************************************/
 void App_WarnCtrl(void)
 {
-#if 0 // 原来函数时基被内置了，懒得改了。
-	if(0 == g_st_SysTimeFlag.bits.b1Sys10msFlag3) {
-		return STARTUP_CONT;
-	}
-#endif
-
-	if (STARTUP_CONT == System_FUNC_StartUp(SYSTEM_FUNC_STARTUP_PROTECT))
-	{
-		return;
-	}
+	// if (STARTUP_CONT == System_FUNC_StartUp(SYSTEM_FUNC_STARTUP_PROTECT))
+	// {
+	// 	return;
+	// }
 
 	App_CellOvp_SecondCheck();
 	App_CellOvp_ThirdCheck();

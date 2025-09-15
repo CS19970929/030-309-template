@@ -39,45 +39,42 @@ typedef struct _16_Bits_Struct {
 #define PORT_DO1_EN             GPIOB
 #define PIN_DO1_EN              GPIO_Pin_9
 #define MCUO_DO1_EN         (PORT_OUT_GPIOB->bit9)
-//#define MCUO_DEBUG_LED2 	PDout(3)		//PB3£¬LED2
+//#define MCUO_DEBUG_LED2 	PDout(3)		//PB3ï¿½ï¿½LED2
 
-//µçÔ´Ä£¿é
-#define MCUO_PWSV_STB 		(PORT_OUT_GPIOB->bit1)		//
+//ï¿½ï¿½Ô´Ä£ï¿½ï¿½
 #define MCUO_PWSV_LDO		(PORT_OUT_GPIOB->bit5)		//
-#define MCUO_PWSV_CTR		(PORT_OUT_GPIOB->bit15)		//
 #define MCUO_DRV_WLM_PW		(PORT_OUT_GPIOB->bit6)		//
-//#define MCUO_BAT_CHG_EN 	PAout(11)					//RTCµç³ØÔ¤£¬ÎÞ
+//#define MCUO_BAT_CHG_EN 	PAout(11)					//RTCï¿½ï¿½ï¿½Ô¤ï¿½ï¿½ï¿½ï¿½
 
 
-//Çý¶¯Ä£¿é
-#define MCUO_RELAY_PRE		(PORT_OUT_GPIOB->bit13)		//Ô¤·ÅÔ¤³ä¼ÌµçÆ÷£¬·ÀÖ¹´ò¿ªË²¼ä´óµçÁ÷
-#define MCUO_RELAY_MAIN		(PORT_OUT_GPIOB->bit13)		//Ö÷¼ÌµçÆ÷
-#define MCUO_RELAY_CHG 		(PORT_OUT_GPIOB->bit13)		//PB13£¬³äµçRELAY
-#define MCUO_RELAY_DSG 		(PORT_OUT_GPIOB->bit14)		//PB14£¬·ÅµçRELAY
+//ï¿½ï¿½ï¿½ï¿½Ä£ï¿½ï¿½
+#define MCUO_RELAY_PRE		(PORT_OUT_GPIOB->bit13)		//Ô¤ï¿½ï¿½Ô¤ï¿½ï¿½Ìµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¹ï¿½ï¿½Ë²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+#define MCUO_RELAY_MAIN		(PORT_OUT_GPIOB->bit13)		//ï¿½ï¿½ï¿½Ìµï¿½ï¿½ï¿½
+#define MCUO_RELAY_CHG 		(PORT_OUT_GPIOB->bit13)		//PB13ï¿½ï¿½ï¿½ï¿½ï¿½RELAY
+#define MCUO_RELAY_DSG 		(PORT_OUT_GPIOB->bit14)		//PB14ï¿½ï¿½ï¿½Åµï¿½RELAY
 
-#define MCUO_MOS_PRE 		(PORT_OUT_GPIOA->bit8)		//PA8£¬³äµçMOS
-#define MCUO_MOS_CHG 		(PORT_OUT_GPIOB->bit13)		//PB13£¬³äµçMOS
-#define MCUO_MOS_DSG 		(PORT_OUT_GPIOB->bit14)		//PB14£¬·ÅµçMOS
-#define MCUO_SD_DRV_CHG 	(PORT_OUT_GPIOA->bit11)		//Çý¶¯ÐÅºÅ£¬ÀàËÆÉ¨µØ»ú
+#define MCUO_MOS_PRE 		(PORT_OUT_GPIOA->bit8)		//PA8ï¿½ï¿½ï¿½ï¿½ï¿½MOS
+#define MCUO_MOS_CHG 		(PORT_OUT_GPIOB->bit13)		//PB13ï¿½ï¿½ï¿½ï¿½ï¿½MOS
+#define MCUO_MOS_DSG 		(PORT_OUT_GPIOB->bit14)		//PB14ï¿½ï¿½ï¿½Åµï¿½MOS
+#define MCUO_SD_DRV_CHG 	(PORT_OUT_GPIOA->bit11)		//ï¿½ï¿½ï¿½ï¿½ï¿½ÅºÅ£ï¿½ï¿½ï¿½ï¿½ï¿½É¨ï¿½Ø»ï¿½
 
-#define MCUO_SDA 	(PORT_OUT_GPIOB->bit11)		//Çý¶¯ÐÅºÅ£¬ÀàËÆÉ¨µØ»ú
-#define MCUO_SCL 	(PORT_OUT_GPIOB->bit10)		//Çý¶¯ÐÅºÅ£¬ÀàËÆÉ¨µØ»ú
+#define MCUO_SDA 	(PORT_OUT_GPIOB->bit11)		//ï¿½ï¿½ï¿½ï¿½ï¿½ÅºÅ£ï¿½ï¿½ï¿½ï¿½ï¿½É¨ï¿½Ø»ï¿½
+#define MCUO_SCL 	(PORT_OUT_GPIOB->bit10)		//ï¿½ï¿½ï¿½ï¿½ï¿½ÅºÅ£ï¿½ï¿½ï¿½ï¿½ï¿½É¨ï¿½Ø»ï¿½
 
 
 #define MCUI_ENI_DI1		(PORT_IN_GPIOC->bit13)		//
 
 
-//AFEÄ£¿é
-#define MCUO_AFE_SHIP 		(PORT_OUT_GPIOB->bit12)		//AFE_SHIP
-#define MCUO_AFE_MODE 		(PORT_OUT_GPIOB->bit13)		//AFE_MODE
+//AFEÄ£ï¿½ï¿½
+#define MCUO_AFE_MODE 		(PORT_OUT_GPIOA->bit8)		//AFE_MODE
 #define MCUO_AFE_VPRO 		(PORT_OUT_GPIOA->bit1)		//AFE_VPRO
-#define MCUO_AFE_CTLC 		(PORT_OUT_GPIOB->bit14)		//¿ØÖÆÇý¶¯
+#define MCUO_AFE_CTLC 		(PORT_OUT_GPIOB->bit14)		//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 
 
-//ÆäËüÄ£¿é
-#define MCUO_E2PR_WP		(PORT_OUT_GPIOA->bit15)		//EEPROMÐ´±£»¤
-#define MCUO_RELAY_HEAT 	(PORT_OUT_GPIOA->bit11)		//PA12£¬¼ÓÈÈ¼ÌµçÆ÷
-#define MCUO_RELAY_COOL		(PORT_OUT_GPIOA->bit7)		//PE11£¬ÖÆÀä¼ÌµçÆ÷£¬ÏÈÓÃ·Åµç¼ÌµçÆ÷
+//ï¿½ï¿½ï¿½ï¿½Ä£ï¿½ï¿½
+#define MCUO_E2PR_WP		(PORT_OUT_GPIOA->bit15)		//EEPROMÐ´ï¿½ï¿½ï¿½ï¿½
+#define MCUO_RELAY_HEAT 	(PORT_OUT_GPIOA->bit11)		//PA12ï¿½ï¿½ï¿½ï¿½ï¿½È¼Ìµï¿½ï¿½ï¿½
+#define MCUO_RELAY_COOL		(PORT_OUT_GPIOA->bit7)		//PE11ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ìµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã·Åµï¿½Ìµï¿½ï¿½ï¿½
 
 
 typedef enum NVIC_ONOFF {
@@ -115,10 +112,10 @@ union SYS_TIME {			//TODO
 
 
 struct CBC_ELEMENT {
-	UINT8 u8CBC_CHG_ErrFlag;	//³öÏÖCBC±£»¤±êÖ¾Î»
-	UINT8 u8CBC_CHG_Cnt;		//³öÏÖ³äµçCBCµÄ´ÎÊý
-	UINT8 u8CBC_DSG_ErrFlag;	//³öÏÖCBC±£»¤±êÖ¾Î»
-	UINT8 u8CBC_DSG_Cnt;		//³öÏÖ·ÅµçCBCµÄ´ÎÊý
+	UINT8 u8CBC_CHG_ErrFlag;	//ï¿½ï¿½ï¿½ï¿½CBCï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¾Î»
+	UINT8 u8CBC_CHG_Cnt;		//ï¿½ï¿½ï¿½Ö³ï¿½ï¿½CBCï¿½Ä´ï¿½ï¿½ï¿½
+	UINT8 u8CBC_DSG_ErrFlag;	//ï¿½ï¿½ï¿½ï¿½CBCï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¾Î»
+	UINT8 u8CBC_DSG_Cnt;		//ï¿½ï¿½ï¿½Ö·Åµï¿½CBCï¿½Ä´ï¿½ï¿½ï¿½
 };
 
 

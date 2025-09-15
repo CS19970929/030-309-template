@@ -145,7 +145,7 @@ void DataLoad_Temperature(void)
 	INT32 t_i32temp;
 	UINT8 Select;
 
-	Select = 2;
+	Select = 1;
 
 	for (i = 0; i < Select; i++)
 	{
@@ -155,16 +155,16 @@ void DataLoad_Temperature(void)
 		Monitor_TempBreak(&g_stCellInfoReport.u16Temperature[i]);
 	}
 
-#if 0
-	//环境温度1
-	t_i32temp = g_i32ADCResult[ADC_TEMP_EV] / 10 - 40;		//放大1000倍和B值对应的意思
-	//t_i32temp =  - 40;
-	t_i32temp = ((t_i32temp * g_u16CalibCoefK[MDL_TEMP_ENV1]) + g_i16CalibCoefB[MDL_TEMP_ENV1])>>10;
-	g_stCellInfoReport.u16Temperature[ENV_TEMP1] = (UINT16)(t_i32temp*10 + 400);
+#if 1
+	// 环境温度1
+	t_i32temp = g_i32ADCResult[ADC_TEMP_EV1] / 10 - 40; // 放大1000倍和B值对应的意思
+	t_i32temp = ((t_i32temp * g_u16CalibCoefK[MDL_TEMP_ENV1]) + g_i16CalibCoefB[MDL_TEMP_ENV1]) >> 10;
+	g_stCellInfoReport.u16Temperature[ENV_TEMP1] = (UINT16)(t_i32temp * 10 + 400);
 	Monitor_TempBreak(&g_stCellInfoReport.u16Temperature[ENV_TEMP1]);
 #endif
 
 	// 环境温度2
+	t_i32temp = g_i32ADCResult[ADC_TEMP_EV2] / 10 - 40; // 放大1000倍和B值对应的意思
 	t_i32temp = -40;
 	t_i32temp = ((t_i32temp * g_u16CalibCoefK[MDL_TEMP_ENV2]) + g_i16CalibCoefB[MDL_TEMP_ENV2]) >> 10;
 	g_stCellInfoReport.u16Temperature[ENV_TEMP2] = (UINT16)(t_i32temp * 10 + 400);
@@ -463,15 +463,15 @@ void App_AFEGet(void)
 		return;
 	}
 
-	if (u32E2P_Pro_VolCur_WriteFlag != 0 || u32E2P_Pro_Temp_WriteFlag != 0 || u32E2P_Pro_Other_WriteFlag != 0 || u32E2P_OtherElement1_WriteFlag != 0 || u32E2P_RTC_Element_WriteFlag != 0 || u8E2P_SocTable_WriteFlag != 0 || u8E2P_CopperLoss_WriteFlag != 0 || u8E2P_KB_WriteFlag != 0)
-	{
-		return;
-	}
+	// if (u32E2P_Pro_VolCur_WriteFlag != 0 || u32E2P_Pro_Temp_WriteFlag != 0 || u32E2P_Pro_Other_WriteFlag != 0 || u32E2P_OtherElement1_WriteFlag != 0 || u32E2P_RTC_Element_WriteFlag != 0 || u8E2P_SocTable_WriteFlag != 0 || u8E2P_CopperLoss_WriteFlag != 0 || u8E2P_KB_WriteFlag != 0)
+	// {
+	// 	return;
+	// }
 
-	if (FaultCnt_StartUp_First || FaultCnt_StartUp_Second || FaultCnt_StartUp_Third)
-	{
-		return;
-	}
+	// if (FaultCnt_StartUp_First || FaultCnt_StartUp_Second || FaultCnt_StartUp_Third)
+	// {
+	// 	return;
+	// }
 
 	// MCUO_DEBUG_LED1 = 0;
 	// MonitorAFE(0, UpdateVoltageFromBqMaximo());

@@ -6,11 +6,12 @@
 #include "stdbool.h"
 // #include "stm32f10x.h"
 #include "stm32f0xx.h"
+#include "conf_gpio.h"
 
 #define log_i(...)       ((void)0);
 #define log_w(...)       ((void)0);
 
-#define EEPROM_VALUE_BEGIN_FLAG				0x1234		//Ĭ��0x1133������Լ���Ҫˢһ�飬���Լ������ٸĻ�0x1133
+#define EEPROM_VALUE_BEGIN_FLAG				0x2234		//Ĭ��0x1133������Լ���Ҫˢһ�飬���Լ������ٸĻ�0x1133
 
 //#define _DI_SWITCH_SYS_ONOFF	//DI������������
 //#define _DI_SWITCH_DSG_ONOFF	//DI�����������Ʒŵ�Ӵ�������MOS
@@ -105,6 +106,7 @@ typedef struct
   uint8_t isdebugenable;
 	uint16_t CHG;
 	uint16_t DSG;
+  float    sample_voltage;
 
 }Time_T;
 

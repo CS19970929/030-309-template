@@ -9,40 +9,38 @@ UINT16 g_u16IoutOffsetAD;
 UINT16 g_u16Q7BusCurr_CHG;
 UINT16 g_u16Q7BusCurr_DSG;
 
-#define LENGTH_TBLTEMP_PORT_10K ((UINT16)56)
-const UINT16 iSheldTemp_10K[LENGTH_TBLTEMP_PORT_10K] =
-	{
-		// AD		(Temp+40)*10
-		3771, 100, //-30
-		3683, 150, //-25
-		3580, 200, //-20
-		3460, 250, //-15
-		3323, 300, //-10
-		3169, 350, //-5
-		3004, 400, // 0
-		2820, 450, // 5
-		2633, 500, // 10
-		2437, 550, // 15
-		2241, 600, // 20
-		2048, 650, // 25
-		1859, 700, // 30
-		1679, 750, // 35
-		1509, 800, // 40
-		1351, 850, // 45
-		1204, 900, // 50
-		1073, 950, // 55
-		953, 1000, // 60
-		845, 1050, // 65
-		749, 1100, // 70
-		664, 1150, // 75
-		588, 1200, // 80
-		522, 1250, // 85
-		463, 1300, // 90
-		411, 1350, // 95
-		366, 1400, // 100
-		326, 1450, // 105
+const UINT16 iSheldTemp_10K[LENGTH_TBLTEMP_PORT_10K] = 
+{
+    //AD		(Temp+40)*10
+    3771	,	100	,	//-30
+    3683	,	150	,	//-25
+    3580	,	200	,	//-20
+    3460	,	250	,	//-15
+    3323	,	300	,	//-10
+    3169	,	350	,	//-5
+    3004	,	400	,	//0
+    2820	,	450	,	//5
+    2633	,	500	,	//10
+    2437	,	550	,	//15
+    2241	,	600	,	//20
+    2048	,	650	,	//25
+    1859	,	700	,	//30
+    1679    ,	750	,	//35
+    1509    ,	800	,	//40
+    1351    ,	850	,	//45
+    1204    ,	900	,	//50
+    1073 	,	950	,	//55
+    953 	,	1000,	//60
+    845 	,	1050,	//65
+    749 	,	1100,	//70
+    664 	,	1150,	//75
+    588 	,	1200,	//80
+    522 	,	1250,	//85
+    463 	,	1300,	//90
+    411 	,	1350,	//95
+    366 	,	1400,	//100
+    326 	,	1450,	//105
 };
-
 /*
 问题描述
 1，通过 uint16_t ConvData[8]保存DMA搬运的ADC转换数值，但是这个数组数值的顺序总是和ADC不是顺序对应的。
@@ -80,7 +78,7 @@ void InitADC_DMA(void)
 	DMA_InitStruct.DMA_PeripheralBaseAddr = (UINT32)(&(ADC1->DR));			 // 配置外设地址
 	DMA_InitStruct.DMA_MemoryBaseAddr = (UINT32)(&g_u16ADCValFilter[0]);	 // 设置内存映射地址
 	DMA_InitStruct.DMA_DIR = DMA_DIR_PeripheralSRC;							 // 数据传输方向，0：从外设读。1：从存储器读
-	DMA_InitStruct.DMA_BufferSize = AD_Used_amount;							 // 传输次数，DMA缓存数组大小设置
+	DMA_InitStruct.DMA_BufferSize = ADC_NUM;								 // 传输次数，DMA缓存数组大小设置
 	DMA_InitStruct.DMA_PeripheralInc = DMA_PeripheralInc_Disable;			 // 外设地址不变，这个不太懂是哪个外设地址
 	DMA_InitStruct.DMA_MemoryInc = DMA_MemoryInc_Enable;					 // 内存地址增加
 	DMA_InitStruct.DMA_PeripheralDataSize = DMA_PeripheralDataSize_HalfWord; // 外设半字传输16位
@@ -96,7 +94,13 @@ void InitADC_GPIO(void)
 {
 
 	GPIO_InitTypeDef GPIO_InitStruct;
-	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOB, ENABLE); // 开启GPIOA的外设时钟
+	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA, ENABLE); // 开启GPIOA的外设时钟
+
+	// PA4_TTC_EV，PA5_VDC
+	GPIO_InitStruct.GPIO_Pin = GPIO_Pin_4 | GPIO_Pin_5; // ADC_Channel_5对PA5
+	GPIO_InitStruct.GPIO_Mode = GPIO_Mode_AN;
+	GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_NOPULL;
+	GPIO_Init(GPIOA, &GPIO_InitStruct); // PA5输入时不用设置速率
 
 	// PB0_TTC_MOS1
 	GPIO_InitStruct.GPIO_Pin = GPIO_Pin_0; // ADC_Channel_5对PA5
@@ -138,23 +142,23 @@ void InitADC_ADC1(void)
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_ADC1, ENABLE); // 开启ADC1外设时钟
 
 	// ADC初始化
-	ADC_DeInit(ADC1);														   // ADC恢复默认设置
-	ADC_StructInit(&ADC_InitStruct);										   // 初始化ADC结构体
-	ADC_InitStruct.ADC_Resolution = ADC_Resolution_12b;						   // 配置ADC1在连续模式下分辨率为12bits
-	ADC_InitStruct.ADC_ContinuousConvMode = DISABLE;						   // 禁止连续模式，连续采样的话，次数由DMA决定，DMA采样完产生中断，停止ADC便可
-																			   // 这句话后面再看看，别的解释是采样一次后后续的转换就会永不停歇，不是DMA触发
-																			   // 也就是转换一次后，接着进行下一次转换，不断连续。
+	ADC_DeInit(ADC1);									// ADC恢复默认设置
+	ADC_StructInit(&ADC_InitStruct);					// 初始化ADC结构体
+	ADC_InitStruct.ADC_Resolution = ADC_Resolution_12b; // 配置ADC1在连续模式下分辨率为12bits
+	ADC_InitStruct.ADC_ContinuousConvMode = DISABLE;	// 禁止连续模式，连续采样的话，次数由DMA决定，DMA采样完产生中断，停止ADC便可
+													 // 这句话后面再看看，别的解释是采样一次后后续的转换就会永不停歇，不是DMA触发
+													 // 也就是转换一次后，接着进行下一次转换，不断连续。
 	ADC_InitStruct.ADC_ExternalTrigConv = ADC_ExternalTrigConv_T15_TRGO;	   // 外部触发设置为TIM15
 	ADC_InitStruct.ADC_ExternalTrigConvEdge = ADC_ExternalTrigConvEdge_Rising; // 上升沿触发，使用计时器
 	ADC_InitStruct.ADC_DataAlign = ADC_DataAlign_Right;						   // ADC数据右对齐
 	ADC_InitStruct.ADC_ScanDirection = ADC_ScanDirection_Upward;			   // 多通道AD采样使用，向上扫描0-18通道
 	ADC_Init(ADC1, &ADC_InitStruct);
-	ADC_ChannelConfig(ADC1, ADC_Channel_8,
+	ADC_ChannelConfig(ADC1, ADC_Channel_4 | ADC_Channel_5 | ADC_Channel_8,
 					  ADC_SampleTime_55_5Cycles); // ADC总转换时间=采样时间+12.5个ADC时钟周期(信号量转换时间)
 												  // 所以总共55.5+12.5 = 68个ADC周期。时间为 68/8 us
-	ADC_OverrunModeCmd(ADC1, ENABLE);			  // 使能数据覆盖模式
-	ADC_GetCalibrationFactor(ADC1);				  // ADC校准
-	ADC_Cmd(ADC1, ENABLE);						  // ADC使能
+	ADC_OverrunModeCmd(ADC1, ENABLE); // 使能数据覆盖模式
+	ADC_GetCalibrationFactor(ADC1);	  // ADC校准
+	ADC_Cmd(ADC1, ENABLE);			  // ADC使能
 	while (!ADC_GetFlagStatus(ADC1, ADC_FLAG_ADEN))
 		; // 等待ADEN(ADC1->CR)使能。ADC_Cmd(ADC1, ENABLE)。
 
@@ -170,29 +174,6 @@ void ADC_Current_Smooth(void)
 // 69.3——3.3 = 21
 void ADC_Vbus(void)
 {
-	static UINT8 s8ADcnt = 0;
-	INT32 t_i32temp = 0;
-	if (s8ADcnt++ < AD_CalNum)
-	{
-		g_u32ADCValFilter2[ADC_VBC] += (UINT32)g_u16ADCValFilter[ADC_VBC];
-	}
-	else
-	{
-		s8ADcnt = 0;
-		t_i32temp = g_u32ADCValFilter2[ADC_VBC] >> AD_CalNum_2; // 读取AD值，mV
-		g_u32ADCValFilter2[ADC_VBC] = 0;
-		// t_i32temp *= 21;							// AD值转换为模拟量
-		if (SeriesNum == 6)
-		{
-			t_i32temp = ((t_i32temp * 825) >> 10) * Vbc_scale_6; // 12位，4096为基准
-		}
-		else
-		{
-			t_i32temp = ((t_i32temp * 825) >> 10) * Vbc_scale_16; // 12位，4096为基准
-		}
-		t_i32temp = t_i32temp > 0 ? t_i32temp : 0;
-		g_i32ADCResult[ADC_VBC] = ((t_i32temp - g_i32ADCResult[ADC_VBC]) >> 3) + g_i32ADCResult[ADC_VBC]; // mV
-	}
 }
 
 void ADC_TTC(void)
@@ -200,10 +181,16 @@ void ADC_TTC(void)
 	INT32 t_i32temp = 0;
 
 	//-------------Environment温度(+40)-------------
-	t_i32temp = (INT32)g_u16ADCValFilter[ADC_TEMP_EV]; // 读取AD值
+	t_i32temp = (INT32)g_u16ADCValFilter[ADC_TEMP_EV1]; // 读取AD值
 	t_i32temp = GetEndValue(iSheldTemp_10K, (UINT16)LENGTH_TBLTEMP_PORT_10K, (UINT16)t_i32temp);
-	g_u32ADCValFilter2[ADC_TEMP_EV] = (((t_i32temp << 10) - g_u32ADCValFilter2[ADC_TEMP_EV]) >> 3) + g_u32ADCValFilter2[ADC_TEMP_EV];
-	g_i32ADCResult[ADC_TEMP_EV] = (UINT16)((g_u32ADCValFilter2[ADC_TEMP_EV] + 512) >> 10);
+	g_u32ADCValFilter2[ADC_TEMP_EV1] = (((t_i32temp << 10) - g_u32ADCValFilter2[ADC_TEMP_EV1]) >> 3) + g_u32ADCValFilter2[ADC_TEMP_EV1];
+	g_i32ADCResult[ADC_TEMP_EV1] = (UINT16)((g_u32ADCValFilter2[ADC_TEMP_EV1] + 512) >> 10);
+
+	//-------------Environment温度(+40)-------------
+	t_i32temp = (INT32)g_u16ADCValFilter[ADC_TEMP_EV2]; // 读取AD值
+	t_i32temp = GetEndValue(iSheldTemp_10K, (UINT16)LENGTH_TBLTEMP_PORT_10K, (UINT16)t_i32temp);
+	g_u32ADCValFilter2[ADC_TEMP_EV2] = (((t_i32temp << 10) - g_u32ADCValFilter2[ADC_TEMP_EV2]) >> 3) + g_u32ADCValFilter2[ADC_TEMP_EV2];
+	g_i32ADCResult[ADC_TEMP_EV2] = (UINT16)((g_u32ADCValFilter2[ADC_TEMP_EV2] + 512) >> 10);
 
 	//-------------MOS1温度(+40)-------------
 	t_i32temp = (INT32)g_u16ADCValFilter[ADC_TEMP_MOS1]; // 读取AD值

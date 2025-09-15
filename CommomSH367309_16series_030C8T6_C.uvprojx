@@ -583,6 +583,11 @@
               <FileType>1</FileType>
               <FilePath>.\Code\Source\SocEnhance.c</FilePath>
             </File>
+            <File>
+              <FileName>led_soc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Code\Source\led_soc.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

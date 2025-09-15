@@ -778,24 +778,24 @@ void WriteEEPROM_ByteData_Circle(void)
 // 初始化IIC
 void InitE2PROM(void)
 {
-	GPIO_InitTypeDef GPIO_InitStructure;
+	// GPIO_InitTypeDef GPIO_InitStructure;
 
-	// PB3_I2C_SCL_eeprom，PB4_I2C_SDA_eeprom
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_3 | GPIO_Pin_4;
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_Level_1;
-	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-	GPIO_Init(GPIOB, &GPIO_InitStructure);
-	GPIO_SetBits(GPIOB, GPIO_Pin_3 | GPIO_Pin_4); // 输出高
+	// // PB3_I2C_SCL_eeprom，PB4_I2C_SDA_eeprom
+	// GPIO_InitStructure.GPIO_Pin = GPIO_Pin_3 | GPIO_Pin_4;
+	// GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
+	// GPIO_InitStructure.GPIO_Speed = GPIO_Speed_Level_1;
+	// GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+	// GPIO_Init(GPIOB, &GPIO_InitStructure);
+	// GPIO_SetBits(GPIOB, GPIO_Pin_3 | GPIO_Pin_4); // 输出高
 
-	// PA15_E2PR_WP
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_15;
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_Level_1;
-	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-	GPIO_Init(GPIOA, &GPIO_InitStructure);
+	// // PA15_E2PR_WP
+	// GPIO_InitStructure.GPIO_Pin = GPIO_Pin_15;
+	// GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
+	// GPIO_InitStructure.GPIO_Speed = GPIO_Speed_Level_1;
+	// GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+	// GPIO_Init(GPIOA, &GPIO_InitStructure);
 
-	__delay_ms(100);
+	// __delay_ms(100);
 
 	InitData_E2prom();
 }
@@ -851,9 +851,10 @@ UINT16 OffsetValue_CHG = 0;
 UINT16 OffsetValue_DSG = 0;
 void InitData_E2prom(void)
 {
-	if (EEPROM_VALUE_BEGIN_FLAG == ReadEEPROM_Word_NoZone(EEPROM_ADDR_PASS))
+	if (EEPROM_VALUE_BEGIN_FLAG == FlashReadOneHalfWord(FLASH_ADDR_PARAM_VALUE))
 	{ // 第二次上电就会执行这个
-		ReadEEPROM_ByteData_StartUp();
+		// ReadEEPROM_ByteData_StartUp();
+		EEPROM_ResetData_AllToDefault();
 
 		{
 			g_u32CS_Res_AFE = ((UINT32)OtherElement.u16Sys_CS_Res_Num * 1000) / OtherElement.u16Sys_CS_Res;
@@ -872,13 +873,13 @@ void InitData_E2prom(void)
 	else
 	{ // 第一次上电，用于量产
 		EEPROM_ResetData_AllToDefault();
-		while (u8E2P_KB_WriteFlag || u32E2P_Pro_VolCur_WriteFlag || u32E2P_Pro_Temp_WriteFlag || u32E2P_Pro_Other_WriteFlag || u8E2P_SocTable_WriteFlag || u8E2P_CopperLoss_WriteFlag || u32E2P_RTC_Element_WriteFlag || u32E2P_OtherElement1_WriteFlag)
-		{ // 0x2000,0x2100,0x2200,0x2300
-			WriteEEPROM_ByteData_Circle();
-		}
-		EEPROM_ResetData_OtherToDefault(); // 把E2P_BEGIN_FLAG写进头地址，
+		// while (u8E2P_KB_WriteFlag || u32E2P_Pro_VolCur_WriteFlag || u32E2P_Pro_Temp_WriteFlag || u32E2P_Pro_Other_WriteFlag || u8E2P_SocTable_WriteFlag || u8E2P_CopperLoss_WriteFlag || u32E2P_RTC_Element_WriteFlag || u32E2P_OtherElement1_WriteFlag)
+		// { // 0x2000,0x2100,0x2200,0x2300
+		// 	WriteEEPROM_ByteData_Circle();
+		// }
+		// EEPROM_ResetData_OtherToDefault(); // 把E2P_BEGIN_FLAG写进头地址，
 										   // 如果有别的添加，可以往这个函数写，目前加了保护记录初始化
-		WriteProID_Default();
+		// WriteProID_Default();
 
 		bool ret = false;
 		do
@@ -891,7 +892,8 @@ void InitData_E2prom(void)
 		} while (ret == false);
 		DataLoad_CurrentCali_startup();
 
-		WriteEEPROM_Word_NoZone(EEPROM_ADDR_PASS, EEPROM_VALUE_BEGIN_FLAG); // 第一次上电初始化完成
+		// WriteEEPROM_Word_NoZone(EEPROM_ADDR_PASS, EEPROM_VALUE_BEGIN_FLAG); // 第一次上电初始化完成
+		FlashWriteOneHalfWord(FLASH_ADDR_PARAM_VALUE, EEPROM_VALUE_BEGIN_FLAG);
 	}
 }
 

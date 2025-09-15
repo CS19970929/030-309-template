@@ -129,10 +129,12 @@ void App_SOC(void)
 	{
 		return;
 	}
+	
+	MCUO_DEBUG_LED1 = !MCUO_DEBUG_LED1;
 
-	RefreshData_SOC();
-	GetData_SOC();
-	SOC_IntEnhance_Ctrl(gu8_200msAccClock_Flag);
+	// RefreshData_SOC();
+	// GetData_SOC();
+	// SOC_IntEnhance_Ctrl(gu8_200msAccClock_Flag);
 
 	// 要精确统计，不能在别的地方置零。200ms以内执行一次，然后置零便可。这样就不会被拉长时间导致容量计算有问题。
 	// 例如200ms时基变为240ms，误差就是40/200 = 20%，20Ah统计最后就18Ah。

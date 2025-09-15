@@ -4,30 +4,27 @@ LEDBAR_COMMAND LedBar_Command = LED_BAR_STARTUP;
 
 void LedBar_StartUp(void)
 {
-#if 1
-    GPIO_InitTypeDef GPIO_InitStructure;
+    static UINT16 su16_ShowDelay_Tcnt = 0;
 
-    GPIO_InitStructure.GPIO_Pin = PIN_SOC_20 | PIN_SOC_40 | PIN_SOC_60 | PIN_SOC_80 | PIN_SOC_100;
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;    // 推挽输出
-    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz; // IO口速度为2MHz
-    GPIO_Init(PORT_SOC_20, &GPIO_InitStructure);
-    GPIO_Init(PORT_SOC_100, &GPIO_InitStructure);
-
-    GPIO_InitStructure.GPIO_Pin = PIN_SOC_RUN | PIN_SOC_ALM;
-    GPIO_Init(PORT_SOC_RUN, &GPIO_InitStructure);
-
-    GPIO_InitStructure.GPIO_Pin = PIN_SOC_BLE;
-    GPIO_Init(PORT_SOC_BLE, &GPIO_InitStructure);
-
-    GPIO_InitStructure.GPIO_Pin = PIN_SOC_KEY; // 选择要用的GPIO引脚,PA0也可以唤醒
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
-    // GPIO_InitStructure.GPIO_Mode = GPIO_PuPd_NOPULL;
-    GPIO_Init(PORT_SOC_KEY, &GPIO_InitStructure);
-
-    LedBar_Command = LED_BAR_NORMAL;
-
-    MCUO_SOC_BLE = 0;
-#endif // 0
+    if (++su16_ShowDelay_Tcnt <= 10 * 5)
+    {
+        MCUO_SOC_20 = g_stCellInfoReport.SocElement.u16Soc > 0 ? 1 : 0;
+        MCUO_SOC_40 = g_stCellInfoReport.SocElement.u16Soc >= 20 ? 1 : 0;
+        MCUO_SOC_60 = g_stCellInfoReport.SocElement.u16Soc >= 40 ? 1 : 0;
+        MCUO_SOC_80 = g_stCellInfoReport.SocElement.u16Soc >= 60 ? 1 : 0;
+        MCUO_SOC_100 = g_stCellInfoReport.SocElement.u16Soc >= 80 ? 1 : 0;
+    }
+    else
+    {
+        MCUO_SOC_20 = 0;
+        MCUO_SOC_40 = 0;
+        MCUO_SOC_60 = 0;
+        MCUO_SOC_80 = 0;
+        MCUO_SOC_100 = 0;
+        su16_ShowDelay_Tcnt = 0;
+        
+        LedBar_Command = LED_BAR_NORMAL;
+    }
 }
 
 void LedBar_Show_Normal(void)

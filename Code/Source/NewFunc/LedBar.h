@@ -51,16 +51,16 @@ typedef enum _LEDBAR_COMMAND {
 #define MCUO_SOC_20_ON          (PORT_SOC_20->BSRR |= PIN_SOC_20)
 #define MCUO_SOC_20_TOGGLE      (PORT_SOC_20->ODR ^= PIN_SOC_20)
 
-#define MCUO_SOC_20 		(PORT_OUT_GPIOA->bit4)
-#define MCUO_SOC_40 		(PORT_OUT_GPIOA->bit5)
-#define MCUO_SOC_60 		(PORT_OUT_GPIOA->bit6)
-#define MCUO_SOC_80 		(PORT_OUT_GPIOA->bit7)
-#define MCUO_SOC_100 		(PORT_OUT_GPIOB->bit7)
+#define MCUO_SOC_20 		(PORT_OUT_GPIOB->bit3)
+#define MCUO_SOC_40 		(PORT_OUT_GPIOB->bit4)
+#define MCUO_SOC_60 		(PORT_OUT_GPIOB->bit5)
+#define MCUO_SOC_80 		(PORT_OUT_GPIOB->bit8)
+#define MCUO_SOC_100 		(PORT_OUT_GPIOB->bit9)
 
 #define MCUO_SOC_RUN 		(PORT_OUT_GPIOC->bit14)
 #define MCUO_SOC_ALARM 		(PORT_OUT_GPIOC->bit15)
-//ble run½»»»       ºóĞøÌæ»»
-#define MCUI_SOC_KEY 		(PORT_IN_GPIOB->bit5)
+//ble runï¿½ï¿½ï¿½ï¿½       ï¿½ï¿½ï¿½ï¿½ï¿½æ»»
+#define MCUI_SOC_KEY 		(PORT_IN_GPIOA->bit15)
 //FIXME IN OR OUT
 #define MCUO_SOC_BLE 		(PORT_OUT_GPIOF->bit7)
 

@@ -2076,11 +2076,7 @@ void Sci_WrReg_0x06_BMS_FunctionON(struct RS485MSG *s)
 			break;
 
 		case 0x0A: // Á¢¿Ì½øÈëÐÝÃß
-			Sleep_Mode.bits.b1ForceToSleep_L3 = 1;
-			break;
-		case 0x0B:
-			// Sleep_Mode.bits.b1ForceToSleep_stop = 1;
-			Sleep_Mode.bits.b1ForceToSleep_L2 = 1;
+			entersleep(DEEP_MODE);
 			break;
 		default:
 			break;
