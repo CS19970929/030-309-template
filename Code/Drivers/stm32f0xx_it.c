@@ -131,6 +131,7 @@ void EXTI0_1_IRQHandler(void)
   if (EXTI_GetITStatus(EXTI_Line0) != RESET)
   {
     // WKUP
+    sys_time.isCHG_wake = true;
     EXTI_ClearITPendingBit(EXTI_Line0);
     ChargerLoad_Func.bits.b1ON_Charger_AllSeries = 1;
   }
@@ -182,7 +183,6 @@ void EXTI4_15_IRQHandler(void)
   {
     EXTI_ClearITPendingBit(EXTI_Line15);
   }
-  
 }
 
 void USART1_IRQHandler(void)

@@ -107,6 +107,7 @@ typedef struct
 	uint16_t CHG;
 	uint16_t DSG;
   float    sample_voltage;
+  bool     isCHG_wake;
 
 }Time_T;
 

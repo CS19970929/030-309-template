@@ -22,14 +22,16 @@ void LedBar_StartUp(void)
         MCUO_SOC_80 = 0;
         MCUO_SOC_100 = 0;
         su16_ShowDelay_Tcnt = 0;
-        
+
         LedBar_Command = LED_BAR_NORMAL;
     }
 }
 
+extern void apply_led(int level);
+
 void LedBar_Show_Normal(void)
 {
-    static UINT8 su8_ShowStatus = 1; // 开机亮5s
+    static UINT8 su8_ShowStatus = 0; // 开机亮5s
     static UINT16 su16_ShowDelay_Tcnt = 0;
 
     switch (su8_ShowStatus)
@@ -39,19 +41,18 @@ void LedBar_Show_Normal(void)
         if (MCUI_SOC_KEY == 0)
         {
             su8_ShowStatus = 1;
-
             // MCUO_DO1_EN = !MCUO_DO1_EN;
         }
 
-        if (g_stCellInfoReport.u16Ichg)
-        {
-            LedBar_Command = LED_BAR_CHG;
-        }
+        // if (g_stCellInfoReport.u16Ichg)
+        // {
+        //     LedBar_Command = LED_BAR_CHG;
+        // }
 
-        if (g_stCellInfoReport.u16IDischg)
-        {
-            LedBar_Command = LED_BAR_DSG;
-        }
+        // if (g_stCellInfoReport.u16IDischg)
+        // {
+        //     LedBar_Command = LED_BAR_DSG;
+        // }
         break;
         // fixme 不起作用
 
@@ -59,36 +60,35 @@ void LedBar_Show_Normal(void)
         // 5s
         if (++su16_ShowDelay_Tcnt <= 10 * 5)
         {
-            MCUO_SOC_RUN = 1;
-            MCUO_SOC_20 = g_stCellInfoReport.SocElement.u16Soc > 0 ? 1 : 0;
-            // if (g_stCellInfoReport.SocElement.u16Soc > 0 ? 1 : 0)
-            //     MCUO_SOC_20_ON;
-            // else
-            //     MCUO_SOC_20_OFF;
-            MCUO_SOC_40 = g_stCellInfoReport.SocElement.u16Soc >= 20 ? 1 : 0;
-            MCUO_SOC_60 = g_stCellInfoReport.SocElement.u16Soc >= 40 ? 1 : 0;
-            MCUO_SOC_80 = g_stCellInfoReport.SocElement.u16Soc >= 60 ? 1 : 0;
-            MCUO_SOC_100 = g_stCellInfoReport.SocElement.u16Soc >= 80 ? 1 : 0;
-
-            // MCUO_SOC_RUN = 1;
-            // MCUO_SOC_20 = 1;
-            // // if (g_stCellInfoReport.SocElement.u16Soc > 0 ? 1 : 0)
-            // //     MCUO_SOC_20_ON;
-            // // else
-            // //     MCUO_SOC_20_OFF;
-            // MCUO_SOC_40 = 1;
-            // MCUO_SOC_60 = 1;
-            // MCUO_SOC_80 = 1;
-            // MCUO_SOC_100 = 1;
+            uint8_t level = 0;
+            if (g_stCellInfoReport.u16VCellTotle >= 5740)
+                level = 5;
+            else if (g_stCellInfoReport.u16VCellTotle >= 5460)
+            {
+                level = 4;
+            }
+            else if (g_stCellInfoReport.u16VCellTotle >= 5040)
+            {
+                level = 3;
+            }
+            else if (g_stCellInfoReport.u16VCellTotle >= 4620)
+            {
+                level = 2;
+            }
+            else if (g_stCellInfoReport.u16VCellTotle >= 4340)
+            {
+                level = 1;
+            }
+            else
+            {
+                level = 0;
+            }
+            apply_led(level);
         }
         else
         {
-            MCUO_SOC_RUN = 0;
-            MCUO_SOC_20 = 0;
-            MCUO_SOC_40 = 0;
-            MCUO_SOC_60 = 0;
-            MCUO_SOC_80 = 0;
-            MCUO_SOC_100 = 0;
+            apply_led(0);
+
             su16_ShowDelay_Tcnt = 0;
             su8_ShowStatus = 0;
         }
@@ -198,6 +198,7 @@ void LedBar_Show_Sleep(void)
     }
 }
 
+#if 0
 void APP_LedBar(void)
 {
     if (0 == g_st_SysTimeFlag.bits.b1Sys100msFlag)
@@ -210,25 +211,11 @@ void APP_LedBar(void)
         return;
     }
 
-    // {
-    //     SuspendFlag1 = SuspendFlag2;
-    //     SuspendFlag2 = RTC_ExtComCnt1;
-    //     // 蓝牙
-    //     if (SuspendFlag1 != SuspendFlag2)
-    //     {
-    //         BlueToothFlag = 1;
-    //     }
-    //     else
-    //     {
-    //         BlueToothFlag = 0;
-    //     }
-    // }
-
     switch (LedBar_Command)
     {
-    case LED_BAR_STARTUP:
-        LedBar_StartUp();
-        break;
+        // case LED_BAR_STARTUP:
+        //     LedBar_StartUp();
+        //     break;
 
     case LED_BAR_NORMAL:
         LedBar_Show_Normal();
@@ -257,4 +244,21 @@ void APP_LedBar(void)
     }
     else
         MCUO_SOC_BLE = 0;
+}
+
+#endif
+
+void APP_LedBar(void)
+{
+    if (0 == g_st_SysTimeFlag.bits.b1Sys100msFlag)
+    {
+        return;
+    }
+
+    if (SystemStatus.bits.b1StartUpBMS)
+    {
+        return;
+    }
+    
+    LedBar_Show_Normal();
 }

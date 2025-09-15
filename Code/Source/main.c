@@ -48,7 +48,7 @@ int main(void)
 		App_SysTime();
 		App_CommonUpper();
 		App_AFEGet();
-		SOC_LED_Update();
+		// SOC_LED_Update();
 		App_SH367309();
 		App_AnlogCal();
 
@@ -59,7 +59,7 @@ int main(void)
 		App_WarnCtrl();
 		App_MOS_Relay_Ctrl();
 
-		// APP_LedBar();
+		APP_LedBar();
 
 		// App_ChargerLoad_Det();
 		// App_Heat_Cool_Ctrl();
@@ -90,6 +90,7 @@ void InitDevice(void)
 	InitDelay();
 	IsSleepStartUp();
 	InitIO();
+
 	InitTimer();
 	InitSystemWakeUp();
 	InitE2PROM(); // 内部EEPROM，不需要初始化
@@ -113,7 +114,7 @@ void InitDevice(void)
 	Board_PowerOn(); // 上电动画
 
 #ifndef _DEBUG_
-	// Init_IWDG();
+	Init_IWDG();
 #endif // !1
 
 #endif

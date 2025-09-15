@@ -8,6 +8,7 @@ enum MOS_CTRL_STATUS MOSCtrl_Command = MOS_PRE_DET;
 volatile union Switch_OnOFF_Function Switch_OnOFF_Func;
 UINT8 gu8_DsgFirstOpen_Flag = 0;
 
+enum system_status bms_status = S_STARTUP;
 // 长期更新数据
 void RefreshData_Drivers(void)
 {
@@ -142,22 +143,36 @@ void InitData_Drivers(void)
 	Driver_Element.u8_DriverCtrl_Right = 1; // AFE控制
 }
 
+bool key_func_enable = 0;
 void App_DI1_Switch(void)
 {
 #ifdef _DI_SWITCH_longKEY_ONOFF
-	static UINT16 su16_AntiShake_Cnt2 = 0;
-
-	if (0 == MCUI_ENI_DI1 || 0 == MCUI_SOC_KEY)
+	// if (bms_status != S_CHG)
+	if (bms_status == S_CHG)
 	{
-		if (++su16_AntiShake_Cnt2 >= 500)
+		key_func_enable = false;
+	}
+	// else
+
+	{
+		static UINT16 su16_AntiShake_Cnt2 = 0;
+
+		if (0 == MCUI_ENI_DI1 || 0 == MCUI_SOC_KEY)
+		{
+			if (key_func_enable)
+			{
+				if (++su16_AntiShake_Cnt2 >= 500)
+				{
+					su16_AntiShake_Cnt2 = 0;
+					entersleep(DEEP_MODE);
+				}
+			}
+		}
+		else
 		{
 			su16_AntiShake_Cnt2 = 0;
-			entersleep(DEEP_MODE);
+			key_func_enable = true;
 		}
-	}
-	else
-	{
-		su16_AntiShake_Cnt2 = 0;
 	}
 
 #endif // _DI_SWITCH_longKEY_ONOFF
@@ -270,8 +285,6 @@ void App_DI1_Switch(void)
 #endif
 }
 
-enum system_status bms_status = S_STARTUP;
-
 void close_dsg(void)
 {
 	SH367309_DriverMos_Ctrl(GPIO_DSG, CLOSE);
@@ -353,7 +366,7 @@ void Drivers_External_Ctrl(void)
 {
 	static UINT8 su8_Ctrl_Tcnt = 0;
 #if 1
-#if 0
+#if 1
 
 	static bool openDriver = false;
 

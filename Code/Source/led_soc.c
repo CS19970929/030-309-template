@@ -40,7 +40,7 @@ static const LedPin_t leds[LED_COUNT] = {
 static void LED_On(uint8_t idx) { GPIO_SetBits(leds[idx].port, leds[idx].pin); }
 static void LED_Off(uint8_t idx) { GPIO_ResetBits(leds[idx].port, leds[idx].pin); }
 
-static void apply_led(int level)
+void apply_led(int level)
 {
     for (int i = 0; i < LED_COUNT; i++)
     {
@@ -180,10 +180,12 @@ void SOC_LED_Update(void)
     }
 }
 
+extern bool key_func_enable;
 void Board_PowerOn(void)
 {
     sys_on = 1;
     led_animation(1);
+    __delay_ms(100);
     apply_led(cur_level);
 }
 
