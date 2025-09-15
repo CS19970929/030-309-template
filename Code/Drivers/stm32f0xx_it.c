@@ -144,13 +144,13 @@ void EXTI4_15_IRQHandler(void)
 {
   if (EXTI_GetITStatus(EXTI_Line12) != RESET)
   {
-    MCUO_MOS_DSG = CLOSE;
-    MCUO_RELAY_DSG = CLOSE;
-    MCUO_RELAY_PRE = CLOSE;
-    MCUO_RELAY_MAIN = CLOSE;
-    CBC_Element.u8CBC_DSG_ErrFlag = 1;
-    // App_MOS_Relay_Ctrl();
-    System_ERROR_UserCallback(ERROR_CBC_DSG);
+    // MCUO_MOS_DSG = CLOSE;
+    // MCUO_RELAY_DSG = CLOSE;
+    // MCUO_RELAY_PRE = CLOSE;
+    // MCUO_RELAY_MAIN = CLOSE;
+    // CBC_Element.u8CBC_DSG_ErrFlag = 1;
+    // // App_MOS_Relay_Ctrl();
+    // System_ERROR_UserCallback(ERROR_CBC_DSG);
     EXTI_ClearITPendingBit(EXTI_Line12);
   }
 
@@ -186,9 +186,7 @@ void USART1_IRQHandler(void)
   if (USART_GetITStatus(USART1, USART_IT_RXNE) != RESET)
   {
     RTC_ExtComCnt++;
-
     RTC_ExtComCnt1++;
-    //lcd_com_cnt++;
 
 #if (defined _COMMOM_UPPER_SCI1)
     Sci1_CommonUpper_FaultChk();
@@ -202,10 +200,6 @@ void USART2_IRQHandler(void)
   if (USART_GetITStatus(USART2, USART_IT_RXNE) != RESET)
   {
     RTC_ExtComCnt++;
-
-    //RTC_ExtComCnt1++;
-
-    lcd_com_cnt++;
 
 #ifdef _COMMOM_UPPER_SCI2
     Sci2_CommonUpper_FaultChk();

@@ -861,6 +861,25 @@ void InitAFE1_Sleep(UINT8 mode)
 	}
 }
 
+void initAFE1_IIC(void)
+{
+	GPIO_InitTypeDef GPIO_InitStructure;
+
+	// PB10_I2C_SCL_eeprom，PB11_I2C_SDA_eeprom
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10 | GPIO_Pin_11;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_Level_1;
+	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+	GPIO_Init(GPIOB, &GPIO_InitStructure);
+	GPIO_SetBits(GPIOB, GPIO_Pin_10 | GPIO_Pin_11); // 输出高
+
+	// 预充MOS，模拟前端驱动的补充
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_8;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_Level_1;
+	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+	GPIO_Init(GPIOA, &GPIO_InitStructure);
+}
 /*******************************************************************************
 Function:InitAFE()
 Description:  check SH367309 is ready, and initialization MTP Buffer
@@ -887,14 +906,6 @@ void InitAFE1(void)
 	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
 	GPIO_Init(GPIOA, &GPIO_InitStructure);
 
-#ifdef _SLEEP_WITH_CURRENT
-	if (FLASH_309_RTC_RTC_VALUE == FlashReadOneHalfWord(FLASH_ADDR_SH367309_FLAG) || FLASH_309_RTC_NORMAL_VALUE == FlashReadOneHalfWord(FLASH_ADDR_SH367309_FLAG))
-	{
-		AFE_PARAM_WRITE_Flag = 0; // 如果是RTC起来的，则不需要进入烧写模式，烧写模式会短暂关闭MOS，这个岂不是可以直接控制MOS关掉了嘛？
-	}
-#endif
-
-	//__delay_ms(10);
 	AFE_IsReady();
 	SH367309_UpdataAfeConfig();
 	SH367309_Enable_AFE_Wdt_Cadc_Drivers();

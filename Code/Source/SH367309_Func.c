@@ -745,63 +745,58 @@ void Fault_ChangeToMCU(void)
 	static UINT8 su8_CellDsgUtp_Flag = 0;
 	static UINT8 su8_CellDsgOtp_Flag = 0;
 
-	g_stCellInfoReport.unMdlFault_Third.bits.b1CellOvp = SH367309_Reg_Store.REG_BSTATUS1.bits.OV;
 	switch (su8_CellOvp_Flag)
 	{
 	case 0:
-		if (g_stCellInfoReport.unMdlFault_Third.bits.b1CellOvp)
+		if (SH367309_Reg_Store.REG_BSTATUS1.bits.OV)
 		{
 			FaultWarnRecord2(CellOvp_Third);
 			su8_CellOvp_Flag = 1;
 		}
 		break;
-
 	case 1:
-		if (!g_stCellInfoReport.unMdlFault_Third.bits.b1CellOvp)
+		if (!SH367309_Reg_Store.REG_BSTATUS1.bits.OV)
 		{
 			su8_CellOvp_Flag = 0;
 		}
 		break;
-
 	default:
 		break;
 	}
-
-	g_stCellInfoReport.unMdlFault_Third.bits.b1CellUvp = SH367309_Reg_Store.REG_BSTATUS1.bits.UV;
 	switch (su8_CellUvp_Flag)
 	{
 	case 0:
-		if (g_stCellInfoReport.unMdlFault_Third.bits.b1CellUvp)
+		if (SH367309_Reg_Store.REG_BSTATUS1.bits.UV)
 		{
 			FaultWarnRecord2(CellUvp_Third);
 			su8_CellUvp_Flag = 1;
 		}
 		break;
-
 	case 1:
-		if (!g_stCellInfoReport.unMdlFault_Third.bits.b1CellUvp)
+		if (!SH367309_Reg_Store.REG_BSTATUS1.bits.UV)
 		{
 			su8_CellUvp_Flag = 0;
 		}
 		break;
-
 	default:
 		break;
 	}
 
-	g_stCellInfoReport.unMdlFault_Second.bits.b1IdischgOcp = SH367309_Reg_Store.REG_BSTATUS1.bits.OCD1;
+#if 1
+	// g_stCellInfoReport.unMdlFault_Second.bits.b1IdischgOcp = SH367309_Reg_Store.REG_BSTATUS1.bits.OCD1;
 	switch (su8_IdischgOcp1_Flag)
 	{
 	case 0:
-		if (g_stCellInfoReport.unMdlFault_Second.bits.b1IdischgOcp)
+		if (SH367309_Reg_Store.REG_BSTATUS1.bits.OCD1)
 		{
-			FaultWarnRecord2(IdischgOcp_Second);
+			// FaultWarnRecord2(IdischgOcp_Second);
+			FaultWarnRecord2(IdischgOcp_Third);
 			su8_IdischgOcp1_Flag = 1;
 		}
 		break;
 
 	case 1:
-		if (!g_stCellInfoReport.unMdlFault_Second.bits.b1IdischgOcp)
+		if (!SH367309_Reg_Store.REG_BSTATUS1.bits.OCD1)
 		{
 			su8_IdischgOcp1_Flag = 0;
 		}
@@ -810,34 +805,32 @@ void Fault_ChangeToMCU(void)
 	default:
 		break;
 	}
+#endif
 
-	g_stCellInfoReport.unMdlFault_Third.bits.b1IdischgOcp = SH367309_Reg_Store.REG_BSTATUS1.bits.OCD2;
-	switch (su8_IdischgOcp2_Flag)
-	{
-	case 0:
-		if (g_stCellInfoReport.unMdlFault_Third.bits.b1IdischgOcp)
-		{
-			FaultWarnRecord2(IdischgOcp_Third);
-			su8_IdischgOcp2_Flag = 1;
-		}
-		break;
-
-	case 1:
-		if (!g_stCellInfoReport.unMdlFault_Third.bits.b1IdischgOcp)
-		{
-			su8_IdischgOcp2_Flag = 0;
-		}
-		break;
-
-	default:
-		break;
-	}
-
-	g_stCellInfoReport.unMdlFault_Third.bits.b1IchgOcp = SH367309_Reg_Store.REG_BSTATUS1.bits.OCC;
+	// g_stCellInfoReport.unMdlFault_Third.bits.b1IdischgOcp = SH367309_Reg_Store.REG_BSTATUS1.bits.OCD2;
+	// switch (su8_IdischgOcp2_Flag)
+	// {
+	// case 0:
+	// 	if (g_stCellInfoReport.unMdlFault_Third.bits.b1IdischgOcp)
+	// 	{
+	// 		FaultWarnRecord2(IdischgOcp_Third);
+	// 		su8_IdischgOcp2_Flag = 1;
+	// 	}
+	// 	break;
+	// case 1:
+	// 	if (!g_stCellInfoReport.unMdlFault_Third.bits.b1IdischgOcp)
+	// 	{
+	// 		su8_IdischgOcp2_Flag = 0;
+	// 	}
+	// 	break;
+	// default:
+	// 	break;
+	// }
+#if 1
 	switch (su8_IchgOcp_Flag)
 	{
 	case 0:
-		if (g_stCellInfoReport.unMdlFault_Third.bits.b1IchgOcp)
+		if (SH367309_Reg_Store.REG_BSTATUS1.bits.OCC)
 		{
 			FaultWarnRecord2(IchgOcp_Third);
 			su8_IchgOcp_Flag = 1;
@@ -845,7 +838,7 @@ void Fault_ChangeToMCU(void)
 		break;
 
 	case 1:
-		if (!g_stCellInfoReport.unMdlFault_Third.bits.b1IchgOcp)
+		if (!SH367309_Reg_Store.REG_BSTATUS1.bits.OCC)
 		{
 			su8_IchgOcp_Flag = 0;
 		}
@@ -855,11 +848,34 @@ void Fault_ChangeToMCU(void)
 		break;
 	}
 
-	g_stCellInfoReport.unMdlFault_Third.bits.b1CellChgUtp = SH367309_Reg_Store.REG_BSTATUS2.bits.UTC;
+#else
+	// g_stCellInfoReport.unMdlFault_Second.bits.b1IchgOcp = SH367309_Reg_Store.REG_BSTATUS1.bits.OCC;
+	// switch (su8_IchgOcp_Flag)
+	// {
+	// case 0:
+	// 	if (g_stCellInfoReport.unMdlFault_Second.bits.b1IchgOcp)
+	// 	{
+	// 		FaultWarnRecord2(IchgOcp_Second);
+	// 		su8_IchgOcp_Flag = 1;
+	// 	}
+	// 	break;
+
+	// case 1:
+	// 	if (!g_stCellInfoReport.unMdlFault_Second.bits.b1IchgOcp)
+	// 	{
+	// 		su8_IchgOcp_Flag = 0;
+	// 	}
+	// 	break;
+
+	// default:
+	// 	break;
+	// }
+#endif
+
 	switch (su8_CellChgUtp_Flag)
 	{
 	case 0:
-		if (g_stCellInfoReport.unMdlFault_Third.bits.b1CellChgUtp)
+		if (SH367309_Reg_Store.REG_BSTATUS2.bits.UTC)
 		{
 			FaultWarnRecord2(CellChgUTp_Third);
 			su8_CellChgUtp_Flag = 1;
@@ -867,7 +883,7 @@ void Fault_ChangeToMCU(void)
 		break;
 
 	case 1:
-		if (!g_stCellInfoReport.unMdlFault_Third.bits.b1CellChgUtp)
+		if (!SH367309_Reg_Store.REG_BSTATUS2.bits.UTC)
 		{
 			su8_CellChgUtp_Flag = 0;
 		}
@@ -877,11 +893,10 @@ void Fault_ChangeToMCU(void)
 		break;
 	}
 
-	g_stCellInfoReport.unMdlFault_Third.bits.b1CellChgOtp = SH367309_Reg_Store.REG_BSTATUS2.bits.OTC;
 	switch (su8_CellChgOtp_Flag)
 	{
 	case 0:
-		if (g_stCellInfoReport.unMdlFault_Third.bits.b1CellChgOtp)
+		if (SH367309_Reg_Store.REG_BSTATUS2.bits.OTC)
 		{
 			FaultWarnRecord2(CellChgOTp_Third);
 			su8_CellChgOtp_Flag = 1;
@@ -889,7 +904,7 @@ void Fault_ChangeToMCU(void)
 		break;
 
 	case 1:
-		if (!g_stCellInfoReport.unMdlFault_Third.bits.b1CellChgOtp)
+		if (!SH367309_Reg_Store.REG_BSTATUS2.bits.OTC)
 		{
 			su8_CellChgOtp_Flag = 0;
 		}
@@ -899,11 +914,10 @@ void Fault_ChangeToMCU(void)
 		break;
 	}
 
-	g_stCellInfoReport.unMdlFault_Third.bits.b1CellDischgUtp = SH367309_Reg_Store.REG_BSTATUS2.bits.UTD;
 	switch (su8_CellDsgUtp_Flag)
 	{
 	case 0:
-		if (g_stCellInfoReport.unMdlFault_Third.bits.b1CellDischgUtp)
+		if (SH367309_Reg_Store.REG_BSTATUS2.bits.UTD)
 		{
 			FaultWarnRecord2(CellDsgUTp_Third);
 			su8_CellDsgUtp_Flag = 1;
@@ -911,7 +925,7 @@ void Fault_ChangeToMCU(void)
 		break;
 
 	case 1:
-		if (!g_stCellInfoReport.unMdlFault_Third.bits.b1CellDischgUtp)
+		if (!SH367309_Reg_Store.REG_BSTATUS2.bits.UTD)
 		{
 			su8_CellDsgUtp_Flag = 0;
 		}
@@ -921,11 +935,10 @@ void Fault_ChangeToMCU(void)
 		break;
 	}
 
-	g_stCellInfoReport.unMdlFault_Third.bits.b1CellDischgOtp = SH367309_Reg_Store.REG_BSTATUS2.bits.OTD;
 	switch (su8_CellDsgOtp_Flag)
 	{
 	case 0:
-		if (g_stCellInfoReport.unMdlFault_Third.bits.b1CellDischgOtp)
+		if (SH367309_Reg_Store.REG_BSTATUS2.bits.OTD)
 		{
 			FaultWarnRecord2(CellDsgOTp_Third);
 			su8_CellDsgOtp_Flag = 1;
@@ -933,7 +946,7 @@ void Fault_ChangeToMCU(void)
 		break;
 
 	case 1:
-		if (!g_stCellInfoReport.unMdlFault_Third.bits.b1CellDischgOtp)
+		if (!SH367309_Reg_Store.REG_BSTATUS2.bits.OTD)
 		{
 			su8_CellDsgOtp_Flag = 0;
 		}
@@ -943,6 +956,7 @@ void Fault_ChangeToMCU(void)
 		break;
 	}
 }
+
 
 void TemperatureCheck(void)
 {
@@ -1093,108 +1107,9 @@ void App_SH367309_Monitor(void)
 	}
 }
 
-void App_DI1_Switch(void)
-{
-	if (0 == g_st_SysTimeFlag.bits.b1Sys200msFlag3)
-	{
-		return;
-	}
-
-#ifdef _DI_SWITCH_DSG_ONOFF
-	static uint8_t su8_OnOFF_Flag = 0;
-	static uint8_t su8_Repeat_Tcnt = 0;
-
-	switch (su8_OnOFF_Flag)
-	{
-	case 0:
-		if (MCUI_ENI_DI1)
-		{
-			SH367309_DriverMos_Ctrl(GPIO_DSG, 0);
-			if (++su8_Repeat_Tcnt >= 5)
-			{
-				su8_Repeat_Tcnt = 0;
-				su8_OnOFF_Flag = 1;
-			}
-		}
-		else
-		{
-			su8_Repeat_Tcnt = 0;
-			su8_OnOFF_Flag = 1;
-		}
-		break;
-
-	case 1:
-		if (!MCUI_ENI_DI1)
-		{
-			SH367309_DriverMos_Ctrl(GPIO_DSG, 1);
-			if (++su8_Repeat_Tcnt >= 5)
-			{
-				su8_Repeat_Tcnt = 0;
-				su8_OnOFF_Flag = 0;
-			}
-		}
-		else
-		{
-			su8_Repeat_Tcnt = 0;
-			su8_OnOFF_Flag = 0;
-		}
-		break;
-
-	default:
-		break;
-	}
-#endif
-
-#ifdef _DI_SWITCH_SYS_ONOFF
-	static UINT16 su16_AntiShake_Cnt1 = 0;
-
-	if (1 == MCUI_ENI_DI1)
-	{
-		if (++su16_AntiShake_Cnt1 >= 2)
-		{
-			su16_AntiShake_Cnt1 = 2;
-			Sleep_Mode.bits.b1ForceToSleep_L2 = 1;
-		}
-	}
-	else
-	{
-		if (su16_AntiShake_Cnt1)
-		{
-			--su16_AntiShake_Cnt1;
-			return;
-		}
-		// SleepElement.Sleep_Mode.bits.b1ForceToSleep_L2 = 0;
-	}
-#endif
-
-#ifdef _DI_SWITCH_longKEY_ONOFF
-	static UINT16 su16_AntiShake_Cnt2 = 0;
-	// static uint8_t sleepflag = 0;
-
-	if (0 == MCUI_ENI_DI1)
-	{
-		//++su16_AntiShake_Cnt2;
-		if (++su16_AntiShake_Cnt2 >= 300)
-		{
-			su16_AntiShake_Cnt2 = 0;
-			Sleep_Mode.bits.b1ForceToSleep_L2 = 1;
-
-			// sleepflag = 1;
-		}
-	}
-#endif // _DI_SWITCH_longKEY_ONOFF
-}
 
 void App_SH367309(void)
 {
 	App_SH367309_Monitor(); // 100ms时基
-	App_SH367309_Supplement();
 	SH367309_UpdataAfeConfig();
-	App_DI1_Switch();
-
-#ifdef _SLEEP_WITH_CURRENT
-	SH367309_SleepMode_Ctrl();
-#else
-// SH367309_Driver_Supplement();	//10ms时基，需要App_SH367309_Monitor()读回来的内容			   //休眠带电目前不需要预充。
-#endif
 }

@@ -54,13 +54,13 @@
 #define MTP_RSTSTAT			0x72
 
 typedef struct _AFEDATA_{
-	UINT16 Temp1;		//»ØÀ´Ö®ºóV*100
+	UINT16 Temp1;		//ï¿½ï¿½ï¿½ï¿½Ö®ï¿½ï¿½V*100
 	UINT16 Temp2;
 	UINT16 Temp3;
-	INT16 Cur1;			//ÊµÊ±µçÁ÷Öµ£¬ÊÇVadc
+	INT16 Cur1;			//ÊµÊ±ï¿½ï¿½ï¿½ï¿½Öµï¿½ï¿½ï¿½ï¿½Vadc
 	UINT16 Cell[16];
-	INT16 Cadc;			//¸ü¾«×¼µÄ¿âÂØ¼Æ£¬ÓÃÕâ¸ö
-	//UINT16 BFLAG;		//±¾À´42¸ö¹»ÁË£¬µ«ÊÇÒòÎªÊ±»ùÎÊÌâ£¬Òª·Ö¸î£¬ËùÒÔÌí¼ÓÒ»¸öÎª44£¬Òª»®·ÖÎª4·ÝÁË
+	INT16 Cadc;			//ï¿½ï¿½ï¿½ï¿½×¼ï¿½Ä¿ï¿½ï¿½Ø¼Æ£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	//UINT16 BFLAG;		//ï¿½ï¿½ï¿½ï¿½42ï¿½ï¿½ï¿½ï¿½ï¿½Ë£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÎªÊ±ï¿½ï¿½ï¿½ï¿½ï¿½â£¬Òªï¿½Ö¸î£¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½Îª44ï¿½ï¿½Òªï¿½ï¿½ï¿½ï¿½Îª4ï¿½ï¿½ï¿½ï¿½
 }AFEDATA;
 
 
@@ -85,11 +85,11 @@ struct SH367309_Read {			/* AD Read	*/
 #define TWI_DAT_HIGH	(PORT_OUT_GPIOB->bit11 = 1)
 #define TWI_DAT_LOW	    (PORT_OUT_GPIOB->bit11 = 0)
 
-#define TWI_RD_CLK		(uint16_t)(GPIOB->IDR&GPIO_Pin_10)  //ÊäÈëSDA 
-#define TWI_RD_DAT		(uint16_t)(GPIOB->IDR&GPIO_Pin_11)  //ÊäÈëSDA 
+#define TWI_RD_CLK		(uint16_t)(GPIOB->IDR&GPIO_Pin_10)  //ï¿½ï¿½ï¿½ï¿½SDA 
+#define TWI_RD_DAT		(uint16_t)(GPIOB->IDR&GPIO_Pin_11)  //ï¿½ï¿½ï¿½ï¿½SDA 
 #endif
 
-//Õâ¸öºÍÉÏÃæÄÇ¸ö¶þÑ¡Ò»
+//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç¸ï¿½ï¿½ï¿½Ñ¡Ò»
 #if 0
 #define TWI_CLK_OUT		F_TWI_CLK_OUT()
 #define TWI_CLK_IN      F_TWI_CLK_IN()
@@ -117,6 +117,7 @@ void InitAFE1_Sleep(UINT8 mode);
 void InitAFE1(void);
 UINT8 UpdateVoltageFromBqMaximo(void);
 UINT8 UpdateVoltageFromBqMaximo_Partition(UINT8 Part);
+void initAFE1_IIC(void);
 
 #endif	/* I2C_AFE1_H */
 

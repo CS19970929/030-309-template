@@ -501,22 +501,14 @@ void ReadEEPROM_ByteData_StartUp(void)
 	INT16 t_i16RdTemp;
 	UINT16 t_u16TempMax, t_u16TempMin;
 
-	const struct PRT_E2ROM_PARAS PrtE2PARAS_Default = E2P_PROTECT_DEFAULT_PRT;
 	const struct PRT_E2ROM_PARAS PrtE2paras_Min = E2P_PROTECT_MIN_PRT;
 	const struct PRT_E2ROM_PARAS PrtE2paras_Max = E2P_PROTECT_MAX_PRT;
 	const struct PRT_E2ROM_PARAS PrtE2paras_Pos = E2P_ADDR_E2POS_PROTECT;
 
-	// const struct RTC_ELEMENT RTC_element_Default	= RTC_element_default;
-	// const struct RTC_ELEMENT RTC_element_Min		= RTC_element_min;
-	// const struct RTC_ELEMENT RTC_element_Max		= RTC_element_max;
-	// const struct RTC_ELEMENT RTC_element_Pos		= E2P_ADDR_E2POS_RTC;
-
-	const struct OTHER_ELEMENT OtherElement_to_default = OtherElement_default;
 	const struct OTHER_ELEMENT OtherElement_to_Max = OtherElement_max;
 	const struct OTHER_ELEMENT OtherElement_to_Min = OtherElement_min;
 	const struct OTHER_ELEMENT OtherElement_to_Pos = E2P_ADDR_E2POS_OTHER_ELEMENT1;
 
-	const struct HEAT_COOL_ELEMENT HeatCoolEle_Default = HeatCoolElement_Default;
 	const struct HEAT_COOL_ELEMENT HeatCoolEle_Max = HeatCoolElement_Max;
 	const struct HEAT_COOL_ELEMENT HeatCoolEle_Min = HeatCoolElement_Min;
 	const struct HEAT_COOL_ELEMENT HeatCoolEle_Pos = E2P_ADDR_E2POS_HEAT_COOL;
@@ -526,13 +518,12 @@ void ReadEEPROM_ByteData_StartUp(void)
 		t_u16RdTemp = ReadEEPROM_Word_WithZone((UINT16) * (&PrtE2paras_Pos.u16VcellOvp_First + i));
 		t_u16TempMax = (*(&PrtE2paras_Max.u16VcellOvp_First + i));
 		t_u16TempMin = (*(&PrtE2paras_Min.u16VcellOvp_First + i));
+		*(&PRT_E2ROMParas.u16VcellOvp_First + i) = t_u16RdTemp;
 		if ((t_u16RdTemp >= t_u16TempMin) && (t_u16RdTemp <= t_u16TempMax))
 		{
-			*(&PRT_E2ROMParas.u16VcellOvp_First + i) = t_u16RdTemp;
 		}
 		else
 		{
-			*(&PRT_E2ROMParas.u16VcellOvp_First + i) = *(&PrtE2PARAS_Default.u16VcellOvp_First + i);
 			if (0 == System_ErrFlag.u8ErrFlag_Com_EEPROM)
 			{ // 这样其实不太好，最好的办法是把ReadEEPROM_Word_WithZone()这个函数改造以下
 				// g_st_SysStatusFlag.bits.b1EepromErr = 1;		//重新改造了一下这个函数，最后失败告终，不改好过改
@@ -541,30 +532,12 @@ void ReadEEPROM_ByteData_StartUp(void)
 		}
 	}
 
-	/*
-	for(i = 0; i < E2P_PARA_NUM_RTC; ++i) {		//RTC
-		t_u16RdTemp = ReadEEPROM_Word_WithZone((UINT16)*(&RTC_element_Pos.RTC_Time_Year+i));
-		t_u16TempMax = (*(&RTC_element_Max.RTC_Time_Year+i));
-		t_u16TempMin =  (*(&RTC_element_Min.RTC_Time_Year+i));
-		if ((t_u16RdTemp >= t_u16TempMin)&&(t_u16RdTemp <= t_u16TempMax)) {
-			*(&RTC_time.RTC_Time_Year+i) = t_u16RdTemp;
-		}
-		else {
-			*(&RTC_time.RTC_Time_Year+i) = *(&RTC_element_Default.RTC_Time_Year+i);
-			if(0 == System_ErrFlag.u8ErrFlag_Com_EEPROM) {
-				//g_st_SysStatusFlag.bits.b1EepromErr = 1;
-				System_ERROR_UserCallback(ERROR_EEPROM_STORE);
-			}
-		}
-	}
-	*/
-
 	for (i = 0; i < E2P_PARA_NUM_CALIB_K; ++i)
 	{ // K值
 		t_u16RdTemp = ReadEEPROM_Word_WithZone(E2P_ADDR_START_CALIB_K + (i << 1));
+		g_u16CalibCoefK[i] = t_u16RdTemp;
 		if ((t_u16RdTemp >= SYSKMIN) && (t_u16RdTemp <= SYSKMAX))
 		{
-			g_u16CalibCoefK[i] = t_u16RdTemp;
 		}
 		else
 		{
@@ -572,13 +545,12 @@ void ReadEEPROM_ByteData_StartUp(void)
 			{
 				System_ERROR_UserCallback(ERROR_EEPROM_STORE);
 			}
-			g_u16CalibCoefK[i] = SYSKDEFAULT;
 		}
 
 		t_i16RdTemp = ReadEEPROM_Word_WithZone(E2P_ADDR_START_CALIB_B + (i << 1));
+		g_i16CalibCoefB[i] = t_i16RdTemp; // B值
 		if ((t_i16RdTemp >= SYSBMIN) && (t_i16RdTemp <= SYSBMAX))
 		{
-			g_i16CalibCoefB[i] = t_i16RdTemp; // B值
 		}
 		else
 		{
@@ -586,146 +558,20 @@ void ReadEEPROM_ByteData_StartUp(void)
 			{
 				System_ERROR_UserCallback(ERROR_EEPROM_STORE);
 			}
-			g_i16CalibCoefB[i] = SYSBDEFAULT;
 		}
 	}
-
-	/*
-	for(i = 0; i < SOC_TABLE_SIZE; ++i) {		//SOC表
-		t_u16RdTemp = ReadEEPROM_Word_WithZone(E2P_ADDR_START_SOC_TABLE + (i<<1));
-		if(i%2 == 0) {
-			//if((t_u16RdTemp  >=  SOC_VOL_MIN)&&(t_u16RdTemp <= SOC_VOL_MAX)) {
-			if(t_u16RdTemp <= SOC_VOL_MAX) {	//以上条件在无符号数中为恒真，可删除
-				SOC_Table_Set[i] = t_u16RdTemp;
-			}
-			else {
-				if(0 == System_ErrFlag.u8ErrFlag_Com_EEPROM) {
-					System_ERROR_UserCallback(ERROR_EEPROM_STORE);
-				}
-				SOC_Table_Set[i] = SOC_Table_Default[i];
-			}
-		}
-		else {
-			//if((t_u16RdTemp  >=  SOC_VALUE_MIN)&&(t_u16RdTemp  <= SOC_VALUE_MAX)) {
-			if(t_u16RdTemp  <= SOC_VALUE_MAX) {
-				SOC_Table_Set[i] = t_u16RdTemp;
-			}
-			else {
-				if(0 == System_ErrFlag.u8ErrFlag_Com_EEPROM) {
-					System_ERROR_UserCallback(ERROR_EEPROM_STORE);
-				}
-				SOC_Table_Set[i] = SOC_Table_Default[i];
-			}
-		}
-	}
-
-	for(i = 0; i < E2P_PARA_NUM_COPPERLOSS; ++i) {		//铜损电阻值
-		t_u16RdTemp = ReadEEPROM_Word_WithZone(E2P_ADDR_START_COPPERLOSS + (i<<1));
-		//if ((t_u16RdTemp  >=  CopperLoss_Min)&&(t_u16RdTemp <= CopperLoss_Max)) {
-		if(t_u16RdTemp <= CopperLoss_Max) {
-			CopperLoss[i] = t_u16RdTemp;
-		}
-		else {
-			if(0 == System_ErrFlag.u8ErrFlag_Com_EEPROM) {
-				System_ERROR_UserCallback(ERROR_EEPROM_STORE);
-			}
-			CopperLoss[i] = CopperLoss_Default;
-		}
-
-
-		t_u16RdTemp = ReadEEPROM_Word_WithZone(E2P_ADDR_START_COPPERLOSS_NUM + (i<<1));
-		//if ((t_u16RdTemp  >=  CopperLossNum_Min)&&(t_u16RdTemp  <= CopperLossNum_Max)) {
-		if(t_u16RdTemp  <= CopperLossNum_Max) {
-			CopperLoss_Num[i] = t_u16RdTemp;			//铜损串数
-		}
-		else {
-			if(0 == System_ErrFlag.u8ErrFlag_Com_EEPROM) {
-				System_ERROR_UserCallback(ERROR_EEPROM_STORE);
-			}
-			CopperLoss_Num[i] = CopperLossNum_Default;
-		}
-	}
-	*/
-
-	for (i = 0; i < Record_len; ++i)
-	{
-		/*
-		t_u16RdTemp = ReadEEPROM_Word_WithZone(E2P_ADDR_START_FR_FIRST + (i<<1));
-		if (((t_u16RdTemp  >=  CellOvp_First)&&(t_u16RdTemp  <= CellSocUp_First))\
-			|| t_u16RdTemp == 0) {
-			Fault_record_First[i]  =  t_u16RdTemp;		//一级保护
-		}
-		else {
-			if(0 == System_ErrFlag.u8ErrFlag_Com_EEPROM) {
-				System_ERROR_UserCallback(ERROR_EEPROM_STORE);
-			}
-			Fault_record_First[i]  =  0;
-		}
-		*/
-		t_u16RdTemp = ReadEEPROM_Word_WithZone(E2P_ADDR_START_FR_SECOND + (i << 1));
-		if (((t_u16RdTemp >= CellOvp_Second) && (t_u16RdTemp <= CellSocUp_Second)) || t_u16RdTemp == 0)
-		{
-			Fault_record_Second[i] = t_u16RdTemp; // 二级保护
-		}
-		else
-		{
-			if (0 == System_ErrFlag.u8ErrFlag_Com_EEPROM)
-			{
-				System_ERROR_UserCallback(ERROR_EEPROM_STORE);
-			}
-			Fault_record_Second[i] = 0;
-		}
-
-		t_u16RdTemp = ReadEEPROM_Word_WithZone(E2P_ADDR_START_FR_THIRD + (i << 1));
-		if (((t_u16RdTemp >= CellOvp_Third) && (t_u16RdTemp <= CellSocUp_Third)) || t_u16RdTemp == 0)
-		{
-			Fault_record_Third[i] = t_u16RdTemp; // 三级保护
-		}
-		else
-		{
-			if (0 == System_ErrFlag.u8ErrFlag_Com_EEPROM)
-			{
-				System_ERROR_UserCallback(ERROR_EEPROM_STORE);
-			}
-			Fault_record_Third[i] = 0;
-		}
-	}
-
-	// FaultPoint_First = ReadEEPROM_Word_WithZone(E2P_ADDR_E2POS_FR_TEMP_FIRST);	//三个指针
-	FaultPoint_Second = ReadEEPROM_Word_WithZone(E2P_ADDR_E2POS_FR_TEMP_SECOND);
-	FaultPoint_Third = ReadEEPROM_Word_WithZone(E2P_ADDR_E2POS_FR_TEMP_THIRD);
-
-	/*
-	for(i = 0; i < Record_len; i++) {				//三级保护RTC
-		for(j = 0; j < 6; ++j) {
-			t_u16TempMax = (*(&RTC_element_Max.RTC_Time_Year + j));
-			t_u16TempMin =  (*(&RTC_element_Min.RTC_Time_Year + j));
-			t_u16RdTemp = ReadEEPROM_Word_WithZone(E2P_ADDR_START_FR_THIRD_RTC + ((i*6 + j)<<1));
-			if ((t_u16RdTemp >= t_u16TempMin)&&(t_u16RdTemp <= t_u16TempMax)) {
-				RTC_Fault_record_Third[i][j] = t_u16RdTemp;
-			}
-			else {
-				if(0 == System_ErrFlag.u8ErrFlag_Com_EEPROM) {
-					System_ERROR_UserCallback(ERROR_EEPROM_STORE);
-				}
-				RTC_Fault_record_Third[i][j] = *(&RTC_element_Default.RTC_Time_Year+j);
-			}
-		}
-	}
-	*/
 
 	for (i = 0; i < E2P_PARA_NUM_OTHER_ELEMENT1; ++i)
 	{ // Other_CanAdd
 		t_u16RdTemp = ReadEEPROM_Word_WithZone((UINT16) * (&OtherElement_to_Pos.u16Balance_OpenVoltage + i));
 		t_u16TempMax = (*(&OtherElement_to_Max.u16Balance_OpenVoltage + i));
 		t_u16TempMin = (*(&OtherElement_to_Min.u16Balance_OpenVoltage + i));
+		*(&OtherElement.u16Balance_OpenVoltage + i) = t_u16RdTemp;
 		if ((t_u16RdTemp >= t_u16TempMin) && (t_u16RdTemp <= t_u16TempMax))
 		{
-			*(&OtherElement.u16Balance_OpenVoltage + i) = t_u16RdTemp;
 		}
 		else
 		{
-			*(&OtherElement.u16Balance_OpenVoltage + i) = *(&OtherElement_to_default.u16Balance_OpenVoltage + i);
 			if (0 == System_ErrFlag.u8ErrFlag_Com_EEPROM)
 			{
 				// g_st_SysStatusFlag.bits.b1EepromErr = 1;
@@ -739,13 +585,12 @@ void ReadEEPROM_ByteData_StartUp(void)
 		t_u16RdTemp = ReadEEPROM_Word_WithZone((UINT16) * (&HeatCoolEle_Pos.u16Heat_OpenTemp + i));
 		t_u16TempMax = (*(&HeatCoolEle_Max.u16Heat_OpenTemp + i));
 		t_u16TempMin = (*(&HeatCoolEle_Min.u16Heat_OpenTemp + i));
+		*(&Heat_Cool_Element.u16Heat_OpenTemp + i) = t_u16RdTemp;
 		if ((t_u16RdTemp >= t_u16TempMin) && (t_u16RdTemp <= t_u16TempMax))
 		{
-			*(&Heat_Cool_Element.u16Heat_OpenTemp + i) = t_u16RdTemp;
 		}
 		else
 		{
-			*(&Heat_Cool_Element.u16Heat_OpenTemp + i) = *(&HeatCoolEle_Default.u16Heat_OpenTemp + i);
 			if (0 == System_ErrFlag.u8ErrFlag_Com_EEPROM)
 			{
 				// g_st_SysStatusFlag.bits.b1EepromErr = 1;
@@ -762,13 +607,11 @@ void ReadEEPROM_ByteData_StartUp(void)
 void EEPROM_ResetData_AllToDefault(void)
 {
 	const struct PRT_E2ROM_PARAS PrtE2PARAS_Default = E2P_PROTECT_DEFAULT_PRT;
-	// const struct RTC_ELEMENT RTC_element_Default = RTC_element_default;
 	const struct OTHER_ELEMENT OtherElement_Default = OtherElement_default;
 	const struct HEAT_COOL_ELEMENT HeatCoolEle_Default = HeatCoolElement_Default;
 
 	UINT8 i;
 
-	// KB
 	for (i = 0; i < KB_NUM; ++i)
 	{
 		g_u16CalibCoefK[i] = SYSKDEFAULT;
@@ -785,27 +628,6 @@ void EEPROM_ResetData_AllToDefault(void)
 	u32E2P_Pro_VolCur_WriteFlag = E2P_PARA_ALL_VOLCUR_PROTECT;
 	u32E2P_Pro_Temp_WriteFlag = E2P_PARA_ALL_TEM_PROTECT;
 	u32E2P_Pro_Other_WriteFlag = E2P_PARA_ALL_OTHER_PROTECT;
-
-	/*
-	//SocTable
-	for(i = 0;i < E2P_PARA_NUM_SOC_TABLE; ++i) {
-		SOC_Table_Set[i] = SOC_Table_Default[i];
-	}
-	u8E2P_SocTable_WriteFlag = E2P_PARA_NUM_SOC_TABLE;
-
-	//CopperLoss
-	for(i = 0; i < E2P_PARA_NUM_COPPERLOSS; ++i) {
-		CopperLoss[i] = CopperLoss_Default;
-		CopperLoss_Num[i] = CopperLossNum_Default;
-	}
-	u8E2P_CopperLoss_WriteFlag = E2P_PARA_NUM_COPPERLOSS;
-
-	//RTC_element
-	for(i = 0; i < E2P_PARA_NUM_RTC; ++i) {
-		*(&RTC_time.RTC_Time_Year+i) = *(&RTC_element_Default.RTC_Time_Year+i);
-	}
-	u32E2P_RTC_Element_WriteFlag = E2P_PARA_ALL_RTC_ELEMENT;
-	*/
 
 	// Other_CanAdd_element
 	for (i = 0; i < E2P_PARA_NUM_OTHER_ELEMENT1; ++i)
@@ -825,42 +647,10 @@ void EEPROM_ResetData_AllToDefault(void)
 // 历史保护记录reset
 void EEPROM_ResetData_OtherToDefault(void)
 {
-	UINT8 i, j;
-	// const struct RTC_ELEMENT RTC_element_Default = RTC_element_default;
-
-	for (i = 0; i < Record_len; ++i)
-	{
-		Fault_record_First[i] = 0;
-		Fault_record_Second[i] = 0;
-		Fault_record_Third[i] = 0;
-		for (j = 0; j < 6; ++j)
-		{
-			// RTC_Fault_record_Third[i][j] = *(&RTC_element_Default.RTC_Time_Year+j);
-		}
-	}
-	FaultPoint_First = 0;
-	FaultPoint_Second = 0;
-	FaultPoint_Third = 0;
-
-	for (i = 0; i < Record_len; ++i)
-	{
-		// WriteEEPROM_Word_WithZone(E2P_ADDR_START_FR_FIRST + (i<<1),Fault_record_First[i]);
-		WriteEEPROM_Word_WithZone(E2P_ADDR_START_FR_SECOND + (i << 1), Fault_record_Second[i]);
-		WriteEEPROM_Word_WithZone(E2P_ADDR_START_FR_THIRD + (i << 1), Fault_record_Third[i]);
-		for (j = 0; j < 6; ++j)
-		{
-			// WriteEEPROM_Word_WithZone(E2P_ADDR_START_FR_THIRD_RTC + ((i*6+j)<<1), RTC_Fault_record_Third[i][j]);
-		}
-	}
-	// WriteEEPROM_Word_WithZone(E2P_ADDR_E2POS_FR_TEMP_FIRST, FaultPoint_First);
-	WriteEEPROM_Word_WithZone(E2P_ADDR_E2POS_FR_TEMP_SECOND, FaultPoint_Second);
-	WriteEEPROM_Word_WithZone(E2P_ADDR_E2POS_FR_TEMP_THIRD, FaultPoint_Third);
-
 	EEPROM_ResetData_AFE_ParametersToDefault();
 	EEPROM_ResetData_EventRecord_ToDefault();
 
-	SystemMonitorResetData_EEPROM();									// 系统功能选取标志位存储
-	WriteEEPROM_Word_NoZone(EEPROM_ADDR_PASS, EEPROM_VALUE_BEGIN_FLAG); // 第一次上电初始化完成
+	SystemMonitorResetData_EEPROM(); // 系统功能选取标志位存储
 }
 
 // Sci命令表中，因为STM8的缘故，决定全部从通讯中移出来写
@@ -1005,14 +795,79 @@ void InitE2PROM(void)
 	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
 	GPIO_Init(GPIOA, &GPIO_InitStructure);
 
+	__delay_ms(100);
+
 	InitData_E2prom();
 }
 
+void DataLoad_CurrentCali_startup(void)
+{
+	static UINT8 su8_StartUp_CaliCnt = 0;
+	static UINT16 su16_OffsetValue = 0;
+
+	static UINT32 su32_OffsetValue_CHG = 0;
+	static UINT32 su32_OffsetValue_DSG = 0;
+
+	log_i("virtual current cali\n");
+	SH367309_DriverMos_Ctrl(GPIO_CHG, 0);
+	SH367309_DriverMos_Ctrl(GPIO_DSG, 0);
+
+	__delay_ms(1000);
+	// step 2
+	while (su8_StartUp_CaliCnt < 8)
+	{ // 先2s为20*2次，3s为20*3次
+		UpdateVoltageFromBqMaximo();
+
+		if ((SH367309_Read_AFE1.u16Current & 0x8000) == 0)
+		{
+			su32_OffsetValue_CHG += SH367309_Read_AFE1.u16Current;
+		}
+		else
+		{
+			su32_OffsetValue_DSG += 0xFFFF - SH367309_Read_AFE1.u16Current + 1;
+		}
+
+		if (su32_OffsetValue_CHG >= su32_OffsetValue_DSG)
+		{
+			su16_OffsetValue = (UINT16)((su32_OffsetValue_CHG - su32_OffsetValue_DSG) >> 3);
+		}
+		else
+		{
+			su16_OffsetValue = (UINT16)(0xFFFF - ((su32_OffsetValue_DSG - su32_OffsetValue_CHG) >> 3) + 1);
+		}
+
+		++su8_StartUp_CaliCnt;
+		__delay_ms(500);
+	}
+	// step 2
+	{
+		// 如果是normal的休眠和唤醒，则需要再次保存最新的值。
+		FlashWriteOneHalfWord(FLASH_ADDR_SH367309_VALUE, su16_OffsetValue);
+	}
+}
+
+uint16_t curr_offset;
+UINT16 OffsetValue_CHG = 0;
+UINT16 OffsetValue_DSG = 0;
 void InitData_E2prom(void)
 {
 	if (EEPROM_VALUE_BEGIN_FLAG == ReadEEPROM_Word_NoZone(EEPROM_ADDR_PASS))
 	{ // 第二次上电就会执行这个
 		ReadEEPROM_ByteData_StartUp();
+
+		{
+			g_u32CS_Res_AFE = ((UINT32)OtherElement.u16Sys_CS_Res_Num * 1000) / OtherElement.u16Sys_CS_Res;
+			curr_offset = FlashReadOneHalfWord(FLASH_ADDR_SH367309_VALUE);
+
+			if ((curr_offset & 0x8000) == 0)
+			{
+				OffsetValue_CHG = (UINT32)curr_offset * 200 * g_u32CS_Res_AFE / (21470);
+			}
+			else
+			{
+				OffsetValue_DSG = (UINT32)((UINT16)(0xFFFF - curr_offset + 1)) * 200 * g_u32CS_Res_AFE / (21470); // mA
+			}
+		}
 	}
 	else
 	{ // 第一次上电，用于量产
@@ -1024,6 +879,19 @@ void InitData_E2prom(void)
 		EEPROM_ResetData_OtherToDefault(); // 把E2P_BEGIN_FLAG写进头地址，
 										   // 如果有别的添加，可以往这个函数写，目前加了保护记录初始化
 		WriteProID_Default();
+
+		bool ret = false;
+		do
+		{
+			initAFE1_IIC();
+			AFE_IsReady();
+			AFE_PARAM_WRITE_Flag = 1;
+			ret = SH367309_UpdataAfeConfig();
+
+		} while (ret == false);
+		DataLoad_CurrentCali_startup();
+
+		WriteEEPROM_Word_NoZone(EEPROM_ADDR_PASS, EEPROM_VALUE_BEGIN_FLAG); // 第一次上电初始化完成
 	}
 }
 
