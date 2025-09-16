@@ -313,7 +313,7 @@ UINT8 System_ERROR_UserCallback(enum SYSTEM_ERROR_COMMAND errorCode)
 		System_ErrFlag.u8ErrFlag_Com_Can++;
 		break;
 	case ERROR_EEPROM_COM:
-		System_ErrFlag.u8ErrFlag_Com_EEPROM++;
+		// System_ErrFlag.u8ErrFlag_Com_EEPROM++;
 		break;
 	case ERROR_SPI:
 		System_ErrFlag.u8ErrFlag_Com_SPI++;
@@ -343,7 +343,7 @@ UINT8 System_ERROR_UserCallback(enum SYSTEM_ERROR_COMMAND errorCode)
 		System_ErrFlag.u8ErrFlag_CBC_DSG++;
 		break;
 	case ERROR_EEPROM_STORE:
-		System_ErrFlag.u8ErrFlag_Store_EEPROM++;
+		// System_ErrFlag.u8ErrFlag_Store_EEPROM++;
 		break;
 	case ERROR_HSE:
 		System_ErrFlag.u8ErrFlag_HSE++;

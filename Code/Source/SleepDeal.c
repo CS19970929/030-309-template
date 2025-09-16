@@ -25,7 +25,7 @@ void InitWakeUp_Base(void)
 	// 配置PA0_WKUP外部上升沿中断
 	EXTI_InitStruct.EXTI_Line = EXTI_Line0;
 	EXTI_InitStruct.EXTI_Mode = EXTI_Mode_Interrupt;
-	EXTI_InitStruct.EXTI_Trigger = EXTI_Trigger_Falling; // 上升沿中断
+	EXTI_InitStruct.EXTI_Trigger = EXTI_Trigger_Rising; // 上升沿中断
 	EXTI_InitStruct.EXTI_LineCmd = ENABLE;
 	EXTI_Init(&EXTI_InitStruct);
 	// 中断嵌套设计
@@ -914,8 +914,8 @@ void SleepDeal_Test(void)
 bool WakeUp(void)
 {
 	bool isWake = false;
-	static uint16_t key_press_cnt = 0;
-	static uint16_t key_nopress_cnt = 0;
+	uint16_t key_press_cnt = 0;
+	uint16_t key_nopress_cnt = 0;
 
 	InitDelay();
 	InitIO();

@@ -82,8 +82,9 @@ static void led_animation(uint8_t on)
         for (int i = 0; i < LED_COUNT; i++)
         {
             LED_On(i);
-            for (volatile uint32_t d = 0; d < 300000; d++)
-                ; // 简单延时约80ms
+            // for (volatile uint32_t d = 0; d < 300000; d++)
+            //     ; // 简单延时约80m
+            __delay_ms(150);
         }
     }
     else
@@ -91,8 +92,9 @@ static void led_animation(uint8_t on)
         for (int i = LED_COUNT - 1; i >= 0; i--)
         {
             LED_Off(i);
-            for (volatile uint32_t d = 0; d < 300000; d++)
-                ;
+            // for (volatile uint32_t d = 0; d < 300000; d++)
+            //     ;
+            __delay_ms(200);
         }
     }
 }
@@ -186,7 +188,8 @@ void Board_PowerOn(void)
     sys_on = 1;
     led_animation(1);
     __delay_ms(100);
-    apply_led(cur_level);
+    // apply_led(cur_level);
+    apply_led(0);
 }
 
 void Board_PowerOff(void)

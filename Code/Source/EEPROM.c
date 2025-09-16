@@ -298,6 +298,7 @@ UINT8 IIC_Read_Byte_SEE(unsigned char ack)
 // 后续维护人员禁止使用这个函数
 UINT8 WriteEEPROM_Byte(UINT16 addr, UINT8 val)
 {
+#if 0
 	Feed_IWatchDog;
 	MCUO_E2PR_WP = 0;
 
@@ -333,10 +334,12 @@ UINT8 WriteEEPROM_Byte(UINT16 addr, UINT8 val)
 	MCUO_E2PR_WP = 1;
 	Feed_IWatchDog;
 	return 0;
+#endif
 }
 
 UINT8 ReadEEPROM_Byte(UINT16 addr)
 {
+#if 0
 	UINT8 temp = 0;
 	Feed_IWatchDog;
 	IIC_Start_SEE();
@@ -377,6 +380,7 @@ UINT8 ReadEEPROM_Byte(UINT16 addr)
 
 	Feed_IWatchDog;
 	return temp;
+#endif
 }
 
 UINT16 ReadEEPROM_Word_NoZone(UINT16 addr)
@@ -394,6 +398,7 @@ UINT16 ReadEEPROM_Word_NoZone(UINT16 addr)
 // 主要调这个，加了几句话
 UINT8 WriteEEPROM_Word_NoZone(UINT16 addr, UINT16 data)
 {
+#if 0
 	UINT8 tmp8a, tmp8b, WriteCounter = 0, result = 0;
 	UINT16 tmp_addr, tmp16;
 	;
@@ -416,6 +421,7 @@ UINT8 WriteEEPROM_Word_NoZone(UINT16 addr, UINT16 data)
 		}
 	} while (tmp16 != data);
 	return result;
+#endif
 }
 
 /*
@@ -775,26 +781,8 @@ void WriteEEPROM_ByteData_Circle(void)
 	*/
 }
 
-// 初始化IIC
 void InitE2PROM(void)
 {
-	// GPIO_InitTypeDef GPIO_InitStructure;
-
-	// // PB3_I2C_SCL_eeprom，PB4_I2C_SDA_eeprom
-	// GPIO_InitStructure.GPIO_Pin = GPIO_Pin_3 | GPIO_Pin_4;
-	// GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
-	// GPIO_InitStructure.GPIO_Speed = GPIO_Speed_Level_1;
-	// GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-	// GPIO_Init(GPIOB, &GPIO_InitStructure);
-	// GPIO_SetBits(GPIOB, GPIO_Pin_3 | GPIO_Pin_4); // 输出高
-
-	// // PA15_E2PR_WP
-	// GPIO_InitStructure.GPIO_Pin = GPIO_Pin_15;
-	// GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
-	// GPIO_InitStructure.GPIO_Speed = GPIO_Speed_Level_1;
-	// GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-	// GPIO_Init(GPIOA, &GPIO_InitStructure);
-
 	// __delay_ms(100);
 
 	InitData_E2prom();
@@ -814,7 +802,7 @@ void DataLoad_CurrentCali_startup(void)
 
 	__delay_ms(1000);
 	// step 2
-	while (su8_StartUp_CaliCnt < 8)
+	while (su8_StartUp_CaliCnt < 16)
 	{ // 先2s为20*2次，3s为20*3次
 		UpdateVoltageFromBqMaximo();
 
@@ -829,11 +817,11 @@ void DataLoad_CurrentCali_startup(void)
 
 		if (su32_OffsetValue_CHG >= su32_OffsetValue_DSG)
 		{
-			su16_OffsetValue = (UINT16)((su32_OffsetValue_CHG - su32_OffsetValue_DSG) >> 3);
+			su16_OffsetValue = (UINT16)((su32_OffsetValue_CHG - su32_OffsetValue_DSG) >> 4);
 		}
 		else
 		{
-			su16_OffsetValue = (UINT16)(0xFFFF - ((su32_OffsetValue_DSG - su32_OffsetValue_CHG) >> 3) + 1);
+			su16_OffsetValue = (UINT16)(0xFFFF - ((su32_OffsetValue_DSG - su32_OffsetValue_CHG) >> 4) + 1);
 		}
 
 		++su8_StartUp_CaliCnt;

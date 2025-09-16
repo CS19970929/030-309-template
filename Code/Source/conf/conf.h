@@ -11,7 +11,7 @@
 #define log_i(...)       ((void)0);
 #define log_w(...)       ((void)0);
 
-#define EEPROM_VALUE_BEGIN_FLAG				0x2234		//Ĭ��0x1133������Լ���Ҫˢһ�飬���Լ������ٸĻ�0x1133
+#define EEPROM_VALUE_BEGIN_FLAG				0x5915		//Ĭ��0x1133������Լ���Ҫˢһ�飬���Լ������ٸĻ�0x1133
 
 //#define _DI_SWITCH_SYS_ONOFF	//DI������������
 //#define _DI_SWITCH_DSG_ONOFF	//DI�����������Ʒŵ�Ӵ�������MOS
@@ -23,7 +23,7 @@
 
 #define VERSION         (5)
 
-#define __VIRTURE_CURRENT__
+// #define __VIRTURE_CURRENT__
 
 #define   CURR_80A      0
 #define   CURR_100A     1
@@ -108,6 +108,7 @@ typedef struct
 	uint16_t DSG;
   float    sample_voltage;
   bool     isCHG_wake;
+  uint16_t test_cnt_fuse;
 
 }Time_T;
 

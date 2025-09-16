@@ -485,4 +485,26 @@ void App_AFEGet(void)
 	DataLoad_Temperature();
 	DataLoad_TemperatureMaxMinFind();
 	DataLoad_Current();
+
+	static uint16_t close_fuse_delay_cnt = 0;
+	if (!GPIO_ReadInputDataBit(GPIO_RF_IN, PIN_RF_IN))
+	{
+		sys_time.test_cnt_fuse++;
+		
+		if (g_stCellInfoReport.u16Ichg >= 10 && g_stCellInfoReport.u16VCellMax >= 4250)
+		{
+			if (++close_fuse_delay_cnt >= (5 * 10))
+			{
+				GPIO_SetBits(GPIO_CW_EN, PIN_CW_EN);
+			}
+		}
+		else
+		{
+			close_fuse_delay_cnt = 0;
+		}
+	}
+	else
+	{
+		close_fuse_delay_cnt = 0;
+	}
 }

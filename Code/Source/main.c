@@ -64,7 +64,7 @@ int main(void)
 		// App_ChargerLoad_Det();
 		// App_Heat_Cool_Ctrl();
 
-		// App_FlashUpdateDet();
+		App_FlashUpdateDet();
 		// App_LogRecord();
 		// App_ProID_Deal();
 
@@ -92,12 +92,12 @@ void InitDevice(void)
 	InitIO();
 
 	InitTimer();
-	InitSystemWakeUp();
 	InitE2PROM(); // 内部EEPROM，不需要初始化
+	InitSystemWakeUp();
 	InitUSART_CommonUpper();
 	InitADC();
 	InitData_SOC();
-	Init_ChargerLoad_Det();
+	// Init_ChargerLoad_Det();
 	// InitHeat_Cool();
 	InitAFE1();
 	InitMosRelay_DOx();
@@ -122,8 +122,6 @@ void InitDevice(void)
 
 void InitVar(void)
 {
-	
-
 	InitSystemMonitorData_EEPROM();
 	SeriesNum = OtherElement.u16Sys_SeriesNum;
 	g_u32CS_Res_AFE = ((UINT32)OtherElement.u16Sys_CS_Res_Num * 1000) / OtherElement.u16Sys_CS_Res;

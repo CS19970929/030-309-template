@@ -25,8 +25,8 @@
 // 原来是虚电流挂钩，但是不合理，现在改为写死
 // 在预放期间，充电电流大于一定的值，也直接跳过预放，直接打开放电MOS
 // MOS同口方案，过流保护之后，例如充电过流，关闭充电管，此时放电电流大于2A，不等30s直接打开充电MOS
-#define CHG_MOS_OPEN_CUR 20
-#define DSG_MOS_OPEN_CUR 20
+#define CHG_MOS_OPEN_CUR 10
+#define DSG_MOS_OPEN_CUR 10
 
 typedef enum _FUNC_STATUS
 {
@@ -1578,10 +1578,10 @@ void MosCtrl_SameDoor_NoPreChg(UINT8 OnOFF_Ctrl)
 		s_MosCHG_Status_ChgOcp = CLOSE_MODE;
 		s_MosDSG_Status_ChgOcp = OPEN_MODE;
 
-		if (Driver_Element.u16_CurDsg > DSG_MOS_OPEN_CUR)
-		{										// 如果电流大于2A，则必须立刻打开充电MOS
-			s_MosCHG_Status_ChgOcp = OPEN_MODE; // 即使目前还在30s的过流保护状态
-		}
+		// if (Driver_Element.u17_CurDsg > DSG_MOS_OPEN_CUR)
+		// {										// 如果电流大于3A，则必须立刻打开充电MOS
+		// 	s_MosCHG_Status_ChgOcp = OPEN_MODE; // 即使目前还在31s的过流保护状态
+		// }
 
 		if (!su8_FR_IchgOcp_Flag)
 		{
@@ -1621,10 +1621,10 @@ void MosCtrl_SameDoor_NoPreChg(UINT8 OnOFF_Ctrl)
 		s_MosCHG_Status_DsgOcp = OPEN_MODE;
 		s_MosDSG_Status_DsgOcp = CLOSE_MODE;
 
-		if (Driver_Element.u16_CurChg > CHG_MOS_OPEN_CUR)
-		{
-			s_MosDSG_Status_DsgOcp = OPEN_MODE;
-		}
+		// if (Driver_Element.u16_CurChg > CHG_MOS_OPEN_CUR)
+		// {
+		// 	s_MosDSG_Status_DsgOcp = OPEN_MODE;
+		// }
 
 		if (!su8_FR_IdsgOcp_Flag)
 		{

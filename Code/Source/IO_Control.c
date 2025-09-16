@@ -443,12 +443,14 @@ void Drivers_External_Ctrl(void)
 				I_cnt = 0;
 
 				close_chg();
+				__delay_ms(100);
 				if (!GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_0))
 				{
 					// GPIO_WriteBit(GPIO_Meter_EN, PIN_Meter_En, 0);
 					// if (MCUI_ENI_DI1 == 0)
 					// {
 					bms_status = S_DSG;
+					key_func_enable = true;
 					// }
 					// else
 					// {

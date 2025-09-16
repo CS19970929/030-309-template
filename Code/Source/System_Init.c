@@ -67,6 +67,7 @@ void __delay_ms(UINT16 ms)
 	do
 	{
 		temp = SysTick->CTRL;
+		Feed_IWatchDog;
 	} while (temp & 0x01 && !(temp & (1 << 16))); // 等待时间到达
 
 	SysTick->CTRL &= ~SysTick_CTRL_ENABLE_Msk; // 关闭计数器
@@ -82,6 +83,17 @@ void InitIO(void)
 	// RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOD, ENABLE); // 开启GPIOB的外设时钟
 	// RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOE, ENABLE); // 开启GPIOB的外设时钟
 	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOF, ENABLE); // 开启GPIOF的外设时钟
+
+	MCUO_SOC_20 = 0;
+	MCUO_SOC_40 = 0;
+	MCUO_SOC_60 = 0;
+	MCUO_SOC_80 = 0;
+	MCUO_SOC_100 = 0;
+	// soc提前初始化	解决20%问题，暂时没时间找问题出在哪儿
+	GPIO_InitStructure.GPIO_Pin = PIN_LED20 | PIN_LED40 | PIN_LED60 | PIN_LED80 | PIN_LED100;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;	 // 推挽输出
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz; // IO口速度为2MHz
+	GPIO_Init(GPIO_LED20, &GPIO_InitStructure);
 
 	{
 		GPIO_InitStructure.GPIO_Pin = PIN_AFE1_PRO_EN | PIN_AFE1_CTL | PIN_AFE1_MODE;
@@ -107,7 +119,6 @@ void InitIO(void)
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_Level_1;
 	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
 	GPIO_Init(GPIO_CW_EN, &GPIO_InitStructure);
-	GPIO_SetBits(GPIO_CW_EN, PIN_CW_EN);
 	GPIO_SetBits(GPIO_ADC_EN, PIN_ADC_EN);
 
 	GPIO_InitStructure.GPIO_Pin = PIN_MCU_DRV;
@@ -122,11 +133,7 @@ void InitIO(void)
 	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
 	GPIO_Init(GPIO_DB_LED1, &GPIO_InitStructure);
 
-	// soc提前初始化	解决20%问题，暂时没时间找问题出在哪儿
-	GPIO_InitStructure.GPIO_Pin = PIN_LED20 | PIN_LED40 | PIN_LED60 | PIN_LED80 | PIN_LED100;
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;	 // 推挽输出
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz; // IO口速度为2MHz
-	GPIO_Init(GPIO_LED20, &GPIO_InitStructure);
+	
 	// MCUO_SOC_20 = 0;
 	// MCUO_SOC_40 = 0;
 	// MCUO_SOC_60 = 0;
@@ -150,6 +157,10 @@ void InitIO(void)
 	GPIO_InitStructure.GPIO_Pin = PIN_RF_IN; // 选择要用的GPIO引脚,PA0也可以唤醒
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
 	GPIO_Init(GPIO_RF_IN, &GPIO_InitStructure);
+
+	GPIO_InitStructure.GPIO_Pin = PIN_INT_WK_MCU; // 选择要用的GPIO引脚,PA0也可以唤醒
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
+	GPIO_Init(GPIO_INT_WK_MCU, &GPIO_InitStructure);
 }
 
 void InitTimer(void)
