@@ -61,7 +61,9 @@ int main(void)
 		// APP_LedBar();
 
 		// App_ChargerLoad_Det();
+#ifdef __FUNC__HEAT__
 		App_Heat_Cool_Ctrl();
+#endif // DEBUG
 
 		App_FlashUpdateDet();
 		App_LogRecord();
@@ -78,7 +80,6 @@ int main(void)
 void InitDevice(void)
 {
 	SystemInit();
-
 	Init_IAPAPP();
 
 #if (defined _DEBUG_CODE)
@@ -99,7 +100,9 @@ void InitDevice(void)
 	InitADC();
 	InitData_SOC();
 	Init_ChargerLoad_Det();
-	// InitHeat_Cool();
+#ifdef __FUNC__HEAT__
+	InitHeat_Cool();
+#endif
 	InitAFE1();
 	InitMosRelay_DOx();
 
@@ -118,7 +121,7 @@ void InitVar(void)
 
 	SystemStatus.bits.b4Status_ProjectVer = 1;
 	LogRecord_Flag.bits.Log_StartUp = 1;
-	
+
 	SystemStatus.bits.b1StartUpBMS = 0;
 }
 
