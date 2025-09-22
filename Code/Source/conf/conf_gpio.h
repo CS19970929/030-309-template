@@ -27,5 +27,7 @@
 // #define M_BLE_EN_PORT          GPIOB
 // #define M_BLE_EN_PIN           GPIO_Pin_15
 
+#define GPIO_HT_CHG           GPIOA
+#define PIN_HT_CHG            GPIO_Pin_12
 
 #endif

@@ -1,10 +1,6 @@
 #ifndef HEAT_COOL_H
 #define HEAT_COOL_H
 
-
-#define PORT_HT_EN             GPIOA
-#define PIN_HT_EN	            GPIO_Pin_11
-
 enum HEAT_COOL_CTRL_STATUS {
 	ST_HEAT_DET_SELF,
 	ST_HEAT_DET_NORMAL,
@@ -78,7 +74,7 @@ struct HEAT_COOL_ELEMENT {
 								 0,0,0,0,0,0,0,\
 								 0,0,0,0}
 
-#define HeatCoolElement_Default {400,500,20,1100,1000,\
+#define HeatCoolElement_Default {400,500,HEAT_OPEN_CURR,1100,1000,\
 								 0,0,0,0,0,0,0,0,\
 								 0,0,0,0,0,0,0,\
 								 0,0,0,0}

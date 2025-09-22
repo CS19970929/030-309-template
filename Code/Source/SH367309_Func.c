@@ -258,114 +258,6 @@ UINT8 SH367309_SC_DelayT_Set(void)
 	return result;
 }
 
-// 休眠带电需要的，控制权全权交给AFE
-// MCU的驱动，完全不用管内部各种保护是怎么样，只需要把影响均衡的两个地方配置好就行
-// 温度保护设置宽一些
-// 取消二次过充保护
-// 目前打算把两个函数合并，AFE驱动和MCU驱动区别，只要把温度数值替换就行，两者都是取消二次过充保护的
-// 结果是，使用MCU驱动时，稍微影响一点点开机时间，问题不大
-void SH367309_UpdataAfeConfig_Old(void)
-{
-	UINT8 bufferbak[26], mtpbufferbak[26];
-	UINT8 i;
-	UINT16 ResTemp[8];
-
-	Feed_IWatchDog;
-
-// 如果没有使用AFE驱动，只使用MCU驱动，则温度保护要设置宽一些
-#if (!defined _SH367309_DRIVERS)
-	for (i = 0; i < 8; ++i)
-	{
-		ucMTPBuffer[i + MTP_OTC] = ucMTPBuffer_MCUDrivers[i];
-	}
-#endif
-
-	// 和EEPROM相关寄存器修改
-	ucMTPBuffer[0x0E] = (BYTE_0EH_SCV_SCT & 0xF0) | (OtherElement.u16CBC_DelayT >> 6);
-
-	SH367309_Reg_Store.u8_MTP_SCONF2 = ucMTPBuffer[0x01];
-	SH367309_Reg_Store.u8_MTP_SCV_SCT = ucMTPBuffer[0x0E];
-
-	if (MTPRead(0x00, 26, bufferbak))
-	{													// 读309配置,包括TR
-		ucMTPBuffer[MTP_TR] = bufferbak[MTP_TR] & 0x7F; // 先获取TR[6~0]的值
-		MemoryCopy(ucMTPBuffer, mtpbufferbak, sizeof(ucMTPBuffer));
-		SH367309_Reg_Store.TR_ResRef = 680 + 5 * ucMTPBuffer[MTP_TR];
-
-		// 只要保证低温保护类型低于25摄氏度，(UINT8)强制转换相当于-256处理了
-		for (i = 0; i < 8; ++i)
-		{
-			ResTemp[i] = iSheldTemp_10K_NTC[ucMTPBuffer[i + MTP_OTC]];
-			mtpbufferbak[i + MTP_OTC] = (UINT8)(((UINT32)ResTemp[i] << 9) / ((UINT32)SH367309_Reg_Store.TR_ResRef + ResTemp[i]));
-		}
-
-		/*
-		ResTemp[0] = iSheldTemp_10K_NTC[ucMTPBuffer[MTP_OTC]];
-		ResTemp[1] = iSheldTemp_10K_NTC[ucMTPBuffer[MTP_OTCR]];
-		ResTemp[2] = iSheldTemp_10K_NTC[ucMTPBuffer[MTP_UTC]];
-		ResTemp[3] = iSheldTemp_10K_NTC[ucMTPBuffer[MTP_UTCR]];
-		ResTemp[4] = iSheldTemp_10K_NTC[ucMTPBuffer[MTP_OTD]];
-		ResTemp[5] = iSheldTemp_10K_NTC[ucMTPBuffer[MTP_OTDR]];
-		ResTemp[6] = iSheldTemp_10K_NTC[ucMTPBuffer[MTP_UTD]];
-		ResTemp[7] = iSheldTemp_10K_NTC[ucMTPBuffer[MTP_UTDR]];
-		mtpbufferbak[MTP_OTC] = (UINT8)(((UINT32)ResTemp[0]<<9)/((UINT32)ResRef + ResTemp[0]));
-		mtpbufferbak[MTP_OTCR] = (UINT8)(((UINT32)ResTemp[1]<<9)/((UINT32)ResRef + ResTemp[1]));
-		mtpbufferbak[MTP_UTC] = (UINT8)(((UINT32)ResTemp[2]<<9)/((UINT32)ResRef + ResTemp[2]) - 256);
-		mtpbufferbak[MTP_UTCR] = (UINT8)(((UINT32)ResTemp[3]<<9)/((UINT32)ResRef + ResTemp[3]) - 256);
-		mtpbufferbak[MTP_OTD] = (UINT8)(((UINT32)ResTemp[4]<<9)/((UINT32)ResRef + ResTemp[4]));
-		mtpbufferbak[MTP_OTDR] = (UINT8)(((UINT32)ResTemp[5]<<9)/((UINT32)ResRef + ResTemp[5]));
-		mtpbufferbak[MTP_UTD] = (UINT8)(((UINT32)ResTemp[6]<<9)/((UINT32)ResRef + ResTemp[6]) - 256);
-		mtpbufferbak[MTP_UTDR] = (UINT8)(((UINT32)ResTemp[7]<<9)/((UINT32)ResRef + ResTemp[7]) - 256);
-		*/
-		for (i = 0; i < 25; i++)
-		{ // 最后一个TR不做对比
-			if (bufferbak[i] != mtpbufferbak[i])
-			{
-
-				if (AFE_CalcuVbat() < 18000)
-				{ // 如果AFE供电低于18V，烧写时VPRO电压可能不足8V，不能烧写
-					System_ERROR_UserCallback(ERROR_AFE1);
-					break;
-				}
-
-				MCUO_AFE_VPRO = 1;
-				Delay1ms(20);
-				if (!MTPWriteROM(0x00, 25, mtpbufferbak))
-				{ // 重写EEPROM的寄存器，两次
-				  // System_ERROR_UserCallback(ERROR_AFE1);
-				}
-				MCUO_AFE_VPRO = 0;
-				Delay1ms(1);
-
-				if (!System_ERROR_UserCallback(ERROR_STATUS_AFE1))
-				{
-					// EA = 0;								//啥意思啊，这句话TODO
-					AFE_Reset(); // Reset IC
-					Delay1ms(5);
-					AFE_IsReady();
-				}
-
-				break;
-			}
-		}
-
-		if (!System_ERROR_UserCallback(ERROR_STATUS_AFE1))
-		{
-			if (MTPRead(0x00, 26, bufferbak))
-			{ // Read MTP value
-				for (i = 0; i < 25; i++)
-				{ // 最后一个TR不做对比
-					if (bufferbak[i] != mtpbufferbak[i])
-					{
-						System_ERROR_UserCallback(ERROR_AFE1);
-						// break;
-					}
-				}
-			}
-		}
-	}
-}
-
 void SH367309_DriverMos_Ctrl(GPIO_Type Type, UINT8 OnOFF)
 {
 	switch (Type)
@@ -387,350 +279,6 @@ void SH367309_DriverMos_Ctrl(GPIO_Type Type, UINT8 OnOFF)
 	}
 
 	MTPWrite(MTP_CONF, 1, &SH367309_Reg_Store.REG_MTP_CONF.all);
-}
-
-void SH367309_Driver_Supplement(void)
-{
-	static UINT8 su8_MOS_DSG_Status = 0;
-	UINT8 DSG_Close_Flag = 0;
-	static UINT32 su32_PreRelayOPEN_MODE_Cnt = 0;
-	static UINT32 su32_Delay_Cnt = 0;
-	static UINT8 su8_OpenT_Cnt = 0;
-
-	if (0 == g_st_SysTimeFlag.bits.b1Sys10msFlag3)
-	{
-		return;
-	}
-
-	switch (su8_MOS_DSG_Status)
-	{
-	case 0:
-		// 刚开机也是关闭，所以问题不大。
-		// 运行期间检查到关闭，也要执行一遍循环
-		if (!gu8_DriverStartUpFlag)
-		{ // 把电流校准放在前面
-			return;
-		}
-
-		if (SystemStatus.bits.b1Status_MOS_DSG == CLOSE)
-		{
-			MCUO_AFE_CTLC = 0; // 先强制关闭再说
-			su8_MOS_DSG_Status = 1;
-		}
-		break;
-
-	case 1:
-		DSG_Close_Flag = 0; // 默认是不Close
-
-		// 自身丰富添加的保护模式
-		if (g_stCellInfoReport.unMdlFault_First.bits.b1IdischgOcp)
-		{
-			// 是扩展的放电保护关掉放电MOS
-			// 保持不动
-			DSG_Close_Flag = 1;
-		}
-		else if (SH367309_Reg_Store.REG_BSTATUS1.bits.UV)
-		{
-			DSG_Close_Flag = 1;
-		}
-		else if (SH367309_Reg_Store.REG_BSTATUS1.bits.OCD1)
-		{
-			DSG_Close_Flag = 1;
-		}
-		else if (SH367309_Reg_Store.REG_BSTATUS1.bits.OCD2)
-		{
-			DSG_Close_Flag = 1;
-		}
-		else if (SH367309_Reg_Store.REG_BSTATUS1.bits.SC)
-		{
-			DSG_Close_Flag = 1;
-		}
-		else if (SH367309_Reg_Store.REG_BSTATUS2.bits.UTD)
-		{
-			DSG_Close_Flag = 1;
-		}
-		else if (SH367309_Reg_Store.REG_BSTATUS2.bits.OTD)
-		{
-			DSG_Close_Flag = 1;
-		}
-		else if (SystemStatus.bits.b1Status_BnCloseIO)
-		{ // 如果有别的手动关闭的信号，必须添加到这里
-			DSG_Close_Flag = 1;
-		}
-		else
-		{
-			// 1，看门狗溢出--------会有AFE报错。不允许出现，出现必须改代码
-			// 2，二次过充电保护----禁止(DIS_PF=1)
-			// 3，断线检测----------禁止(DIS_PF=1)
-		}
-
-		if (DSG_Close_Flag == 0)
-		{
-			su8_MOS_DSG_Status = 2;
-		}
-		break;
-
-	case 2:
-		// 打开预充
-		SystemStatus.bits.b1Status_MOS_PRE = !SystemStatus.bits.b1Status_MOS_PRE;
-		if (SystemStatus.bits.b1Status_MOS_PRE == OPEN)
-		{
-			++su32_PreRelayOPEN_MODE_Cnt;
-		}
-		if (su32_PreRelayOPEN_MODE_Cnt >= (UINT32)OtherElement.u16Sys_PreChg_Time)
-		{
-			su32_PreRelayOPEN_MODE_Cnt = 0;
-			su8_MOS_DSG_Status = 3;
-		}
-		break;
-
-	case 3:
-		MCUO_AFE_CTLC = 1; // 预充结束，允许打开放电MOS
-		if (++su32_Delay_Cnt >= 10)
-		{ // 延时100ms关闭预充
-			su32_Delay_Cnt = 0;
-			SystemStatus.bits.b1Status_MOS_PRE = CLOSE;
-			su8_MOS_DSG_Status = 4;
-		}
-		break;
-
-	case 4:
-		if (SystemStatus.bits.b1Status_MOS_DSG == OPEN)
-		{ // 监控是否真的打开了，打开才回到原来的地方监控。
-			su8_MOS_DSG_Status = 0;
-			su8_OpenT_Cnt = 0;
-		}
-
-		if (++su8_OpenT_Cnt >= 200)
-		{ // 如果计时2s内没打开，则报错
-			su8_OpenT_Cnt = 0;
-			System_ERROR_UserCallback(ERROR_AFE2); // 说明没法打开，出问题
-		}
-		break;
-
-	default:
-		break;
-	}
-
-	MCUO_MOS_PRE = SystemStatus.bits.b1Status_MOS_PRE;
-	// SystemStatus.bits.b1Status_Relay_PRE = MCUO_AFE_CTLC;
-}
-
-// DataDeal.h的参数，默认进入第二级休眠，时间为5天，7200分钟。RTC为期间作出判断
-// 第二级休眠为MOS全关类型
-// 第一级休眠为休眠带电类型
-void SH367309_SleepMode_Ctrl(void)
-{
-	// UINT8 u8_BYTE_01H_SCONF2;
-
-	static UINT8 su8_StartUp_Flag = 0;
-	static UINT16 su16_Delay_100msTCnt = 0;
-
-	static UINT8 su8_SleepExtComCnt = 0;
-
-	static UINT16 su16_RTC1_100msTCnt = 0;
-	static UINT16 su16_Normal1_100msTCnt = 0;
-	static UINT16 su16_RTC2_100msTCnt = 0;
-	static UINT16 su16_Normal2_100msTCnt = 0;
-
-	static UINT16 su16_AFE_ErrSleep_100msTCnt = 0;
-
-	if (0 == g_st_SysTimeFlag.bits.b1Sys100msFlag)
-	{ // 这个时基不能随便调，影响MOS动作，初始化电流校准
-		return;
-	}
-
-	switch (su8_StartUp_Flag)
-	{
-	case 0:
-		if (++su16_Delay_100msTCnt >= 1)
-		{
-			su16_Delay_100msTCnt = 0; // 配合RTC的平均功耗问题，如果这里延时10s，RTC搞个10min平均功耗要达到要求
-			su8_StartUp_Flag = 1;
-		}
-		break;
-
-	case 1:
-		if (g_stCellInfoReport.u16Ichg > 10 || g_stCellInfoReport.u16IDischg > 10)
-		{
-			// 有电流不判断
-			su16_RTC1_100msTCnt = 0;
-			su16_RTC2_100msTCnt = 0;
-			su16_Normal1_100msTCnt = 0;
-			su16_Normal2_100msTCnt = 0;
-
-			// 需要把进入休眠时间延长吗？
-			// 先需要吧
-			if (FLASH_309_RTC_RTC_VALUE == FlashReadOneHalfWord(FLASH_ADDR_SH367309_FLAG))
-			{
-				FlashWriteOneHalfWord(FLASH_ADDR_SH367309_FLAG, FLASH_309_RTC_NORMAL_VALUE);
-			}
-		}
-
-#if 1
-		else if (su8_SleepExtComCnt != RTC_ExtComCnt)
-		{
-			// 有通讯不判断
-			su16_RTC1_100msTCnt = 0;
-			su16_RTC2_100msTCnt = 0;
-			su16_Normal1_100msTCnt = 0;
-			su16_Normal2_100msTCnt = 0;
-			su8_SleepExtComCnt = RTC_ExtComCnt;
-
-			// 需要把进入休眠时间延长吗？
-			// 先需要吧
-			if (FLASH_309_RTC_RTC_VALUE == FlashReadOneHalfWord(FLASH_ADDR_SH367309_FLAG))
-			{
-				FlashWriteOneHalfWord(FLASH_ADDR_SH367309_FLAG, FLASH_309_RTC_NORMAL_VALUE);
-			}
-		}
-#endif
-
-		else
-		{
-			switch (FlashReadOneHalfWord(FLASH_ADDR_SH367309_FLAG))
-			{
-			case FLASH_309_RTC_RTC_VALUE:
-				if (AFE_SleepMode_Judge())
-				{
-					// if(++su16_Normal1_100msTCnt > 16) {			//没有这个延时，就算带通讯也立刻进入休眠
-					if (++su16_Normal1_100msTCnt > 100)
-					{ // 没有这个延时，就算带通讯也立刻进入休眠
-						su16_Normal1_100msTCnt = 0;
-						// 下面这个写FLASH别乱放，刚开始放在这个++su16_RTC1_100msTCnt，意味着要写16次，这种用久了单片机报废
-						// 运行起来还稳稳当当没什么问题，非常致命。必须确保只写一次，然后跳到别的地方。
-						Sleep_Mode.bits.b1ForceToSleep_L2 = 1; // 进入普通休眠
-					}
-					if (su16_RTC1_100msTCnt)
-						su16_RTC1_100msTCnt = 0;
-				}
-				else
-				{
-					// if(++su16_RTC1_100msTCnt > 16) {			//没有这个延时，就算带通讯也立刻进入休眠
-					if (++su16_RTC1_100msTCnt > 100)
-					{ // 没有这个延时，就算带通讯也立刻进入休眠
-						su16_RTC1_100msTCnt = 0;
-						Sleep_Mode.bits.b1ForceToSleep_L1 = 1; // 继续进入RTC
-					}
-					if (su16_Normal1_100msTCnt)
-						su16_Normal1_100msTCnt = 0;
-				}
-				aaa11 = 1;
-				break;
-
-			case FLASH_309_RTC_NORMAL_VALUE:
-			case FLASH_309_NORMAL_NORMAL_VALUE:
-				if (AFE_SleepMode_Judge())
-				{
-					// Sleep_Mode.bits.b1ForceToSleep_L2 = 1;		//进入普通休眠
-					// 如果有保护的话，则交给休眠函数，让其计算进入休眠
-					// 还是不要了，割开吧，自带休眠体系最后保障。
-					if (++su16_Normal2_100msTCnt >= 10 * 60 * 5)
-					{ // 还是有保护，进入普通休眠模式，20min
-						// if(++su16_Normal_100msTCnt >= 10*20) {
-						su16_Normal2_100msTCnt = 0;
-						Sleep_Mode.bits.b1ForceToSleep_L2 = 1;
-					}
-					if (su16_RTC2_100msTCnt)
-						su16_RTC2_100msTCnt = 0;
-				}
-				else
-				{
-					if (++su16_RTC2_100msTCnt >= 10 * 60 * 5)
-					{ // 正常唤醒，没问题，进入RTC模式，则等10min
-						// if(++su16_RTC_100msTCnt >= 10*20) {
-						su16_RTC2_100msTCnt = 0;
-						Sleep_Mode.bits.b1ForceToSleep_L1 = 1; // 没问题，继续进入RTC休眠
-					}
-					if (su16_Normal2_100msTCnt)
-						su16_Normal2_100msTCnt = 0;
-				}
-				aaa11 = 2;
-				break;
-
-			default:
-				// 给那种第一次用，或者以前用过，然后该地方的值被写过那种，防止出现第一次上电紊乱。
-				// 感悟就是，SOC涉及EEPROM那种，是不是也要用这个default呢，循环次数这里吃过亏。
-				FlashWriteOneHalfWord(FLASH_ADDR_SH367309_FLAG, FLASH_309_NORMAL_NORMAL_VALUE);
-				break;
-			}
-		}
-		break;
-
-	default:
-		break;
-	}
-
-	// 如果准备进入休眠带电，先检查一些MOS
-	// 如果没打开管子，则不进入休眠带电状态
-	if (Sleep_Mode.bits.b1ForceToSleep_L1)
-	{
-		if (!SH367309_Reg_Store.REG_BSTATUS3.bits.CHG_FET || !SH367309_Reg_Store.REG_BSTATUS3.bits.DSG_FET)
-		{
-			Sleep_Mode.bits.b1ForceToSleep_L1 = 0;
-			// TODO，上传上位机，有问题
-			System_ERROR_UserCallback(ERROR_UPPER);
-
-			if (++su16_AFE_ErrSleep_100msTCnt >= 10 * 60 * 10)
-			{
-				su16_AFE_ErrSleep_100msTCnt = 0;
-				Sleep_Mode.bits.b1ForceToSleep_L2 = 1;
-			}
-		}
-		else
-		{
-			if (su16_AFE_ErrSleep_100msTCnt)
-				su16_AFE_ErrSleep_100msTCnt = 0;
-		}
-	}
-
-	// 是为了区分RTC唤醒和别的唤醒形式，别的唤醒形式需要等10min才继续进入休眠，如果是RTC唤醒，则快速再次进入休眠
-	// RTC唤醒那里会修改标志位了
-	// 和这个FLASH_COMPLETE的判断还是要，因为这个写太关键了。
-	if (Sleep_Mode.bits.b1ForceToSleep_L1)
-	{
-		if (FLASH_COMPLETE == FlashWriteOneHalfWord(FLASH_ADDR_SH367309_FLAG, FLASH_309_RTC_NORMAL_VALUE))
-		{
-			// 成功，不作操作
-		}
-		else
-		{
-			// FLASH错误，但是System_ERROR_UserCallback()函数取消了
-			Sleep_Mode.bits.b1ForceToSleep_L1 = 0;
-		}
-
-		// 把CTLC影响砍掉
-		// 反过来想，默认不要CTLC影响，如果要预充，才加上，这样更容易一些。
-		// 不行，搞不定，因为要开机设置CTLC的缘故，设置好黄花菜都凉，MOS都提前打开。
-		// 最佳办法还是这个，休眠前设置好。
-		// 这个休眠带电，也要预充的想法，已经想好了，但是先不写。
-		// 休眠带电起来，InitAFE()相关寄存器需要读flash休眠标志位分开操作。
-		// 如果是休眠带电期间手动断开电源，则起来无效。这里有点小瑕疵。
-		// 这个想法先不要干，休眠带电默认不需要预充，因为长期打开管子的问题，后面出事再消除第一次短路便可。
-		// u8_BYTE_01H_SCONF2 = BYTE_01H_SCONF2&0xF3;
-		// MTPWrite(MTP_SCONF2, 1, &u8_BYTE_01H_SCONF2);
-	}
-	else if (Sleep_Mode.bits.b1ForceToSleep_L2)
-	{
-		if (FLASH_COMPLETE == FlashWriteOneHalfWord(FLASH_ADDR_SH367309_FLAG, FLASH_309_NORMAL_NORMAL_VALUE))
-		{
-			// 成功，不作操作
-		}
-		else
-		{
-			// FLASH错误，但是System_ERROR_UserCallback()函数取消了
-			Sleep_Mode.bits.b1ForceToSleep_L2 = 0;
-		}
-
-		// 如果是要进入normal_normal模式，则提前把CTLC设置好，便可。
-		// u8_BYTE_01H_SCONF2 = BYTE_01H_SCONF2;
-		// MTPWrite(MTP_SCONF2, 1, &u8_BYTE_01H_SCONF2);
-	}
-
-	aaaaaa1 = su16_RTC1_100msTCnt;
-	aaaaaa2 = su16_Normal1_100msTCnt;
-	aaaaaa3 = su16_RTC2_100msTCnt;
-	aaaaaa4 = su16_Normal2_100msTCnt;
 }
 
 void Fault_ChangeToMCU(void)
@@ -807,25 +355,24 @@ void Fault_ChangeToMCU(void)
 	}
 #endif
 
-	// g_stCellInfoReport.unMdlFault_Third.bits.b1IdischgOcp = SH367309_Reg_Store.REG_BSTATUS1.bits.OCD2;
-	// switch (su8_IdischgOcp2_Flag)
-	// {
-	// case 0:
-	// 	if (g_stCellInfoReport.unMdlFault_Third.bits.b1IdischgOcp)
-	// 	{
-	// 		FaultWarnRecord2(IdischgOcp_Third);
-	// 		su8_IdischgOcp2_Flag = 1;
-	// 	}
-	// 	break;
-	// case 1:
-	// 	if (!g_stCellInfoReport.unMdlFault_Third.bits.b1IdischgOcp)
-	// 	{
-	// 		su8_IdischgOcp2_Flag = 0;
-	// 	}
-	// 	break;
-	// default:
-	// 	break;
-	// }
+	switch (su8_IdischgOcp2_Flag)
+	{
+	case 0:
+		if (SH367309_Reg_Store.REG_BSTATUS1.bits.OCD2)
+		{
+			FaultWarnRecord2(IdischgOcp_Third);
+			su8_IdischgOcp2_Flag = 1;
+		}
+		break;
+	case 1:
+		if (!SH367309_Reg_Store.REG_BSTATUS1.bits.OCD2)
+		{
+			su8_IdischgOcp2_Flag = 0;
+		}
+		break;
+	default:
+		break;
+	}
 #if 1
 	switch (su8_IchgOcp_Flag)
 	{
@@ -849,27 +396,7 @@ void Fault_ChangeToMCU(void)
 	}
 
 #else
-	// g_stCellInfoReport.unMdlFault_Second.bits.b1IchgOcp = SH367309_Reg_Store.REG_BSTATUS1.bits.OCC;
-	// switch (su8_IchgOcp_Flag)
-	// {
-	// case 0:
-	// 	if (g_stCellInfoReport.unMdlFault_Second.bits.b1IchgOcp)
-	// 	{
-	// 		FaultWarnRecord2(IchgOcp_Second);
-	// 		su8_IchgOcp_Flag = 1;
-	// 	}
-	// 	break;
 
-	// case 1:
-	// 	if (!g_stCellInfoReport.unMdlFault_Second.bits.b1IchgOcp)
-	// 	{
-	// 		su8_IchgOcp_Flag = 0;
-	// 	}
-	// 	break;
-
-	// default:
-	// 	break;
-	// }
 #endif
 
 	switch (su8_CellChgUtp_Flag)
@@ -1006,7 +533,7 @@ void App_SH367309_Monitor(void)
 		SystemStatus.bits.b1Status_MOS_CHG = SH367309_Reg_Store.REG_BSTATUS3.bits.CHG_FET;
 		SystemStatus.bits.b1Status_MOS_DSG = SH367309_Reg_Store.REG_BSTATUS3.bits.DSG_FET;
 
-		TemperatureCheck();
+		// TemperatureCheck();
 		// 9个保护？
 		Fault_ChangeToMCU();
 

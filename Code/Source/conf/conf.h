@@ -6,6 +6,13 @@
 #include "stdbool.h"
 // #include "stm32f10x.h"
 #include "stm32f0xx.h"
+#include "conf_gpio.h"
+
+#define  wdog_enable
+// #define __FUNC__HEAT__
+#define __LOAD_REMOVE_SHORT_FUNC__
+
+#define _SECOND_CURR_PROTECT_FUNC_
 
 #define log_i(...)       ((void)0);
 #define log_w(...)       ((void)0);
@@ -17,8 +24,6 @@
 #define _DI_SWITCH_longKEY_ONOFF
 
 
-// #define BSP_Printf		printf
-#define BSP_Printf(...)
 
 #define VERSION         (5)
 
@@ -36,6 +41,14 @@
 
 #define   LEVEL_CURR     CURR_150A
 #define   AFE_TYPE        sh36xx
+
+#ifdef __FUNC__HEAT__
+#define CHG_LOWTEMP_PARAM   120
+#define HEAT_OPEN_CURR      50
+#else
+#define CHG_LOWTEMP_PARAM   380
+#define HEAT_OPEN_CURR      500
+#endif // DEBUG
 
 typedef enum GPIO_TYPE {
 	GPIO_PreCHG = 0,

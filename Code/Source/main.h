@@ -18,12 +18,8 @@
 #include "I2C_AFE1.h"
 #include "Cell_balance.h"
 #include "Flash.h"
-#include "Uart_Client.h"
 #include "SleepDeal.h"
-#include "I2C_Slave.h"
 //#include "IO_Control.h"
-#include "LED_Buzzer.h"
-#include "PWM.h"
 #include "ProductionID.h"
 #include "SH367309_Func.h"
 #include "SH367309_DataDeal.h"
@@ -33,6 +29,7 @@
 
 #include "LedBar.h"
 #include "IO_Control.h"
+#include "ShortFunc.h"
 
 #include "conf.h"
 

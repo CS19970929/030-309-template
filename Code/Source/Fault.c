@@ -1270,10 +1270,7 @@ void App_VdeltaOp_ThirdCheck(void)
 			if (t_sPubOPUPChk.u8FlagBit == 0 && Fault_Flag_Third.bits.VdeltaOvp_Third == 1)
 			{
 				Fault_Flag_Third.bits.VdeltaOvp_Third = 0;
-				if (System_ERROR_UserCallback(ERROR_STATUS_VDEATLE_OVER))
-				{
-					System_ERROR_UserCallback(ERROR_REMOVE_VDEATLE_OVER);
-				}
+				System_ERROR_UserCallback(ERROR_REMOVE_VDEATLE_OVER);
 			}
 		}
 	}
@@ -1289,17 +1286,6 @@ void App_VdeltaOp_ThirdCheck(void)
  ******************************************************************************/
 void App_WarnCtrl(void)
 {
-#if 0 // 原来函数时基被内置了，懒得改了。
-	if(0 == g_st_SysTimeFlag.bits.b1Sys10msFlag3) {
-		return STARTUP_CONT;
-	}
-#endif
-
-	if (STARTUP_CONT == System_FUNC_StartUp(SYSTEM_FUNC_STARTUP_PROTECT))
-	{
-		return;
-	}
-
 	App_CellOvp_SecondCheck();
 	App_CellOvp_ThirdCheck();
 	App_CellUvp_SecondCheck();

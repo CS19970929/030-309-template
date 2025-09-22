@@ -355,6 +355,7 @@ void MonitorAFE(UINT8 num, UINT8 Result)
 			}
 			if (u8IICFaultcnt1 == 30 && u8WakeCnt1 <= 20)
 			{
+				initAFE1_IIC();
 				SH367309_Enable_AFE_Wdt_Cadc_Drivers();
 				++u8WakeCnt1;
 			}
@@ -371,7 +372,7 @@ void MonitorAFE(UINT8 num, UINT8 Result)
 				u8WakeCnt1--;
 			}
 			SystemStatus.bits.b1Status_AFE1 = 1;
-			// System_ERROR_UserCallback(ERROR_REMOVE_AFE1);
+			System_ERROR_UserCallback(ERROR_REMOVE_AFE1);
 		}
 		break;
 
