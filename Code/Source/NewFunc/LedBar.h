@@ -9,6 +9,8 @@ typedef enum _LEDBAR_COMMAND {
 	LED_BAR_FAULT,
 }LEDBAR_COMMAND;
 
+
+
 // #define MCUI_SOC_KEY 		(PORT_IN_GPIOB->bit14)
 
 // #define MCUO_SOC_20 		(PORT_OUT_GPIOB->bit7)

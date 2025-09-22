@@ -111,7 +111,7 @@ void InitDevice(void)
 
 	sys_time.sample_voltage = (float)g_stCellInfoReport.u16VCellTotle / 100;
 	SOC_LED_Init(sys_time.sample_voltage);
-	Board_PowerOn(); // 上电动画
+	// Board_PowerOn(); // 上电动画
 
 #ifndef _DEBUG_
 	Init_IWDG();
@@ -142,7 +142,6 @@ UINT8 App_AFEshutdown(void)
 
 void InitSystemWakeUp(void)
 {
-	MCUO_AFE_CTLC = 1; // 刚上电，默认高阻态，所以不慌AFE刚开机瞬间打开MOS
 	// MCUO_AFE_SHIP = 0;
 	MCUO_AFE_MODE = 0;
 

@@ -489,11 +489,6 @@
               <FilePath>.\Code\Source\I2C_Slave.c</FilePath>
             </File>
             <File>
-              <FileName>LED_Buzzer.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Code\Source\LED_Buzzer.c</FilePath>
-            </File>
-            <File>
               <FileName>LogRecord.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\Code\Source\LogRecord.c</FilePath>
@@ -822,21 +817,6 @@
               <FileName>stm32f0xx_wwdg.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\Code\STM32F0xx_StdPeriph_Driver\src\stm32f0xx_wwdg.c</FilePath>
-            </File>
-          </Files>
-        </Group>
-        <Group>
-          <GroupName>Newfunc</GroupName>
-          <Files>
-            <File>
-              <FileName>LedBar.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Code\Source\NewFunc\LedBar.c</FilePath>
-            </File>
-            <File>
-              <FileName>LedBar.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\Code\Source\NewFunc\LedBar.h</FilePath>
             </File>
           </Files>
         </Group>

@@ -22,7 +22,7 @@
 #include "SleepDeal.h"
 #include "I2C_Slave.h"
 //#include "IO_Control.h"
-#include "LED_Buzzer.h"
+// #include "LED_Buzzer.h"
 #include "PWM.h"
 #include "ProductionID.h"
 #include "SH367309_Func.h"
@@ -31,7 +31,7 @@
 #include "LogRecord.h"
 #include "Heat_Cool.h"
 
-#include "LedBar.h"
+// #include "LedBar.h"
 #include "IO_Control.h"
 #include "ShortFunc.h"
 #include "led_soc.h"

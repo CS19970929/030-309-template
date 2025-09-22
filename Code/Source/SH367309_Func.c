@@ -218,8 +218,8 @@ void SH367309_Enable_AFE_Wdt_Cadc_Drivers(void)
 	// 30x是需要开的，因为是自己的保护体系，这个309用的是他自己的体系，所以就算出问题
 	// 看门狗不关，他自己的保护体系判断是否关MOS，风险也不大。
 	SH367309_Reg_Store.REG_MTP_CONF.bits.CADCON = 1; // 开启CADC
-	SH367309_Reg_Store.REG_MTP_CONF.bits.CHGMOS = 1; // 充电MOS由AFE硬件控制
-	SH367309_Reg_Store.REG_MTP_CONF.bits.DSGMOS = 1; // 放电MOS由AFE硬件控制
+	// SH367309_Reg_Store.REG_MTP_CONF.bits.CHGMOS = 1; // 充电MOS由AFE硬件控制
+	// SH367309_Reg_Store.REG_MTP_CONF.bits.DSGMOS = 1; // 放电MOS由AFE硬件控制
 	MTPWrite(MTP_CONF, 1, &SH367309_Reg_Store.REG_MTP_CONF.all);
 }
 
@@ -387,133 +387,6 @@ void SH367309_DriverMos_Ctrl(GPIO_Type Type, UINT8 OnOFF)
 	}
 
 	MTPWrite(MTP_CONF, 1, &SH367309_Reg_Store.REG_MTP_CONF.all);
-}
-
-void SH367309_Driver_Supplement(void)
-{
-	static UINT8 su8_MOS_DSG_Status = 0;
-	UINT8 DSG_Close_Flag = 0;
-	static UINT32 su32_PreRelayOPEN_MODE_Cnt = 0;
-	static UINT32 su32_Delay_Cnt = 0;
-	static UINT8 su8_OpenT_Cnt = 0;
-
-	if (0 == g_st_SysTimeFlag.bits.b1Sys10msFlag3)
-	{
-		return;
-	}
-
-	switch (su8_MOS_DSG_Status)
-	{
-	case 0:
-		// 刚开机也是关闭，所以问题不大。
-		// 运行期间检查到关闭，也要执行一遍循环
-		if (!gu8_DriverStartUpFlag)
-		{ // 把电流校准放在前面
-			return;
-		}
-
-		if (SystemStatus.bits.b1Status_MOS_DSG == CLOSE)
-		{
-			MCUO_AFE_CTLC = 0; // 先强制关闭再说
-			su8_MOS_DSG_Status = 1;
-		}
-		break;
-
-	case 1:
-		DSG_Close_Flag = 0; // 默认是不Close
-
-		// 自身丰富添加的保护模式
-		if (g_stCellInfoReport.unMdlFault_First.bits.b1IdischgOcp)
-		{
-			// 是扩展的放电保护关掉放电MOS
-			// 保持不动
-			DSG_Close_Flag = 1;
-		}
-		else if (SH367309_Reg_Store.REG_BSTATUS1.bits.UV)
-		{
-			DSG_Close_Flag = 1;
-		}
-		else if (SH367309_Reg_Store.REG_BSTATUS1.bits.OCD1)
-		{
-			DSG_Close_Flag = 1;
-		}
-		else if (SH367309_Reg_Store.REG_BSTATUS1.bits.OCD2)
-		{
-			DSG_Close_Flag = 1;
-		}
-		else if (SH367309_Reg_Store.REG_BSTATUS1.bits.SC)
-		{
-			DSG_Close_Flag = 1;
-		}
-		else if (SH367309_Reg_Store.REG_BSTATUS2.bits.UTD)
-		{
-			DSG_Close_Flag = 1;
-		}
-		else if (SH367309_Reg_Store.REG_BSTATUS2.bits.OTD)
-		{
-			DSG_Close_Flag = 1;
-		}
-		else if (SystemStatus.bits.b1Status_BnCloseIO)
-		{ // 如果有别的手动关闭的信号，必须添加到这里
-			DSG_Close_Flag = 1;
-		}
-		else
-		{
-			// 1，看门狗溢出--------会有AFE报错。不允许出现，出现必须改代码
-			// 2，二次过充电保护----禁止(DIS_PF=1)
-			// 3，断线检测----------禁止(DIS_PF=1)
-		}
-
-		if (DSG_Close_Flag == 0)
-		{
-			su8_MOS_DSG_Status = 2;
-		}
-		break;
-
-	case 2:
-		// 打开预充
-		SystemStatus.bits.b1Status_MOS_PRE = !SystemStatus.bits.b1Status_MOS_PRE;
-		if (SystemStatus.bits.b1Status_MOS_PRE == OPEN)
-		{
-			++su32_PreRelayOPEN_MODE_Cnt;
-		}
-		if (su32_PreRelayOPEN_MODE_Cnt >= (UINT32)OtherElement.u16Sys_PreChg_Time)
-		{
-			su32_PreRelayOPEN_MODE_Cnt = 0;
-			su8_MOS_DSG_Status = 3;
-		}
-		break;
-
-	case 3:
-		MCUO_AFE_CTLC = 1; // 预充结束，允许打开放电MOS
-		if (++su32_Delay_Cnt >= 10)
-		{ // 延时100ms关闭预充
-			su32_Delay_Cnt = 0;
-			SystemStatus.bits.b1Status_MOS_PRE = CLOSE;
-			su8_MOS_DSG_Status = 4;
-		}
-		break;
-
-	case 4:
-		if (SystemStatus.bits.b1Status_MOS_DSG == OPEN)
-		{ // 监控是否真的打开了，打开才回到原来的地方监控。
-			su8_MOS_DSG_Status = 0;
-			su8_OpenT_Cnt = 0;
-		}
-
-		if (++su8_OpenT_Cnt >= 200)
-		{ // 如果计时2s内没打开，则报错
-			su8_OpenT_Cnt = 0;
-			System_ERROR_UserCallback(ERROR_AFE2); // 说明没法打开，出问题
-		}
-		break;
-
-	default:
-		break;
-	}
-
-	MCUO_MOS_PRE = SystemStatus.bits.b1Status_MOS_PRE;
-	// SystemStatus.bits.b1Status_Relay_PRE = MCUO_AFE_CTLC;
 }
 
 // DataDeal.h的参数，默认进入第二级休眠，时间为5天，7200分钟。RTC为期间作出判断

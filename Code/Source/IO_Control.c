@@ -8,7 +8,7 @@ enum MOS_CTRL_STATUS MOSCtrl_Command = MOS_PRE_DET;
 volatile union Switch_OnOFF_Function Switch_OnOFF_Func;
 UINT8 gu8_DsgFirstOpen_Flag = 0;
 
-enum system_status bms_status = S_STARTUP;
+enum system_status bms_status = S_IDLE;
 // 长期更新数据
 void RefreshData_Drivers(void)
 {
@@ -157,7 +157,7 @@ void App_DI1_Switch(void)
 	{
 		static UINT16 su16_AntiShake_Cnt2 = 0;
 
-		if (0 == MCUI_ENI_DI1 || 0 == MCUI_SOC_KEY)
+		if (0 == MCUI_SOC_KEY)
 		{
 			if (key_func_enable)
 			{
@@ -380,53 +380,22 @@ void Drivers_External_Ctrl(void)
 		{
 			bms_status = S_DSG;
 		}
-		// todo 奇怪，昨天是怎么冲电的，得测试下
-		if (isCHGsig())
+		if (GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_0))
 		{
-			Driver_Element.MosRelay_Status.bits.b1Status_MOS_DSG = 0;
-
 			bms_status = S_CHG;
 		}
 		break;
 	case S_STARTUP:
-		static uint16_t cnt = 0;
-
-		if (GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_0))
-		{
-			bms_status = S_CHG;
-			// GPIO_WriteBit(GPIO_MCU_RES, PIN_MCU_RES, 0);
-			close_dsg();
-			openDriver = true;
-			Driver_Element.MosRelay_Status.bits.b1Status_MOS_DSG = 0;
-		}
-		else
-		{
-			// GPIO_WriteBit(GPIO_MCU_RES, PIN_MCU_RES, 1);
-			// todo 去掉延时 state ma
-			// if (++cnt >= (10))
-			{
-				cnt = 0;
-				open_dsg();
-
-				// __delay_ms(1 * 1);
-				// // todo test 预充
-				// GPIO_WriteBit(GPIO_MCU_RES, PIN_MCU_RES, 0);
-
-				bms_status = S_DSG;
-				openDriver = true;
-				Driver_Element.MosRelay_Status.bits.b1Status_MOS_CHG = 0;
-			}
-		}
-		GPIO_WriteBit(GPIO_AFE1_CTL, PIN_AFE1_CTL, 1);
+		bms_status = S_IDLE;
 		break;
-	// case S_PRECHG:
-	// break;
 	case S_DSG:
 		Driver_Element.MosRelay_Status.bits.b1Status_MOS_CHG = 0;
+		if (0 != MCUI_ENI_DI1)
+		{
+			bms_status = S_IDLE;
+		}
 		if (isCHGsig())
 		{
-			Driver_Element.MosRelay_Status.bits.b1Status_MOS_DSG = 0;
-
 			bms_status = S_CHG;
 		}
 		break;
@@ -435,27 +404,26 @@ void Drivers_External_Ctrl(void)
 
 		static UINT16 I_cnt = 0;
 
+#if 1
 		if (!g_stCellInfoReport.u16Ichg)
 		{
 			if (++I_cnt >= 100)
 			{
-				// bms_status = S_CHARGESIG;
 				I_cnt = 0;
 
 				close_chg();
 				__delay_ms(100);
 				if (!GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_0))
 				{
-					// GPIO_WriteBit(GPIO_Meter_EN, PIN_Meter_En, 0);
-					// if (MCUI_ENI_DI1 == 0)
-					// {
-					bms_status = S_DSG;
-					key_func_enable = true;
-					// }
-					// else
-					// {
-					// 	bms_status = S_IDLE;
-					// }
+					if (MCUI_ENI_DI1 == 0)
+					{
+						bms_status = S_DSG;
+						key_func_enable = true;
+					}
+					else
+					{
+						bms_status = S_IDLE;
+					}
 				}
 			}
 		}
@@ -463,15 +431,16 @@ void Drivers_External_Ctrl(void)
 		{
 			I_cnt = 0;
 		}
+#endif
 		break;
 	default:
+		bms_status = S_IDLE;
 		break;
 	}
 #endif
 
 	if (Driver_Element.u8_DriverCtrl_Right)
 	{
-		// 100ms控制一次
 		if (++su8_Ctrl_Tcnt >= 10)
 		{
 			su8_Ctrl_Tcnt = 0;

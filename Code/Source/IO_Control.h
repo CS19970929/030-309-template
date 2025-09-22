@@ -110,6 +110,7 @@ union Switch_OnOFF_Function {
 #endif
 
 
+extern enum system_status bms_status ;
 
 //extern enum RELAY_CTRL_STATUS RelayCtrl_Command;
 extern volatile union Switch_OnOFF_Function Switch_OnOFF_Func;

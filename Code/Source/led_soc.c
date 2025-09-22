@@ -8,6 +8,8 @@
 #define PER_CELL_HYST 0.02f
 #define PACK_CELLS 14
 
+LEDBAR_COMMAND LedBar_Command = LED_BAR_STARTUP;
+
 static const float cell_thresholds[LED_COUNT] = {3.30f, 3.55f, 3.70f, 3.85f, 4.00f};
 
 /*================= 全局变量 =================*/
@@ -94,7 +96,7 @@ static void led_animation(uint8_t on)
             LED_Off(i);
             // for (volatile uint32_t d = 0; d < 300000; d++)
             //     ;
-            __delay_ms(200);
+            __delay_ms(300);
         }
     }
 }
@@ -187,9 +189,9 @@ void Board_PowerOn(void)
 {
     sys_on = 1;
     led_animation(1);
-    __delay_ms(100);
+    // __delay_ms(100);
     // apply_led(cur_level);
-    apply_led(0);
+    // apply_led(0);
 }
 
 void Board_PowerOff(void)
@@ -221,4 +223,221 @@ void Key_Task(void)
         }
     }
     prev = now;
+}
+
+void LedBar_StartUp(void)
+{
+    static UINT16 su16_ShowDelay_Tcnt = 0;
+    static uint8_t led_on_index = 0;
+
+    static uint8_t state = 0;
+    static uint16_t led_animation_cnt = 0;
+    switch (state)
+    {
+    case 0:
+        ++led_animation_cnt;
+        if (led_animation_cnt % 3 == 0)
+        {
+            if (led_on_index < 5)
+                LED_On(led_on_index);
+
+            led_on_index++;
+            if (led_on_index == 8)
+            {
+                apply_led(0);
+                state = 1;
+            }
+        }
+        break;
+    case 1:
+        if (++su16_ShowDelay_Tcnt <= 10 * 3)
+        {
+            if (cur_level == 0)
+                MCUO_SOC_20 = !MCUO_SOC_20;
+            else
+                apply_led(cur_level);
+        }
+        else
+        {
+            // apply_led(0);
+            su16_ShowDelay_Tcnt = 0;
+
+            LedBar_Command = LED_BAR_NORMAL;
+        }
+
+    default:
+        break;
+    }
+}
+
+void LedBar_Show_Normal(void)
+{
+    static UINT8 su8_ShowStatus = 0; // 开机亮5s
+    static UINT16 su16_ShowDelay_Tcnt = 0;
+
+    switch (su8_ShowStatus)
+    {
+    case 0:
+
+        if (MCUI_SOC_KEY == 0)
+        {
+            su8_ShowStatus = 1;
+        }
+        // if (g_stCellInfoReport.u16IDischg && bms_status == S_DSG)
+        if (bms_status == S_DSG)
+        {
+            LedBar_Command = LED_BAR_DSG;
+        }
+        else if (bms_status == S_CHG)
+        {
+            LedBar_Command = LED_BAR_CHG;
+        }
+        else
+        {
+            apply_led(0);
+        }
+        break;
+    case 1:
+        if (++su16_ShowDelay_Tcnt <= 10 * 5)
+        {
+            if (cur_level == 0)
+            {
+                MCUO_SOC_20 = !MCUO_SOC_20;
+            }
+            else
+                apply_led(cur_level);
+        }
+        else
+        {
+            apply_led(0);
+
+            su16_ShowDelay_Tcnt = 0;
+            su8_ShowStatus = 0;
+        }
+
+        // 一直按着
+        if (!MCUI_SOC_KEY)
+            su16_ShowDelay_Tcnt = 0;
+        break;
+
+    default:
+        break;
+    }
+}
+
+void LedBar_Show_CHG(void)
+{
+    static UINT16 su16_ShowDelay = 0;
+
+    if (bms_status == S_CHG)
+    {
+        if (cur_level == 5)
+        {
+            apply_led(5);
+            return;
+        }
+
+        if (++su16_ShowDelay <= 5)
+        {
+            apply_led(cur_level);
+        }
+        else if (++su16_ShowDelay <= 10)
+        {
+            apply_led(cur_level + 1);
+        }
+        else
+        {
+            su16_ShowDelay = 0;
+        }
+    }
+    else
+    {
+        apply_led(0);
+
+        LedBar_Command = LED_BAR_NORMAL;
+    }
+}
+
+void LedBar_Show_DSG(void)
+{
+    if (bms_status == S_DSG)
+    {
+        // if (cur_level == 0 || cur_level == 1)
+        if (cur_level == 0)
+        {
+            MCUO_SOC_20 = !MCUO_SOC_20;
+        }
+        else
+            apply_led(cur_level);
+    }
+    else
+    {
+        apply_led(0);
+
+        LedBar_Command = LED_BAR_NORMAL;
+    }
+}
+
+static void led_soc_update(void)
+{
+    if (g_stCellInfoReport.u16VCellTotle >= 5740)
+        cur_level = 5;
+    else if (g_stCellInfoReport.u16VCellTotle >= 5460)
+    {
+        cur_level = 4;
+    }
+    else if (g_stCellInfoReport.u16VCellTotle >= 5040)
+    {
+        cur_level = 3;
+    }
+    else if (g_stCellInfoReport.u16VCellTotle >= 4620)
+    {
+        cur_level = 2;
+    }
+    else if (g_stCellInfoReport.u16VCellTotle >= 4340)
+    {
+        cur_level = 1;
+    }
+    else
+    {
+        cur_level = 0;
+    }
+}
+
+void APP_LedBar(void)
+{
+    if (0 == g_st_SysTimeFlag.bits.b1Sys100msFlag)
+    {
+        return;
+    }
+
+    // if (SystemStatus.bits.b1StartUpBMS)
+    // {
+    //     return;
+    // }
+    led_soc_update();
+
+    switch (LedBar_Command)
+    {
+    case LED_BAR_STARTUP:
+        LedBar_StartUp();
+        break;
+    case LED_BAR_NORMAL:
+        LedBar_Show_Normal();
+        break;
+    case LED_BAR_CHG:
+        LedBar_Show_CHG();
+        break;
+    case LED_BAR_DSG:
+        LedBar_Show_DSG();
+        break;
+    case LED_BAR_FAULT:
+        // 下面长期监控
+        break;
+
+    default:
+        break;
+    }
+
+    // LedBar_Show_Sleep();
 }

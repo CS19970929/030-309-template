@@ -8,19 +8,11 @@ void LedBar_StartUp(void)
 
     if (++su16_ShowDelay_Tcnt <= 10 * 5)
     {
-        MCUO_SOC_20 = g_stCellInfoReport.SocElement.u16Soc > 0 ? 1 : 0;
-        MCUO_SOC_40 = g_stCellInfoReport.SocElement.u16Soc >= 20 ? 1 : 0;
-        MCUO_SOC_60 = g_stCellInfoReport.SocElement.u16Soc >= 40 ? 1 : 0;
-        MCUO_SOC_80 = g_stCellInfoReport.SocElement.u16Soc >= 60 ? 1 : 0;
-        MCUO_SOC_100 = g_stCellInfoReport.SocElement.u16Soc >= 80 ? 1 : 0;
+        apply_led(cur_level);
     }
     else
     {
-        MCUO_SOC_20 = 0;
-        MCUO_SOC_40 = 0;
-        MCUO_SOC_60 = 0;
-        MCUO_SOC_80 = 0;
-        MCUO_SOC_100 = 0;
+        apply_led(0);
         su16_ShowDelay_Tcnt = 0;
 
         LedBar_Command = LED_BAR_NORMAL;
@@ -198,7 +190,7 @@ void LedBar_Show_Sleep(void)
     }
 }
 
-#if 0
+#if 1
 void APP_LedBar(void)
 {
     if (0 == g_st_SysTimeFlag.bits.b1Sys100msFlag)
@@ -213,10 +205,9 @@ void APP_LedBar(void)
 
     switch (LedBar_Command)
     {
-        // case LED_BAR_STARTUP:
-        //     LedBar_StartUp();
-        //     break;
-
+    case LED_BAR_STARTUP:
+        LedBar_StartUp();
+        break;
     case LED_BAR_NORMAL:
         LedBar_Show_Normal();
         break;
@@ -259,6 +250,6 @@ void APP_LedBar(void)
     {
         return;
     }
-    
+
     LedBar_Show_Normal();
 }

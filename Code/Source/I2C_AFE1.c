@@ -909,6 +909,12 @@ void InitAFE1(void)
 	AFE_IsReady();
 	SH367309_UpdataAfeConfig();
 	SH367309_Enable_AFE_Wdt_Cadc_Drivers();
+
+extern void DriverMos_Ctrl(GPIO_Type Type, UINT8 OnOFF);
+	DriverMos_Ctrl(GPIO_CHG, 0);
+	DriverMos_Ctrl(GPIO_DSG, 0);
+	
+	MCUO_AFE_CTLC = 1; // 刚上电，默认高阻态，所以不慌AFE刚开机瞬间打开MOS
 }
 
 /*调试心得
