@@ -302,8 +302,8 @@ extern UINT8 u8E2P_KB_WritePos;
 
 UINT8 ReadEEPROM_Byte(UINT16 addr);
 UINT8 WriteEEPROM_Byte(UINT16 addr, UINT8 val);
-UINT16 ReadEEPROM_Word_NoZone(UINT16 addr);
-UINT8 WriteEEPROM_Word_NoZone(UINT16 addr, UINT16 data);
+// UINT16 ReadEEPROM_Word_NoZone(UINT16 addr);
+// UINT8 WriteEEPROM_Word_NoZone(UINT16 addr, UINT16 data);
 UINT16 ReadEEPROM_Word_WithZone(UINT16 addr);						//ԭ���ϲ�����
 void WriteEEPROM_Word_WithZone(UINT16 addr, UINT16 data);
 

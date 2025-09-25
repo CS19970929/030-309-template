@@ -28,13 +28,15 @@
 #include "SH367309_Func.h"
 #include "SH367309_DataDeal.h"
 #include "ChargerLoadFunc.h"
-#include "LogRecord.h"
+// #include "LogRecord.h"
 #include "Heat_Cool.h"
 
 // #include "LedBar.h"
 #include "IO_Control.h"
 #include "ShortFunc.h"
 #include "led_soc.h"
+
+#include "FlashEEPROM.h"
 
 #include "conf.h"
 

@@ -385,14 +385,14 @@ UINT8 ReadEEPROM_Byte(UINT16 addr)
 
 UINT16 ReadEEPROM_Word_NoZone(UINT16 addr)
 {
-	UINT16 tmp16a;
-	UINT8 tmp8a, tmp8b;
-	tmp8a = ReadEEPROM_Byte(addr);	   // 读取低位地址A对应的数据
-	tmp8b = ReadEEPROM_Byte(addr + 1); // 读取高位地址A+1对应的数据
-	tmp16a = tmp8b;
-	tmp16a = (tmp16a << 8) | tmp8a; // 数据存储
+	// UINT16 tmp16a;
+	// UINT8 tmp8a, tmp8b;
+	// tmp8a = ReadEEPROM_Byte(addr);	   // 读取低位地址A对应的数据
+	// tmp8b = ReadEEPROM_Byte(addr + 1); // 读取高位地址A+1对应的数据
+	// tmp16a = tmp8b;
+	// tmp16a = (tmp16a << 8) | tmp8a; // 数据存储
 
-	return tmp16a;
+	// return tmp16a;
 }
 
 // 主要调这个，加了几句话
