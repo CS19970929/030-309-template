@@ -5,15 +5,11 @@ UINT8 u8WakeCnt1 = 0;
 UINT8 u8IICFaultcnt2 = 0;
 UINT8 u8WakeCnt2 = 0;
 
-UINT16 g_u16CalibCoefK[KB_NUM];
-INT16 g_i16CalibCoefB[KB_NUM];
 
 UINT16 CopperLoss[CompensateNUM]; // uΩ
 UINT16 CopperLoss_Num[CompensateNUM];
 
 UINT32 g_u32CS_Res_AFE = 0; // 1/x(Ω)
-
-struct OTHER_ELEMENT OtherElement;
 
 UINT32 u32_ChgCur_mA = 0;
 UINT32 u32_DsgCur_mA = 0;
@@ -69,11 +65,11 @@ void DataLoad_CellVolt(void)
 	for (i = 0; i < SeriesNum; ++i)
 	{
 		t_i32temp = (UINT32)SH367309_Read_AFE1.u16VCell[SeriesSelect_AFE1[SeriesNum - 1][i]];
-		if (g_u16CalibCoefK[VOLT_AFE1] != 1024 || g_i16CalibCoefB[VOLT_AFE1] != 0)
+		if (g_tParam.CalibCoefK[VOLT_AFE1] != 1024 || g_tParam.CalibCoefB[VOLT_AFE1] != 0)
 		{
-			t_i32temp = ((t_i32temp * g_u16CalibCoefK[VOLT_AFE1]) >> 10) + g_i16CalibCoefB[VOLT_AFE1];
+			t_i32temp = ((t_i32temp * g_tParam.CalibCoefK[VOLT_AFE1]) >> 10) + g_tParam.CalibCoefB[VOLT_AFE1];
 		}
-		t_i32temp = ((t_i32temp * g_u16CalibCoefK[i]) >> 10) + g_i16CalibCoefB[i];
+		t_i32temp = ((t_i32temp * g_tParam.CalibCoefK[i]) >> 10) + g_tParam.CalibCoefB[i];
 		t_i32temp = t_i32temp > 0 ? t_i32temp : 0;
 		g_stCellInfoReport.u16VCell[i] = (UINT16)t_i32temp;
 	}
@@ -120,11 +116,11 @@ void DataLoad_CellVoltMaxMinFind(void)
 	}
 
 	// 单片机读总压
-	// u32VCellTotle = ((g_i32ADCResult[ADC_VBC]*g_u16CalibCoefK[VOLT_VBUS])>>10) + (UINT32)g_i16CalibCoefB[VOLT_VBUS]*1000;
+	// u32VCellTotle = ((g_i32ADCResult[ADC_VBC]*g_tParam.CalibCoefK[VOLT_VBUS])>>10) + (UINT32)g_tParam.CalibCoefB[VOLT_VBUS]*1000;
 	// AFE读总压
-	// u32VCellTotle = ((g_stBq769x0_Read_AFE1.u32VBat*g_u16CalibCoefK[VOLT_VBUS])>>10) + (UINT32)g_i16CalibCoefB[VOLT_VBUS]*1000;
+	// u32VCellTotle = ((g_stBq769x0_Read_AFE1.u32VBat*g_tParam.CalibCoefK[VOLT_VBUS])>>10) + (UINT32)g_tParam.CalibCoefB[VOLT_VBUS]*1000;
 	// 所有单节电池电压加起来
-	u32VCellTotle = ((u32VCellTotle * g_u16CalibCoefK[VOLT_VBUS]) >> 10) + (UINT32)g_i16CalibCoefB[VOLT_VBUS] * 1000;
+	u32VCellTotle = ((u32VCellTotle * g_tParam.CalibCoefK[VOLT_VBUS]) >> 10) + (UINT32)g_tParam.CalibCoefB[VOLT_VBUS] * 1000;
 
 	g_stCellInfoReport.u16VCellTotle = (UINT16)((u32VCellTotle * 1638 >> 14) & 0xFFFF); // 除以10
 	g_stCellInfoReport.u16VCellMax = t_u16VcellMaxTemp;									// max cell voltage
@@ -150,7 +146,7 @@ void DataLoad_Temperature(void)
 	for (i = 0; i < Select; i++)
 	{
 		t_i32temp = (INT32)SH367309_Read_AFE1.u16TempBat[i] / 10 - 40;
-		t_i32temp = ((t_i32temp * g_u16CalibCoefK[MDL_TEMP1 + i]) + g_i16CalibCoefB[MDL_TEMP1 + i]) >> 10;
+		t_i32temp = ((t_i32temp * g_tParam.CalibCoefK[MDL_TEMP1 + i]) + g_tParam.CalibCoefB[MDL_TEMP1 + i]) >> 10;
 		g_stCellInfoReport.u16Temperature[i] = (UINT16)(t_i32temp * 10 + 400);
 		Monitor_TempBreak(&g_stCellInfoReport.u16Temperature[i]);
 	}
@@ -158,7 +154,7 @@ void DataLoad_Temperature(void)
 #if 1
 	// 环境温度1
 	t_i32temp = g_i32ADCResult[ADC_TEMP_EV1] / 10 - 40; // 放大1000倍和B值对应的意思
-	t_i32temp = ((t_i32temp * g_u16CalibCoefK[MDL_TEMP_ENV1]) + g_i16CalibCoefB[MDL_TEMP_ENV1]) >> 10;
+	t_i32temp = ((t_i32temp * g_tParam.CalibCoefK[MDL_TEMP_ENV1]) + g_tParam.CalibCoefB[MDL_TEMP_ENV1]) >> 10;
 	g_stCellInfoReport.u16Temperature[ENV_TEMP1] = (UINT16)(t_i32temp * 10 + 400);
 	Monitor_TempBreak(&g_stCellInfoReport.u16Temperature[ENV_TEMP1]);
 #endif
@@ -166,19 +162,19 @@ void DataLoad_Temperature(void)
 	// 环境温度2
 	t_i32temp = g_i32ADCResult[ADC_TEMP_EV2] / 10 - 40; // 放大1000倍和B值对应的意思
 	t_i32temp = -40;
-	t_i32temp = ((t_i32temp * g_u16CalibCoefK[MDL_TEMP_ENV2]) + g_i16CalibCoefB[MDL_TEMP_ENV2]) >> 10;
+	t_i32temp = ((t_i32temp * g_tParam.CalibCoefK[MDL_TEMP_ENV2]) + g_tParam.CalibCoefB[MDL_TEMP_ENV2]) >> 10;
 	g_stCellInfoReport.u16Temperature[ENV_TEMP2] = (UINT16)(t_i32temp * 10 + 400);
 
 	// 环境温度3
 	t_i32temp = -40;
-	t_i32temp = ((t_i32temp * g_u16CalibCoefK[MDL_TEMP_ENV3]) + g_i16CalibCoefB[MDL_TEMP_ENV3]) >> 10;
+	t_i32temp = ((t_i32temp * g_tParam.CalibCoefK[MDL_TEMP_ENV3]) + g_tParam.CalibCoefB[MDL_TEMP_ENV3]) >> 10;
 	g_stCellInfoReport.u16Temperature[ENV_TEMP3] = (UINT16)(t_i32temp * 10 + 400);
 
 	// MOS温度为散热片温度
 	// 取两者最大值
 	t_i32temp = g_i32ADCResult[ADC_TEMP_MOS1];
 	t_i32temp = t_i32temp / 10 - 40;
-	t_i32temp = ((t_i32temp * g_u16CalibCoefK[MDL_TEMP_MOS1]) + g_i16CalibCoefB[MDL_TEMP_MOS1]) >> 10;
+	t_i32temp = ((t_i32temp * g_tParam.CalibCoefK[MDL_TEMP_MOS1]) + g_tParam.CalibCoefB[MDL_TEMP_MOS1]) >> 10;
 	g_stCellInfoReport.u16Temperature[MOS_TEMP1] = (UINT16)(t_i32temp * 10 + 400);
 	Monitor_TempBreak(&g_stCellInfoReport.u16Temperature[MOS_TEMP1]);
 }
@@ -294,7 +290,7 @@ void DataLoad_Current(void)
 
 	if (u32_DsgCur_mA > 2000)
 	{
-		u32_DsgCur_mA = ((u32_DsgCur_mA * g_u16CalibCoefK[MDL_IDSG])) + (INT32)g_i16CalibCoefB[MDL_IDSG] * 1000; // B值是基于A为单位计算出来的
+		u32_DsgCur_mA = ((u32_DsgCur_mA * g_tParam.CalibCoefK[MDL_IDSG])) + (INT32)g_tParam.CalibCoefB[MDL_IDSG] * 1000; // B值是基于A为单位计算出来的
 	}
 	else
 	{
@@ -303,7 +299,7 @@ void DataLoad_Current(void)
 
 	if (u32_ChgCur_mA > 2000)
 	{
-		u32_ChgCur_mA = ((u32_ChgCur_mA * g_u16CalibCoefK[MDL_ICHG])) + (INT32)g_i16CalibCoefB[MDL_ICHG] * 1000;
+		u32_ChgCur_mA = ((u32_ChgCur_mA * g_tParam.CalibCoefK[MDL_ICHG])) + (INT32)g_tParam.CalibCoefB[MDL_ICHG] * 1000;
 	}
 	else
 	{

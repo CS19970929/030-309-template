@@ -1,6 +1,5 @@
 #include "main.h"
 
-struct PRT_E2ROM_PARAS PRT_E2ROMParas;
 
 union FAULT_FLAG_FIRST Fault_Flag_Fisrt;
 union FAULT_FLAG_SECOND Fault_Flag_Second;
@@ -46,11 +45,11 @@ void App_CellOvp_SecondCheck(void)
 	if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag1)
 	{
 		t_sPubOPUPChk.u16ChkVal = g_stCellInfoReport.u16VCellMax;
-		t_sPubOPUPChk.u16OPValB = PRT_E2ROMParas.u16VcellOvp_Second;
-		t_sPubOPUPChk.u16OPValS = PRT_E2ROMParas.u16VcellOvp_First; // DELAYB10MS_500MS∏ƒŒ™filter
+		t_sPubOPUPChk.u16OPValB = g_tParam.protect.u16VcellOvp_Second;
+		t_sPubOPUPChk.u16OPValS = g_tParam.protect.u16VcellOvp_First; // DELAYB10MS_500MS∏ƒŒ™filter
 		t_sPubOPUPChk.i16ChkCnt = &s_i16TimeCnt;
-		t_sPubOPUPChk.u16TimeCntB = PRT_E2ROMParas.u16VcellOvp_Filter;				   // π ’œ≈–∂œ ±º‰500ms
-		t_sPubOPUPChk.u16TimeCntS = PRT_E2ROMParas.u16VcellOvp_Filter;				   // π ’œª÷∏¥≈–∂œ ±º‰500ms
+		t_sPubOPUPChk.u16TimeCntB = g_tParam.protect.u16VcellOvp_Filter;				   // π ’œ≈–∂œ ±º‰500ms
+		t_sPubOPUPChk.u16TimeCntS = g_tParam.protect.u16VcellOvp_Filter;				   // π ’œª÷∏¥≈–∂œ ±º‰500ms
 		t_sPubOPUPChk.u8FlagLogic = 1;												   // ’˝¬ﬂº≠
 		t_sPubOPUPChk.u8FlagBit = g_stCellInfoReport.unMdlFault_Second.bits.b1CellOvp; // π ’œ±Í÷æ∏≥æ…÷µ
 
@@ -82,11 +81,11 @@ void App_CellOvp_ThirdCheck(void)
 	if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag1)
 	{
 		t_sPubOPUPChk.u16ChkVal = g_stCellInfoReport.u16VCellMax;
-		t_sPubOPUPChk.u16OPValB = PRT_E2ROMParas.u16VcellOvp_Third;
-		t_sPubOPUPChk.u16OPValS = PRT_E2ROMParas.u16VcellOvp_Rcv; // DELAYB10MS_500MS∏ƒŒ™filter
+		t_sPubOPUPChk.u16OPValB = g_tParam.protect.u16VcellOvp_Third;
+		t_sPubOPUPChk.u16OPValS = g_tParam.protect.u16VcellOvp_Rcv; // DELAYB10MS_500MS∏ƒŒ™filter
 		t_sPubOPUPChk.i16ChkCnt = &s_i16TimeCnt;
-		t_sPubOPUPChk.u16TimeCntB = PRT_E2ROMParas.u16VcellOvp_Filter;				  // π ’œ≈–∂œ ±º‰500ms
-		t_sPubOPUPChk.u16TimeCntS = PRT_E2ROMParas.u16VcellOvp_Filter;				  // π ’œª÷∏¥≈–∂œ ±º‰500ms
+		t_sPubOPUPChk.u16TimeCntB = g_tParam.protect.u16VcellOvp_Filter;				  // π ’œ≈–∂œ ±º‰500ms
+		t_sPubOPUPChk.u16TimeCntS = g_tParam.protect.u16VcellOvp_Filter;				  // π ’œª÷∏¥≈–∂œ ±º‰500ms
 		t_sPubOPUPChk.u8FlagLogic = 1;												  // ’˝¬ﬂº≠
 		t_sPubOPUPChk.u8FlagBit = g_stCellInfoReport.unMdlFault_Third.bits.b1CellOvp; // π ’œ±Í÷æ∏≥æ…÷µ
 
@@ -118,11 +117,11 @@ void App_CellUvp_SecondCheck(void)
 	if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag1)
 	{
 		t_sPubOPUPChk.u16ChkVal = g_stCellInfoReport.u16VCellMin;
-		t_sPubOPUPChk.u16OPValB = PRT_E2ROMParas.u16VcellUvp_First;
-		t_sPubOPUPChk.u16OPValS = PRT_E2ROMParas.u16VcellUvp_Second;
+		t_sPubOPUPChk.u16OPValB = g_tParam.protect.u16VcellUvp_First;
+		t_sPubOPUPChk.u16OPValS = g_tParam.protect.u16VcellUvp_Second;
 		t_sPubOPUPChk.i16ChkCnt = &s_i16TimeCnt;
-		t_sPubOPUPChk.u16TimeCntB = PRT_E2ROMParas.u16VcellUvp_Filter;				   // π ’œ≈–∂œ ±º‰500ms
-		t_sPubOPUPChk.u16TimeCntS = PRT_E2ROMParas.u16VcellUvp_Filter;				   // π ’œª÷∏¥≈–∂œ ±º‰500ms
+		t_sPubOPUPChk.u16TimeCntB = g_tParam.protect.u16VcellUvp_Filter;				   // π ’œ≈–∂œ ±º‰500ms
+		t_sPubOPUPChk.u16TimeCntS = g_tParam.protect.u16VcellUvp_Filter;				   // π ’œª÷∏¥≈–∂œ ±º‰500ms
 		t_sPubOPUPChk.u8FlagLogic = 0;												   // ∏∫¬ﬂº≠
 		t_sPubOPUPChk.u8FlagBit = g_stCellInfoReport.unMdlFault_Second.bits.b1CellUvp; // π ’œ±Í÷æ∏≥æ…÷µ
 
@@ -154,11 +153,11 @@ void App_CellUvp_ThirdCheck(void)
 	if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag1)
 	{
 		t_sPubOPUPChk.u16ChkVal = g_stCellInfoReport.u16VCellMin;
-		t_sPubOPUPChk.u16OPValB = PRT_E2ROMParas.u16VcellUvp_Rcv;
-		t_sPubOPUPChk.u16OPValS = PRT_E2ROMParas.u16VcellUvp_Third;
+		t_sPubOPUPChk.u16OPValB = g_tParam.protect.u16VcellUvp_Rcv;
+		t_sPubOPUPChk.u16OPValS = g_tParam.protect.u16VcellUvp_Third;
 		t_sPubOPUPChk.i16ChkCnt = &s_i16TimeCnt;
-		t_sPubOPUPChk.u16TimeCntB = PRT_E2ROMParas.u16VcellUvp_Filter;
-		t_sPubOPUPChk.u16TimeCntS = PRT_E2ROMParas.u16VcellUvp_Filter;
+		t_sPubOPUPChk.u16TimeCntB = g_tParam.protect.u16VcellUvp_Filter;
+		t_sPubOPUPChk.u16TimeCntS = g_tParam.protect.u16VcellUvp_Filter;
 		t_sPubOPUPChk.u8FlagLogic = 0;												  // ∏∫¬ﬂº≠
 		t_sPubOPUPChk.u8FlagBit = g_stCellInfoReport.unMdlFault_Third.bits.b1CellUvp; // π ’œ±Í÷æ∏≥æ…÷µ
 
@@ -190,11 +189,11 @@ void App_BatOvp_SecondCheck(void)
 	if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag2)
 	{
 		t_sPubOPUPChk.u16ChkVal = g_stCellInfoReport.u16VCellTotle;
-		t_sPubOPUPChk.u16OPValB = PRT_E2ROMParas.u16VbusOvp_Second;
-		t_sPubOPUPChk.u16OPValS = PRT_E2ROMParas.u16VbusOvp_First;
+		t_sPubOPUPChk.u16OPValB = g_tParam.protect.u16VbusOvp_Second;
+		t_sPubOPUPChk.u16OPValS = g_tParam.protect.u16VbusOvp_First;
 		t_sPubOPUPChk.i16ChkCnt = &s_i16TimeCnt;
-		t_sPubOPUPChk.u16TimeCntB = PRT_E2ROMParas.u16VbusOvp_Filter;				  // π ’œ≈–∂œ ±º‰500ms
-		t_sPubOPUPChk.u16TimeCntS = PRT_E2ROMParas.u16VbusOvp_Filter;				  // π ’œª÷∏¥≈–∂œ ±º‰500ms
+		t_sPubOPUPChk.u16TimeCntB = g_tParam.protect.u16VbusOvp_Filter;				  // π ’œ≈–∂œ ±º‰500ms
+		t_sPubOPUPChk.u16TimeCntS = g_tParam.protect.u16VbusOvp_Filter;				  // π ’œª÷∏¥≈–∂œ ±º‰500ms
 		t_sPubOPUPChk.u8FlagLogic = 1;												  // ’˝¬ﬂº≠
 		t_sPubOPUPChk.u8FlagBit = g_stCellInfoReport.unMdlFault_Second.bits.b1BatOvp; // π ’œ±Í÷æ∏≥æ…÷µ
 
@@ -226,11 +225,11 @@ void App_BatOvp_ThirdCheck(void)
 	if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag2)
 	{
 		t_sPubOPUPChk.u16ChkVal = g_stCellInfoReport.u16VCellTotle;
-		t_sPubOPUPChk.u16OPValB = PRT_E2ROMParas.u16VbusOvp_Third;
-		t_sPubOPUPChk.u16OPValS = PRT_E2ROMParas.u16VbusOvp_Rcv;
+		t_sPubOPUPChk.u16OPValB = g_tParam.protect.u16VbusOvp_Third;
+		t_sPubOPUPChk.u16OPValS = g_tParam.protect.u16VbusOvp_Rcv;
 		t_sPubOPUPChk.i16ChkCnt = &s_i16TimeCnt;
-		t_sPubOPUPChk.u16TimeCntB = PRT_E2ROMParas.u16VbusOvp_Filter;				 // π ’œ≈–∂œ ±º‰500ms
-		t_sPubOPUPChk.u16TimeCntS = PRT_E2ROMParas.u16VbusOvp_Filter;				 // π ’œª÷∏¥≈–∂œ ±º‰500ms
+		t_sPubOPUPChk.u16TimeCntB = g_tParam.protect.u16VbusOvp_Filter;				 // π ’œ≈–∂œ ±º‰500ms
+		t_sPubOPUPChk.u16TimeCntS = g_tParam.protect.u16VbusOvp_Filter;				 // π ’œª÷∏¥≈–∂œ ±º‰500ms
 		t_sPubOPUPChk.u8FlagLogic = 1;												 // ’˝¬ﬂº≠
 		t_sPubOPUPChk.u8FlagBit = g_stCellInfoReport.unMdlFault_Third.bits.b1BatOvp; // π ’œ±Í÷æ∏≥æ…÷µ
 
@@ -262,11 +261,11 @@ void App_BatUvp_SecondCheck(void)
 	if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag2)
 	{
 		t_sPubOPUPChk.u16ChkVal = g_stCellInfoReport.u16VCellTotle;
-		t_sPubOPUPChk.u16OPValB = PRT_E2ROMParas.u16VbusUvp_First;
-		t_sPubOPUPChk.u16OPValS = PRT_E2ROMParas.u16VbusUvp_Second;
+		t_sPubOPUPChk.u16OPValB = g_tParam.protect.u16VbusUvp_First;
+		t_sPubOPUPChk.u16OPValS = g_tParam.protect.u16VbusUvp_Second;
 		t_sPubOPUPChk.i16ChkCnt = &s_i16TimeCnt;
-		t_sPubOPUPChk.u16TimeCntB = PRT_E2ROMParas.u16VbusUvp_Filter;				  // π ’œ≈–∂œ ±º‰500ms
-		t_sPubOPUPChk.u16TimeCntS = PRT_E2ROMParas.u16VbusUvp_Filter;				  // π ’œª÷∏¥≈–∂œ ±º‰500ms
+		t_sPubOPUPChk.u16TimeCntB = g_tParam.protect.u16VbusUvp_Filter;				  // π ’œ≈–∂œ ±º‰500ms
+		t_sPubOPUPChk.u16TimeCntS = g_tParam.protect.u16VbusUvp_Filter;				  // π ’œª÷∏¥≈–∂œ ±º‰500ms
 		t_sPubOPUPChk.u8FlagLogic = 0;												  // ∏∫¬ﬂº≠
 		t_sPubOPUPChk.u8FlagBit = g_stCellInfoReport.unMdlFault_Second.bits.b1BatUvp; // π ’œ±Í÷æ∏≥æ…÷µ
 
@@ -298,11 +297,11 @@ void App_BatUvp_ThirdCheck(void)
 	if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag2)
 	{
 		t_sPubOPUPChk.u16ChkVal = g_stCellInfoReport.u16VCellTotle;
-		t_sPubOPUPChk.u16OPValB = PRT_E2ROMParas.u16VbusUvp_Rcv;
-		t_sPubOPUPChk.u16OPValS = PRT_E2ROMParas.u16VbusUvp_Third;
+		t_sPubOPUPChk.u16OPValB = g_tParam.protect.u16VbusUvp_Rcv;
+		t_sPubOPUPChk.u16OPValS = g_tParam.protect.u16VbusUvp_Third;
 		t_sPubOPUPChk.i16ChkCnt = &s_i16TimeCnt;
-		t_sPubOPUPChk.u16TimeCntB = PRT_E2ROMParas.u16VbusUvp_Filter;				 // π ’œ≈–∂œ ±º‰500ms
-		t_sPubOPUPChk.u16TimeCntS = PRT_E2ROMParas.u16VbusUvp_Filter;				 // π ’œª÷∏¥≈–∂œ ±º‰500ms
+		t_sPubOPUPChk.u16TimeCntB = g_tParam.protect.u16VbusUvp_Filter;				 // π ’œ≈–∂œ ±º‰500ms
+		t_sPubOPUPChk.u16TimeCntS = g_tParam.protect.u16VbusUvp_Filter;				 // π ’œª÷∏¥≈–∂œ ±º‰500ms
 		t_sPubOPUPChk.u8FlagLogic = 0;												 // ∏∫¬ﬂº≠
 		t_sPubOPUPChk.u8FlagBit = g_stCellInfoReport.unMdlFault_Third.bits.b1BatUvp; // π ’œ±Í÷æ∏≥æ…÷µ
 
@@ -336,11 +335,11 @@ void App_IchgOcp_SecondCheck(void)
 	{
 		// if(0 == g_stCellInfoReport.unMdlFault_Second.bits.b1IchgOcp) {
 		t_sPubOPUPChk.u16ChkVal = g_stCellInfoReport.u16Ichg;
-		t_sPubOPUPChk.u16OPValB = PRT_E2ROMParas.u16IchgOcp_Second; // π˝¡˜≈–∂œ
-		t_sPubOPUPChk.u16OPValS = PRT_E2ROMParas.u16IchgOcp_First;	// √ª”–ª÷∏¥≈–∂œ
+		t_sPubOPUPChk.u16OPValB = g_tParam.protect.u16IchgOcp_Second; // π˝¡˜≈–∂œ
+		t_sPubOPUPChk.u16OPValS = g_tParam.protect.u16IchgOcp_First;	// √ª”–ª÷∏¥≈–∂œ
 		t_sPubOPUPChk.i16ChkCnt = &s_i16TimeCnt;
-		t_sPubOPUPChk.u16TimeCntB = PRT_E2ROMParas.u16IchgOcp_Filter;					  // π ’œ≈–∂œ ±º‰500ms
-		t_sPubOPUPChk.u16TimeCntS = PRT_E2ROMParas.u16IchgOcp_Filter + CurOverFaultDelay; // √ª”–ª÷∏¥≈–∂œ-->”–ª÷∏¥≈–∂œ
+		t_sPubOPUPChk.u16TimeCntB = g_tParam.protect.u16IchgOcp_Filter;					  // π ’œ≈–∂œ ±º‰500ms
+		t_sPubOPUPChk.u16TimeCntS = g_tParam.protect.u16IchgOcp_Filter + CurOverFaultDelay; // √ª”–ª÷∏¥≈–∂œ-->”–ª÷∏¥≈–∂œ
 		t_sPubOPUPChk.u8FlagLogic = 1;													  // ’˝¬ﬂº≠
 		t_sPubOPUPChk.u8FlagBit = g_stCellInfoReport.unMdlFault_Second.bits.b1IchgOcp;	  // π ’œ±Í÷æ∏≥æ…÷µ
 
@@ -385,11 +384,11 @@ void App_IchgOcp_ThirdCheck(void)
 	{
 		// if(0 == g_stCellInfoReport.unMdlFault_Third.bits.b1IchgOcp) {
 		t_sPubOPUPChk.u16ChkVal = g_stCellInfoReport.u16Ichg;
-		t_sPubOPUPChk.u16OPValB = PRT_E2ROMParas.u16IchgOcp_Third; // π˝¡˜≈–∂œ
-		t_sPubOPUPChk.u16OPValS = PRT_E2ROMParas.u16IchgOcp_Rcv;   // √ª”–ª÷∏¥≈–∂œ
+		t_sPubOPUPChk.u16OPValB = g_tParam.protect.u16IchgOcp_Third; // π˝¡˜≈–∂œ
+		t_sPubOPUPChk.u16OPValS = g_tParam.protect.u16IchgOcp_Rcv;   // √ª”–ª÷∏¥≈–∂œ
 		t_sPubOPUPChk.i16ChkCnt = &s_i16TimeCnt;
-		t_sPubOPUPChk.u16TimeCntB = PRT_E2ROMParas.u16IchgOcp_Filter;					  // π ’œ≈–∂œ ±º‰500ms
-		t_sPubOPUPChk.u16TimeCntS = PRT_E2ROMParas.u16IchgOcp_Filter + CurOverFaultDelay; // √ª”–ª÷∏¥≈–∂œ-->”–ª÷∏¥≈–∂œ
+		t_sPubOPUPChk.u16TimeCntB = g_tParam.protect.u16IchgOcp_Filter;					  // π ’œ≈–∂œ ±º‰500ms
+		t_sPubOPUPChk.u16TimeCntS = g_tParam.protect.u16IchgOcp_Filter + CurOverFaultDelay; // √ª”–ª÷∏¥≈–∂œ-->”–ª÷∏¥≈–∂œ
 		t_sPubOPUPChk.u8FlagLogic = 1;													  // ’˝¬ﬂº≠
 		t_sPubOPUPChk.u8FlagBit = g_stCellInfoReport.unMdlFault_Third.bits.b1IchgOcp;	  // π ’œ±Í÷æ∏≥æ…÷µ
 
@@ -434,11 +433,11 @@ void App_IdischgOcp_SecondCheck(void)
 	{
 		// if(0 == g_stCellInfoReport.unMdlFault_Second.bits.b1IdischgOcp) {
 		t_sPubOPUPChk.u16ChkVal = g_stCellInfoReport.u16IDischg;
-		t_sPubOPUPChk.u16OPValB = PRT_E2ROMParas.u16IdsgOcp_Second; // π˝¡˜≈–∂œ
-		t_sPubOPUPChk.u16OPValS = PRT_E2ROMParas.u16IdsgOcp_First;	// √ª”–ª÷∏¥≈–∂œ
+		t_sPubOPUPChk.u16OPValB = g_tParam.protect.u16IdsgOcp_Second; // π˝¡˜≈–∂œ
+		t_sPubOPUPChk.u16OPValS = g_tParam.protect.u16IdsgOcp_First;	// √ª”–ª÷∏¥≈–∂œ
 		t_sPubOPUPChk.i16ChkCnt = &s_i16TimeCnt;
-		t_sPubOPUPChk.u16TimeCntB = PRT_E2ROMParas.u16IdsgOcp_Filter;					  // π ’œ≈–∂œ ±º‰500ms
-		t_sPubOPUPChk.u16TimeCntS = PRT_E2ROMParas.u16IdsgOcp_Filter + CurOverFaultDelay; // √ª”–ª÷∏¥≈–∂œ-->”–ª÷∏¥≈–∂œ
+		t_sPubOPUPChk.u16TimeCntB = g_tParam.protect.u16IdsgOcp_Filter;					  // π ’œ≈–∂œ ±º‰500ms
+		t_sPubOPUPChk.u16TimeCntS = g_tParam.protect.u16IdsgOcp_Filter + CurOverFaultDelay; // √ª”–ª÷∏¥≈–∂œ-->”–ª÷∏¥≈–∂œ
 		t_sPubOPUPChk.u8FlagLogic = 1;													  // ’˝¬ﬂº≠
 		t_sPubOPUPChk.u8FlagBit = g_stCellInfoReport.unMdlFault_Second.bits.b1IdischgOcp; // π ’œ±Í÷æ∏≥æ…÷µ
 
@@ -483,11 +482,11 @@ void App_IdischgOcp_ThirdCheck(void)
 	{
 		// if(0 == g_stCellInfoReport.unMdlFault_Third.bits.b1IdischgOcp) {
 		t_sPubOPUPChk.u16ChkVal = g_stCellInfoReport.u16IDischg;
-		t_sPubOPUPChk.u16OPValB = PRT_E2ROMParas.u16IdsgOcp_Third; // π˝¡˜≈–∂œ
-		t_sPubOPUPChk.u16OPValS = PRT_E2ROMParas.u16IdsgOcp_Rcv;   // √ª”–ª÷∏¥≈–∂œ
+		t_sPubOPUPChk.u16OPValB = g_tParam.protect.u16IdsgOcp_Third; // π˝¡˜≈–∂œ
+		t_sPubOPUPChk.u16OPValS = g_tParam.protect.u16IdsgOcp_Rcv;   // √ª”–ª÷∏¥≈–∂œ
 		t_sPubOPUPChk.i16ChkCnt = &s_i16TimeCnt;
-		t_sPubOPUPChk.u16TimeCntB = PRT_E2ROMParas.u16IdsgOcp_Filter;					  // π ’œ≈–∂œ ±º‰500ms
-		t_sPubOPUPChk.u16TimeCntS = PRT_E2ROMParas.u16IdsgOcp_Filter + CurOverFaultDelay; // √ª”–ª÷∏¥≈–∂œ-->”–ª÷∏¥≈–∂œ
+		t_sPubOPUPChk.u16TimeCntB = g_tParam.protect.u16IdsgOcp_Filter;					  // π ’œ≈–∂œ ±º‰500ms
+		t_sPubOPUPChk.u16TimeCntS = g_tParam.protect.u16IdsgOcp_Filter + CurOverFaultDelay; // √ª”–ª÷∏¥≈–∂œ-->”–ª÷∏¥≈–∂œ
 		t_sPubOPUPChk.u8FlagLogic = 1;													  // ’˝¬ﬂº≠
 		t_sPubOPUPChk.u8FlagBit = g_stCellInfoReport.unMdlFault_Third.bits.b1IdischgOcp;  // π ’œ±Í÷æ∏≥æ…÷µ
 
@@ -530,11 +529,11 @@ void App_CellChgOtp_SecondCheck(void)
 	if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag4)
 	{
 		t_sPubOPUPChk.u16ChkVal = g_stCellInfoReport.u16TempMax;
-		t_sPubOPUPChk.u16OPValB = PRT_E2ROMParas.u16TChgOTp_Second;
-		t_sPubOPUPChk.u16OPValS = PRT_E2ROMParas.u16TChgOTp_First;
+		t_sPubOPUPChk.u16OPValB = g_tParam.protect.u16TChgOTp_Second;
+		t_sPubOPUPChk.u16OPValS = g_tParam.protect.u16TChgOTp_First;
 		t_sPubOPUPChk.i16ChkCnt = &s_i16TimeCnt;
-		t_sPubOPUPChk.u16TimeCntB = PRT_E2ROMParas.u16TChgOTp_Filter;					  // π ’œ≈–∂œ ±º‰500ms
-		t_sPubOPUPChk.u16TimeCntS = PRT_E2ROMParas.u16TChgOTp_Filter;					  // π ’œª÷∏¥≈–∂œ ±º‰500ms
+		t_sPubOPUPChk.u16TimeCntB = g_tParam.protect.u16TChgOTp_Filter;					  // π ’œ≈–∂œ ±º‰500ms
+		t_sPubOPUPChk.u16TimeCntS = g_tParam.protect.u16TChgOTp_Filter;					  // π ’œª÷∏¥≈–∂œ ±º‰500ms
 		t_sPubOPUPChk.u8FlagLogic = 1;													  // ’˝¬ﬂº≠
 		t_sPubOPUPChk.u8FlagBit = g_stCellInfoReport.unMdlFault_Second.bits.b1CellChgOtp; // π ’œ±Í÷æ∏≥æ…÷µ
 
@@ -597,11 +596,11 @@ void App_CellChgOtp_ThirdCheck(void)
 	if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag4)
 	{
 		t_sPubOPUPChk.u16ChkVal = g_stCellInfoReport.u16TempMax;
-		t_sPubOPUPChk.u16OPValB = PRT_E2ROMParas.u16TChgOTp_Third;
-		t_sPubOPUPChk.u16OPValS = PRT_E2ROMParas.u16TChgOTp_Rcv;
+		t_sPubOPUPChk.u16OPValB = g_tParam.protect.u16TChgOTp_Third;
+		t_sPubOPUPChk.u16OPValS = g_tParam.protect.u16TChgOTp_Rcv;
 		t_sPubOPUPChk.i16ChkCnt = &s_i16TimeCnt;
-		t_sPubOPUPChk.u16TimeCntB = PRT_E2ROMParas.u16TChgOTp_Filter;					 // π ’œ≈–∂œ ±º‰500ms
-		t_sPubOPUPChk.u16TimeCntS = PRT_E2ROMParas.u16TChgOTp_Filter;					 // π ’œª÷∏¥≈–∂œ ±º‰500ms
+		t_sPubOPUPChk.u16TimeCntB = g_tParam.protect.u16TChgOTp_Filter;					 // π ’œ≈–∂œ ±º‰500ms
+		t_sPubOPUPChk.u16TimeCntS = g_tParam.protect.u16TChgOTp_Filter;					 // π ’œª÷∏¥≈–∂œ ±º‰500ms
 		t_sPubOPUPChk.u8FlagLogic = 1;													 // ’˝¬ﬂº≠
 		t_sPubOPUPChk.u8FlagBit = g_stCellInfoReport.unMdlFault_Third.bits.b1CellChgOtp; // π ’œ±Í÷æ∏≥æ…÷µ
 
@@ -664,11 +663,11 @@ void App_CellDisChgOtp_SecondCheck(void)
 	if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag4)
 	{
 		t_sPubOPUPChk.u16ChkVal = g_stCellInfoReport.u16TempMax;
-		t_sPubOPUPChk.u16OPValB = PRT_E2ROMParas.u16TdischgOTp_Second;
-		t_sPubOPUPChk.u16OPValS = PRT_E2ROMParas.u16TdischgOTp_First;
+		t_sPubOPUPChk.u16OPValB = g_tParam.protect.u16TdischgOTp_Second;
+		t_sPubOPUPChk.u16OPValS = g_tParam.protect.u16TdischgOTp_First;
 		t_sPubOPUPChk.i16ChkCnt = &s_i16TimeCnt;
-		t_sPubOPUPChk.u16TimeCntB = PRT_E2ROMParas.u16TdischgOTp_Filter;					 // π ’œ≈–∂œ ±º‰500ms
-		t_sPubOPUPChk.u16TimeCntS = PRT_E2ROMParas.u16TdischgOTp_Filter;					 // π ’œª÷∏¥≈–∂œ ±º‰500ms
+		t_sPubOPUPChk.u16TimeCntB = g_tParam.protect.u16TdischgOTp_Filter;					 // π ’œ≈–∂œ ±º‰500ms
+		t_sPubOPUPChk.u16TimeCntS = g_tParam.protect.u16TdischgOTp_Filter;					 // π ’œª÷∏¥≈–∂œ ±º‰500ms
 		t_sPubOPUPChk.u8FlagLogic = 1;														 // ’˝¬ﬂº≠
 		t_sPubOPUPChk.u8FlagBit = g_stCellInfoReport.unMdlFault_Second.bits.b1CellDischgOtp; // π ’œ±Í÷æ∏≥æ…÷µ
 
@@ -731,11 +730,11 @@ void App_CellDisChgOtp_ThirdCheck(void)
 	if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag4)
 	{
 		t_sPubOPUPChk.u16ChkVal = g_stCellInfoReport.u16TempMax;
-		t_sPubOPUPChk.u16OPValB = PRT_E2ROMParas.u16TdischgOTp_Third;
-		t_sPubOPUPChk.u16OPValS = PRT_E2ROMParas.u16TdischgOTp_Rcv;
+		t_sPubOPUPChk.u16OPValB = g_tParam.protect.u16TdischgOTp_Third;
+		t_sPubOPUPChk.u16OPValS = g_tParam.protect.u16TdischgOTp_Rcv;
 		t_sPubOPUPChk.i16ChkCnt = &s_i16TimeCnt;
-		t_sPubOPUPChk.u16TimeCntB = PRT_E2ROMParas.u16TdischgOTp_Filter;					// π ’œ≈–∂œ ±º‰500ms
-		t_sPubOPUPChk.u16TimeCntS = PRT_E2ROMParas.u16TdischgOTp_Filter;					// π ’œª÷∏¥≈–∂œ ±º‰500ms
+		t_sPubOPUPChk.u16TimeCntB = g_tParam.protect.u16TdischgOTp_Filter;					// π ’œ≈–∂œ ±º‰500ms
+		t_sPubOPUPChk.u16TimeCntS = g_tParam.protect.u16TdischgOTp_Filter;					// π ’œª÷∏¥≈–∂œ ±º‰500ms
 		t_sPubOPUPChk.u8FlagLogic = 1;														// ’˝¬ﬂº≠
 		t_sPubOPUPChk.u8FlagBit = g_stCellInfoReport.unMdlFault_Third.bits.b1CellDischgOtp; // π ’œ±Í÷æ∏≥æ…÷µ
 
@@ -798,11 +797,11 @@ void App_MosOtp_SecondCheck(void)
 	if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag5)
 	{
 		t_sPubOPUPChk.u16ChkVal = g_stCellInfoReport.u16Temperature[MOS_TEMP1];
-		t_sPubOPUPChk.u16OPValB = PRT_E2ROMParas.u16TmosOTp_Second;
-		t_sPubOPUPChk.u16OPValS = PRT_E2ROMParas.u16TmosOTp_First;
+		t_sPubOPUPChk.u16OPValB = g_tParam.protect.u16TmosOTp_Second;
+		t_sPubOPUPChk.u16OPValS = g_tParam.protect.u16TmosOTp_First;
 		t_sPubOPUPChk.i16ChkCnt = &s_i16TimeCnt;
-		t_sPubOPUPChk.u16TimeCntB = PRT_E2ROMParas.u16TmosOTp_Filter;				   // π ’œ≈–∂œ ±º‰500ms
-		t_sPubOPUPChk.u16TimeCntS = PRT_E2ROMParas.u16TmosOTp_Filter;				   // π ’œª÷∏¥≈–∂œ ±º‰500ms
+		t_sPubOPUPChk.u16TimeCntB = g_tParam.protect.u16TmosOTp_Filter;				   // π ’œ≈–∂œ ±º‰500ms
+		t_sPubOPUPChk.u16TimeCntS = g_tParam.protect.u16TmosOTp_Filter;				   // π ’œª÷∏¥≈–∂œ ±º‰500ms
 		t_sPubOPUPChk.u8FlagLogic = 1;												   // ’˝¬ﬂº≠
 		t_sPubOPUPChk.u8FlagBit = g_stCellInfoReport.unMdlFault_Second.bits.b1TmosOtp; // π ’œ±Í÷æ∏≥æ…÷µ
 
@@ -834,11 +833,11 @@ void App_MosOtp_ThirdCheck(void)
 	if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag5)
 	{
 		t_sPubOPUPChk.u16ChkVal = g_stCellInfoReport.u16Temperature[MOS_TEMP1];
-		t_sPubOPUPChk.u16OPValB = PRT_E2ROMParas.u16TmosOTp_Third;
-		t_sPubOPUPChk.u16OPValS = PRT_E2ROMParas.u16TmosOTp_Rcv;
+		t_sPubOPUPChk.u16OPValB = g_tParam.protect.u16TmosOTp_Third;
+		t_sPubOPUPChk.u16OPValS = g_tParam.protect.u16TmosOTp_Rcv;
 		t_sPubOPUPChk.i16ChkCnt = &s_i16TimeCnt;
-		t_sPubOPUPChk.u16TimeCntB = PRT_E2ROMParas.u16TmosOTp_Filter;				  // π ’œ≈–∂œ ±º‰500ms
-		t_sPubOPUPChk.u16TimeCntS = PRT_E2ROMParas.u16TmosOTp_Filter;				  // π ’œª÷∏¥≈–∂œ ±º‰500ms
+		t_sPubOPUPChk.u16TimeCntB = g_tParam.protect.u16TmosOTp_Filter;				  // π ’œ≈–∂œ ±º‰500ms
+		t_sPubOPUPChk.u16TimeCntS = g_tParam.protect.u16TmosOTp_Filter;				  // π ’œª÷∏¥≈–∂œ ±º‰500ms
 		t_sPubOPUPChk.u8FlagLogic = 1;												  // ’˝¬ﬂº≠
 		t_sPubOPUPChk.u8FlagBit = g_stCellInfoReport.unMdlFault_Third.bits.b1TmosOtp; // π ’œ±Í÷æ∏≥æ…÷µ
 
@@ -870,11 +869,11 @@ void App_CellChgUtp_SecondCheck(void)
 	if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag5)
 	{
 		t_sPubOPUPChk.u16ChkVal = g_stCellInfoReport.u16TempMin;
-		t_sPubOPUPChk.u16OPValB = PRT_E2ROMParas.u16TchgUTp_First;
-		t_sPubOPUPChk.u16OPValS = PRT_E2ROMParas.u16TchgUTp_Second;
+		t_sPubOPUPChk.u16OPValB = g_tParam.protect.u16TchgUTp_First;
+		t_sPubOPUPChk.u16OPValS = g_tParam.protect.u16TchgUTp_Second;
 		t_sPubOPUPChk.i16ChkCnt = &s_i16TimeCnt;
-		t_sPubOPUPChk.u16TimeCntB = PRT_E2ROMParas.u16TchgUTp_Filter;					  // π ’œ≈–∂œ ±º‰500ms
-		t_sPubOPUPChk.u16TimeCntS = PRT_E2ROMParas.u16TchgUTp_Filter;					  // π ’œª÷∏¥≈–∂œ ±º‰500ms
+		t_sPubOPUPChk.u16TimeCntB = g_tParam.protect.u16TchgUTp_Filter;					  // π ’œ≈–∂œ ±º‰500ms
+		t_sPubOPUPChk.u16TimeCntS = g_tParam.protect.u16TchgUTp_Filter;					  // π ’œª÷∏¥≈–∂œ ±º‰500ms
 		t_sPubOPUPChk.u8FlagLogic = 0;													  // ∏∫¬ﬂº≠
 		t_sPubOPUPChk.u8FlagBit = g_stCellInfoReport.unMdlFault_Second.bits.b1CellChgUtp; // π ’œ±Í÷æ∏≥æ…÷µ
 
@@ -937,11 +936,11 @@ void App_CellChgUtp_ThirdCheck(void)
 	if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag5)
 	{
 		t_sPubOPUPChk.u16ChkVal = g_stCellInfoReport.u16TempMin;
-		t_sPubOPUPChk.u16OPValB = PRT_E2ROMParas.u16TchgUTp_Rcv;
-		t_sPubOPUPChk.u16OPValS = PRT_E2ROMParas.u16TchgUTp_Third;
+		t_sPubOPUPChk.u16OPValB = g_tParam.protect.u16TchgUTp_Rcv;
+		t_sPubOPUPChk.u16OPValS = g_tParam.protect.u16TchgUTp_Third;
 		t_sPubOPUPChk.i16ChkCnt = &s_i16TimeCnt;
-		t_sPubOPUPChk.u16TimeCntB = PRT_E2ROMParas.u16TchgUTp_Filter;					 // π ’œ≈–∂œ ±º‰500ms
-		t_sPubOPUPChk.u16TimeCntS = PRT_E2ROMParas.u16TchgUTp_Filter;					 // π ’œª÷∏¥≈–∂œ ±º‰500ms
+		t_sPubOPUPChk.u16TimeCntB = g_tParam.protect.u16TchgUTp_Filter;					 // π ’œ≈–∂œ ±º‰500ms
+		t_sPubOPUPChk.u16TimeCntS = g_tParam.protect.u16TchgUTp_Filter;					 // π ’œª÷∏¥≈–∂œ ±º‰500ms
 		t_sPubOPUPChk.u8FlagLogic = 0;													 // ∏∫¬ﬂº≠
 		t_sPubOPUPChk.u8FlagBit = g_stCellInfoReport.unMdlFault_Third.bits.b1CellChgUtp; // π ’œ±Í÷æ∏≥æ…÷µ
 
@@ -1004,11 +1003,11 @@ void App_CellDischgUtp_SecondCheck(void)
 	if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag5)
 	{
 		t_sPubOPUPChk.u16ChkVal = g_stCellInfoReport.u16TempMin;
-		t_sPubOPUPChk.u16OPValB = PRT_E2ROMParas.u16TdischgUTp_First;
-		t_sPubOPUPChk.u16OPValS = PRT_E2ROMParas.u16TdischgUTp_Second;
+		t_sPubOPUPChk.u16OPValB = g_tParam.protect.u16TdischgUTp_First;
+		t_sPubOPUPChk.u16OPValS = g_tParam.protect.u16TdischgUTp_Second;
 		t_sPubOPUPChk.i16ChkCnt = &s_i16TimeCnt;
-		t_sPubOPUPChk.u16TimeCntB = PRT_E2ROMParas.u16TdischgUTp_Filter;					 // π ’œ≈–∂œ ±º‰500ms
-		t_sPubOPUPChk.u16TimeCntS = PRT_E2ROMParas.u16TdischgUTp_Filter;					 // π ’œª÷∏¥≈–∂œ ±º‰500ms
+		t_sPubOPUPChk.u16TimeCntB = g_tParam.protect.u16TdischgUTp_Filter;					 // π ’œ≈–∂œ ±º‰500ms
+		t_sPubOPUPChk.u16TimeCntS = g_tParam.protect.u16TdischgUTp_Filter;					 // π ’œª÷∏¥≈–∂œ ±º‰500ms
 		t_sPubOPUPChk.u8FlagLogic = 0;														 // ∏∫¬ﬂº≠
 		t_sPubOPUPChk.u8FlagBit = g_stCellInfoReport.unMdlFault_Second.bits.b1CellDischgUtp; // π ’œ±Í÷æ∏≥æ…÷µ
 
@@ -1071,11 +1070,11 @@ void App_CellDischgUtp_ThirdCheck(void)
 	if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag5)
 	{
 		t_sPubOPUPChk.u16ChkVal = g_stCellInfoReport.u16TempMin;
-		t_sPubOPUPChk.u16OPValB = PRT_E2ROMParas.u16TdischgUTp_Rcv;
-		t_sPubOPUPChk.u16OPValS = PRT_E2ROMParas.u16TdischgUTp_Third;
+		t_sPubOPUPChk.u16OPValB = g_tParam.protect.u16TdischgUTp_Rcv;
+		t_sPubOPUPChk.u16OPValS = g_tParam.protect.u16TdischgUTp_Third;
 		t_sPubOPUPChk.i16ChkCnt = &s_i16TimeCnt;
-		t_sPubOPUPChk.u16TimeCntB = PRT_E2ROMParas.u16TdischgUTp_Filter;					// π ’œ≈–∂œ ±º‰500ms
-		t_sPubOPUPChk.u16TimeCntS = PRT_E2ROMParas.u16TdischgUTp_Filter;					// π ’œª÷∏¥≈–∂œ ±º‰500ms
+		t_sPubOPUPChk.u16TimeCntB = g_tParam.protect.u16TdischgUTp_Filter;					// π ’œ≈–∂œ ±º‰500ms
+		t_sPubOPUPChk.u16TimeCntS = g_tParam.protect.u16TdischgUTp_Filter;					// π ’œª÷∏¥≈–∂œ ±º‰500ms
 		t_sPubOPUPChk.u8FlagLogic = 0;														// ∏∫¬ﬂº≠
 		t_sPubOPUPChk.u8FlagBit = g_stCellInfoReport.unMdlFault_Third.bits.b1CellDischgUtp; // π ’œ±Í÷æ∏≥æ…÷µ
 
@@ -1138,11 +1137,11 @@ void App_CellSocUp_SecondCheck(void)
 	if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag4)
 	{
 		t_sPubOPUPChk.u16ChkVal = g_stCellInfoReport.SocElement.u16Soc;
-		t_sPubOPUPChk.u16OPValB = PRT_E2ROMParas.u16SocUp_First;
-		t_sPubOPUPChk.u16OPValS = PRT_E2ROMParas.u16SocUp_Second;
+		t_sPubOPUPChk.u16OPValB = g_tParam.protect.u16SocUp_First;
+		t_sPubOPUPChk.u16OPValS = g_tParam.protect.u16SocUp_Second;
 		t_sPubOPUPChk.i16ChkCnt = &s_i16TimeCnt;
-		t_sPubOPUPChk.u16TimeCntB = PRT_E2ROMParas.u16SocUp_Filter;					  // π ’œ≈–∂œ ±º‰500ms
-		t_sPubOPUPChk.u16TimeCntS = PRT_E2ROMParas.u16SocUp_Filter;					  // π ’œª÷∏¥≈–∂œ ±º‰500ms
+		t_sPubOPUPChk.u16TimeCntB = g_tParam.protect.u16SocUp_Filter;					  // π ’œ≈–∂œ ±º‰500ms
+		t_sPubOPUPChk.u16TimeCntS = g_tParam.protect.u16SocUp_Filter;					  // π ’œª÷∏¥≈–∂œ ±º‰500ms
 		t_sPubOPUPChk.u8FlagLogic = 0;												  // ∏∫¬ﬂº≠
 		t_sPubOPUPChk.u8FlagBit = g_stCellInfoReport.unMdlFault_Second.bits.b1SocLow; // π ’œ±Í÷æ∏≥æ…÷µ
 
@@ -1174,11 +1173,11 @@ void App_CellSocUp_ThirdCheck(void)
 	if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag4)
 	{
 		t_sPubOPUPChk.u16ChkVal = g_stCellInfoReport.SocElement.u16Soc;
-		t_sPubOPUPChk.u16OPValB = PRT_E2ROMParas.u16SocUp_Rcv;
-		t_sPubOPUPChk.u16OPValS = PRT_E2ROMParas.u16SocUp_Third;
+		t_sPubOPUPChk.u16OPValB = g_tParam.protect.u16SocUp_Rcv;
+		t_sPubOPUPChk.u16OPValS = g_tParam.protect.u16SocUp_Third;
 		t_sPubOPUPChk.i16ChkCnt = &s_i16TimeCnt;
-		t_sPubOPUPChk.u16TimeCntB = PRT_E2ROMParas.u16SocUp_Filter;					 // π ’œ≈–∂œ ±º‰500ms
-		t_sPubOPUPChk.u16TimeCntS = PRT_E2ROMParas.u16SocUp_Filter;					 // π ’œª÷∏¥≈–∂œ ±º‰500ms
+		t_sPubOPUPChk.u16TimeCntB = g_tParam.protect.u16SocUp_Filter;					 // π ’œ≈–∂œ ±º‰500ms
+		t_sPubOPUPChk.u16TimeCntS = g_tParam.protect.u16SocUp_Filter;					 // π ’œª÷∏¥≈–∂œ ±º‰500ms
 		t_sPubOPUPChk.u8FlagLogic = 0;												 // ∏∫¬ﬂº≠
 		t_sPubOPUPChk.u8FlagBit = g_stCellInfoReport.unMdlFault_Third.bits.b1SocLow; // π ’œ±Í÷æ∏≥æ…÷µ
 
@@ -1210,11 +1209,11 @@ void App_VdeltaOp_SecondCheck(void)
 	if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag5)
 	{
 		t_sPubOPUPChk.u16ChkVal = g_stCellInfoReport.u16VCellDelta;
-		t_sPubOPUPChk.u16OPValB = PRT_E2ROMParas.u16VdeltaOvp_Second;
-		t_sPubOPUPChk.u16OPValS = PRT_E2ROMParas.u16VdeltaOvp_First;
+		t_sPubOPUPChk.u16OPValB = g_tParam.protect.u16VdeltaOvp_Second;
+		t_sPubOPUPChk.u16OPValS = g_tParam.protect.u16VdeltaOvp_First;
 		t_sPubOPUPChk.i16ChkCnt = &s_i16TimeCnt;
-		t_sPubOPUPChk.u16TimeCntB = PRT_E2ROMParas.u16VdeltaOvp_Filter;						 // π ’œ≈–∂œ ±º‰500ms
-		t_sPubOPUPChk.u16TimeCntS = PRT_E2ROMParas.u16VdeltaOvp_Filter;						 // π ’œª÷∏¥≈–∂œ ±º‰500ms
+		t_sPubOPUPChk.u16TimeCntB = g_tParam.protect.u16VdeltaOvp_Filter;						 // π ’œ≈–∂œ ±º‰500ms
+		t_sPubOPUPChk.u16TimeCntS = g_tParam.protect.u16VdeltaOvp_Filter;						 // π ’œª÷∏¥≈–∂œ ±º‰500ms
 		t_sPubOPUPChk.u8FlagLogic = 1;														 // ∏∫¬ﬂº≠
 		t_sPubOPUPChk.u8FlagBit = g_stCellInfoReport.unMdlFault_Second.bits.b1VcellDeltaBig; // π ’œ±Í÷æ∏≥æ…÷µ
 
@@ -1246,11 +1245,11 @@ void App_VdeltaOp_ThirdCheck(void)
 	if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag5)
 	{
 		t_sPubOPUPChk.u16ChkVal = g_stCellInfoReport.u16VCellDelta;
-		t_sPubOPUPChk.u16OPValB = PRT_E2ROMParas.u16VdeltaOvp_Third;
-		t_sPubOPUPChk.u16OPValS = PRT_E2ROMParas.u16VdeltaOvp_Rcv;
+		t_sPubOPUPChk.u16OPValB = g_tParam.protect.u16VdeltaOvp_Third;
+		t_sPubOPUPChk.u16OPValS = g_tParam.protect.u16VdeltaOvp_Rcv;
 		t_sPubOPUPChk.i16ChkCnt = &s_i16TimeCnt;
-		t_sPubOPUPChk.u16TimeCntB = PRT_E2ROMParas.u16VdeltaOvp_Filter;						// π ’œ≈–∂œ ±º‰500ms
-		t_sPubOPUPChk.u16TimeCntS = (PRT_E2ROMParas.u16VdeltaOvp_Filter + 200);				// π ’œª÷∏¥≈–∂œ ±º‰500ms
+		t_sPubOPUPChk.u16TimeCntB = g_tParam.protect.u16VdeltaOvp_Filter;						// π ’œ≈–∂œ ±º‰500ms
+		t_sPubOPUPChk.u16TimeCntS = (g_tParam.protect.u16VdeltaOvp_Filter + 200);				// π ’œª÷∏¥≈–∂œ ±º‰500ms
 		t_sPubOPUPChk.u8FlagLogic = 1;														// ∏∫¬ﬂº≠
 		t_sPubOPUPChk.u8FlagBit = g_stCellInfoReport.unMdlFault_Third.bits.b1VcellDeltaBig; // π ’œ±Í÷æ∏≥æ…÷µ
 

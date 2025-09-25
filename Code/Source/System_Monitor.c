@@ -99,9 +99,9 @@ UINT16 Sys_FindProtectFilterMax(void)
 	}
 	for (i = 0; i < 13; ++i)
 	{
-		if (*(&PRT_E2ROMParas.u16VcellOvp_Filter + 5 * i) > s_u16ProtectFilterMax)
+		if (*(&g_tParam.protect.u16VcellOvp_Filter + 5 * i) > s_u16ProtectFilterMax)
 		{
-			s_u16ProtectFilterMax = *(&PRT_E2ROMParas.u16VcellOvp_Filter + 5 * i);
+			s_u16ProtectFilterMax = *(&g_tParam.protect.u16VcellOvp_Filter + 5 * i);
 		}
 	}
 	return s_u16ProtectFilterMax + 2; // ÍÆ³Ù20ms

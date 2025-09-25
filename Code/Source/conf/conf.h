@@ -8,6 +8,8 @@
 #include "stm32f0xx.h"
 #include "conf_gpio.h"
 
+// #define  wdog_enable
+
 #define log_i(...)       ((void)0);
 #define log_w(...)       ((void)0);
 

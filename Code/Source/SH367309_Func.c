@@ -180,7 +180,7 @@ UINT32 AFE_CalcuVbat(void)
 
 	if (AFE_GetData())
 	{
-		for (i = 0; i < OtherElement.u16Sys_SeriesNum; i++)
+		for (i = 0; i < g_tParam.other.u16Sys_SeriesNum; i++)
 		{
 			result += ((UINT32)Registers_AFE1.Cell[i] * 5 >> 5); // Calculate a single battery voltage
 																 // Vcell*5/32
@@ -231,7 +231,7 @@ UINT8 SH367309_SC_DelayT_Set(void)
 	UINT8 u8temp_need = 0;
 
 	u8temp_now = SH367309_Reg_Store.u8_MTP_SCV_SCT & 0x0F;
-	u8temp_need = OtherElement.u16CBC_DelayT >> 6; // 除以64得出等级，其表格就是以64us为一个等级的
+	u8temp_need = g_tParam.other.u16CBC_DelayT >> 6; // 除以64得出等级，其表格就是以64us为一个等级的
 	if (u8temp_need > 15)
 		u8temp_need = 15;
 
@@ -240,19 +240,19 @@ UINT8 SH367309_SC_DelayT_Set(void)
 		if (MTPWriteROM(0x0E, 1, (UINT8 *)((SH367309_Reg_Store.u8_MTP_SCV_SCT & 0xF0) | u8temp_need)))
 		{
 			SH367309_Reg_Store.u8_MTP_SCV_SCT = (SH367309_Reg_Store.u8_MTP_SCV_SCT & 0xF0) | u8temp_need;
-			OtherElement.u16CBC_DelayT = (UINT16)u8temp_need << 6;
+			g_tParam.other.u16CBC_DelayT = (UINT16)u8temp_need << 6;
 		}
 		else
 		{
 			// 写失败
-			OtherElement.u16CBC_DelayT = (UINT16)u8temp_now << 6;
+			g_tParam.other.u16CBC_DelayT = (UINT16)u8temp_now << 6;
 			result = 1;
 		}
 	}
 	else
 	{
 		// 相同，则修改上传参数便可
-		OtherElement.u16CBC_DelayT = (UINT16)u8temp_now << 6;
+		g_tParam.other.u16CBC_DelayT = (UINT16)u8temp_now << 6;
 	}
 
 	return result;
@@ -281,7 +281,7 @@ void SH367309_UpdataAfeConfig_Old(void)
 #endif
 
 	// 和EEPROM相关寄存器修改
-	ucMTPBuffer[0x0E] = (BYTE_0EH_SCV_SCT & 0xF0) | (OtherElement.u16CBC_DelayT >> 6);
+	ucMTPBuffer[0x0E] = (BYTE_0EH_SCV_SCT & 0xF0) | (g_tParam.other.u16CBC_DelayT >> 6);
 
 	SH367309_Reg_Store.u8_MTP_SCONF2 = ucMTPBuffer[0x01];
 	SH367309_Reg_Store.u8_MTP_SCV_SCT = ucMTPBuffer[0x0E];

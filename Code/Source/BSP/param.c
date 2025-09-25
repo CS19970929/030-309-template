@@ -40,7 +40,7 @@ void LoadParam(void)
 	bsp_ReadCpuFlash(PARAM_ADDR, (uint8_t *)&g_tParam, sizeof(PARAM_T));
 #endif
 	{
-		g_u32CS_Res_AFE = ((UINT32)OtherElement.u16Sys_CS_Res_Num * 1000) / OtherElement.u16Sys_CS_Res;
+		g_u32CS_Res_AFE = ((UINT32)g_tParam.other.u16Sys_CS_Res_Num * 1000) / g_tParam.other.u16Sys_CS_Res;
 		curr_offset = g_tParam.current_offset_309;
 		if ((curr_offset & 0x8000) == 0)
 		{
@@ -66,6 +66,12 @@ void LoadParam(void)
 			.other = OtherElement_default,
 			.heat = HeatCoolElement_Default,
 		};
+		for (uint16_t i = 0; i < E2P_PARA_NUM_CALIB_K; ++i)
+		{
+			Param_default.CalibCoefK[i] = SYSKDEFAULT;
+			Param_default.CalibCoefB[i] = SYSBDEFAULT;
+		}
+
 		g_tParam.ParamVer = PARAM_VER;
 
 		g_tParam = Param_default;
@@ -89,18 +95,18 @@ void LoadParam(void)
 	// {
 
 	// }
-	if (memcmp(&g_tParam.protect, &PRT_E2ROMParas, sizeof(PRT_E2ROMParas)) != 0)
-	{
-		// System_ERROR_UserCallback(ERROR_CBC_CHG);
-	}
-	if (memcmp(&g_tParam.other, &OtherElement, sizeof(OtherElement)) != 0)
-	{
-		// System_ERROR_UserCallback(ERROR_CBC_CHG);
-	}
-	if (memcmp(&g_tParam.heat, &Heat_Cool_Element, sizeof(Heat_Cool_Element)) != 0)
-	{
-		// System_ERROR_UserCallback(ERROR_CBC_CHG);
-	}
+	// if (memcmp(&g_tParam.protect, &PRT_E2ROMParas, sizeof(PRT_E2ROMParas)) != 0)
+	// {
+	// 	// System_ERROR_UserCallback(ERROR_CBC_CHG);
+	// }
+	// if (memcmp(&g_tParam.other, &g_tParam.other, sizeof(g_tParam.other)) != 0)
+	// {
+	// 	// System_ERROR_UserCallback(ERROR_CBC_CHG);
+	// }
+	// if (memcmp(&g_tParam.heat, &g_tParam.heat, sizeof(g_tParam.heat)) != 0)
+	// {
+	// 	// System_ERROR_UserCallback(ERROR_CBC_CHG);
+	// }
 }
 
 /*

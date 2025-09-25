@@ -59,7 +59,7 @@ void CB_StateCalculate(void)
 	{
 		if (CELL_BALANCE_STATUS_OFF == g_enCellBalanceStatus[i])
 		{
-			if ((g_stCellInfoReport.u16VCell[i] >= OtherElement.u16Balance_OpenVoltage) && (g_stCellInfoReport.u16VCell[i] >= OtherElement.u16Balance_OpenWindow + VC_min))
+			if ((g_stCellInfoReport.u16VCell[i] >= g_tParam.other.u16Balance_OpenVoltage) && (g_stCellInfoReport.u16VCell[i] >= g_tParam.other.u16Balance_OpenWindow + VC_min))
 			{
 				if ((++g_u8CellBalanceFilterCnt[i]) >= TIME_1000MS_2S)
 				{
@@ -76,7 +76,7 @@ void CB_StateCalculate(void)
 		}
 		else if (CELL_BALANCE_STATUS_ON_VOLT_DELTA == g_enCellBalanceStatus[i])
 		{
-			if ((g_stCellInfoReport.u16VCell[i] < OtherElement.u16Balance_OpenVoltage) || (g_stCellInfoReport.u16VCell[i] < OtherElement.u16Balance_CloseWindow + VC_min))
+			if ((g_stCellInfoReport.u16VCell[i] < g_tParam.other.u16Balance_OpenVoltage) || (g_stCellInfoReport.u16VCell[i] < g_tParam.other.u16Balance_CloseWindow + VC_min))
 			{
 				if ((++g_u8CellBalanceFilterCnt[i]) >= TIME_1000MS_2S)
 				{
@@ -165,8 +165,8 @@ void CellBalance_Monitor(UINT8 OnOFF_Ctrl)
 	static UINT16 su16_Silence_Tcnt = 0;
 
 	if ((g_stCellInfoReport.u16Ichg > 10 || g_stCellInfoReport.u16IDischg > 10)		// 静置均衡，有电流不均衡
-		|| (g_stCellInfoReport.u16VCellMin < OtherElement.u16Balance_OpenVoltage)	// 最大电压没超过开启电压
-		|| (g_stCellInfoReport.u16VCellDelta < OtherElement.u16Balance_CloseWindow) // 压差均在关闭窗口以内
+		|| (g_stCellInfoReport.u16VCellMin < g_tParam.other.u16Balance_OpenVoltage)	// 最大电压没超过开启电压
+		|| (g_stCellInfoReport.u16VCellDelta < g_tParam.other.u16Balance_CloseWindow) // 压差均在关闭窗口以内
 		|| !OnOFF_Ctrl)
 	{
 		if (g_stCellInfoReport.u16BalanceFlag1 || CellBalFlag_AFE1 || g_u8CBn_StatusFlag)
@@ -348,7 +348,7 @@ void CellBalance_StateOFF(UINT8 OnOFF_Ctrl)
 		break;
 
 	case 1:
-		if ((++ts_u8TempCnt) >= Balance_OpenT_MOS + OtherElement.u16Sys_PreChg_Time)
+		if ((++ts_u8TempCnt) >= Balance_OpenT_MOS + g_tParam.other.u16Sys_PreChg_Time)
 		{ // 加上预充时间
 			ts_u8TempCnt = 0;
 			g_enBalanceState = BALANCE_ST_MONITOR;

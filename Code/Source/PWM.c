@@ -65,12 +65,12 @@ void InitPWM(void)
 	UINT32 u32_DACxTemp;
 	UINT32 u32_CS_Res;
 
-	u32_DACxTemp = ((UINT32)OtherElement.u16CS_Cur_DSGmax * 500) / (OtherElement.u16CS_Cur_CHGmax + OtherElement.u16CS_Cur_DSGmax);
+	u32_DACxTemp = ((UINT32)g_tParam.other.u16CS_Cur_DSGmax * 500) / (g_tParam.other.u16CS_Cur_CHGmax + g_tParam.other.u16CS_Cur_DSGmax);
 	DACx_OC_REF = (u32_DACxTemp > 330 ? 4095 : (u32_DACxTemp << 12) / 330) + (0 << 16); // 通道1和通道2
 
-	u32_CS_Res = ((UINT32)OtherElement.u16Sys_CS_Res * 1000) / OtherElement.u16Sys_CS_Res_Num; // 扩大1000倍
+	u32_CS_Res = ((UINT32)g_tParam.other.u16Sys_CS_Res * 1000) / g_tParam.other.u16Sys_CS_Res_Num; // 扩大1000倍
 	// PWM-OC-DSG，比较电压，比较阀值，DSG所以是减法
-	u16PeriodCH1 = (DACx_OC_REF * 662 >> 12) - (UINT32)OtherElement.u16CBC_Cur_DSG * u32_CS_Res * 4 / 10 / 1000;
+	u16PeriodCH1 = (DACx_OC_REF * 662 >> 12) - (UINT32)g_tParam.other.u16CBC_Cur_DSG * u32_CS_Res * 4 / 10 / 1000;
 
 	// DAC抬升电压改为PWM输出，PWM-OC-REF
 	u16PeriodCH2 = DACx_OC_REF * 1000 / 4096;
@@ -84,12 +84,12 @@ void App_PWM(void)
 	UINT32 u32_DACxTemp;
 	UINT32 u32_CS_Res;
 
-	u32_DACxTemp = ((UINT32)OtherElement.u16CS_Cur_DSGmax * 500) / (OtherElement.u16CS_Cur_CHGmax + OtherElement.u16CS_Cur_DSGmax);
+	u32_DACxTemp = ((UINT32)g_tParam.other.u16CS_Cur_DSGmax * 500) / (g_tParam.other.u16CS_Cur_CHGmax + g_tParam.other.u16CS_Cur_DSGmax);
 	DACx_OC_REF = (u32_DACxTemp > 330 ? 4095 : (u32_DACxTemp << 12) / 330) + (0 << 16); // 通道1和通道2
 
-	u32_CS_Res = ((UINT32)OtherElement.u16Sys_CS_Res * 1000) / OtherElement.u16Sys_CS_Res_Num; // 扩大1000倍
+	u32_CS_Res = ((UINT32)g_tParam.other.u16Sys_CS_Res * 1000) / g_tParam.other.u16Sys_CS_Res_Num; // 扩大1000倍
 	// PWM-OC-DSG，比较电压，比较阀值
-	u16PeriodCH1 = (DACx_OC_REF * 662 >> 12) - (UINT32)OtherElement.u16CBC_Cur_DSG * u32_CS_Res * 4 / 10 / 1000;
+	u16PeriodCH1 = (DACx_OC_REF * 662 >> 12) - (UINT32)g_tParam.other.u16CBC_Cur_DSG * u32_CS_Res * 4 / 10 / 1000;
 
 	// DAC抬升电压改为PWM输出，PWM-OC-REF
 	u16PeriodCH2 = DACx_OC_REF * 1000 / 4096;

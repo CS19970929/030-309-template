@@ -524,7 +524,7 @@ void ReadEEPROM_ByteData_StartUp(void)
 		t_u16RdTemp = ReadEEPROM_Word_WithZone((UINT16) * (&PrtE2paras_Pos.u16VcellOvp_First + i));
 		t_u16TempMax = (*(&PrtE2paras_Max.u16VcellOvp_First + i));
 		t_u16TempMin = (*(&PrtE2paras_Min.u16VcellOvp_First + i));
-		*(&PRT_E2ROMParas.u16VcellOvp_First + i) = t_u16RdTemp;
+		*(&g_tParam.protect.u16VcellOvp_First + i) = t_u16RdTemp;
 		if ((t_u16RdTemp >= t_u16TempMin) && (t_u16RdTemp <= t_u16TempMax))
 		{
 		}
@@ -541,7 +541,7 @@ void ReadEEPROM_ByteData_StartUp(void)
 	for (i = 0; i < E2P_PARA_NUM_CALIB_K; ++i)
 	{ // Kֵ
 		t_u16RdTemp = ReadEEPROM_Word_WithZone(E2P_ADDR_START_CALIB_K + (i << 1));
-		g_u16CalibCoefK[i] = t_u16RdTemp;
+		g_tParam.CalibCoefK[i] = t_u16RdTemp;
 		if ((t_u16RdTemp >= SYSKMIN) && (t_u16RdTemp <= SYSKMAX))
 		{
 		}
@@ -554,7 +554,7 @@ void ReadEEPROM_ByteData_StartUp(void)
 		}
 
 		t_i16RdTemp = ReadEEPROM_Word_WithZone(E2P_ADDR_START_CALIB_B + (i << 1));
-		g_i16CalibCoefB[i] = t_i16RdTemp; // Bֵ
+		g_tParam.CalibCoefB[i] = t_i16RdTemp; // Bֵ
 		if ((t_i16RdTemp >= SYSBMIN) && (t_i16RdTemp <= SYSBMAX))
 		{
 		}
@@ -572,7 +572,7 @@ void ReadEEPROM_ByteData_StartUp(void)
 		t_u16RdTemp = ReadEEPROM_Word_WithZone((UINT16) * (&OtherElement_to_Pos.u16Balance_OpenVoltage + i));
 		t_u16TempMax = (*(&OtherElement_to_Max.u16Balance_OpenVoltage + i));
 		t_u16TempMin = (*(&OtherElement_to_Min.u16Balance_OpenVoltage + i));
-		*(&OtherElement.u16Balance_OpenVoltage + i) = t_u16RdTemp;
+		*(&g_tParam.other.u16Balance_OpenVoltage + i) = t_u16RdTemp;
 		if ((t_u16RdTemp >= t_u16TempMin) && (t_u16RdTemp <= t_u16TempMax))
 		{
 		}
@@ -591,7 +591,7 @@ void ReadEEPROM_ByteData_StartUp(void)
 		t_u16RdTemp = ReadEEPROM_Word_WithZone((UINT16) * (&HeatCoolEle_Pos.u16Heat_OpenTemp + i));
 		t_u16TempMax = (*(&HeatCoolEle_Max.u16Heat_OpenTemp + i));
 		t_u16TempMin = (*(&HeatCoolEle_Min.u16Heat_OpenTemp + i));
-		*(&Heat_Cool_Element.u16Heat_OpenTemp + i) = t_u16RdTemp;
+		*(&g_tParam.heat.u16Heat_OpenTemp + i) = t_u16RdTemp;
 		if ((t_u16RdTemp >= t_u16TempMin) && (t_u16RdTemp <= t_u16TempMax))
 		{
 		}
@@ -620,8 +620,8 @@ void EEPROM_ResetData_AllToDefault(void)
 
 	for (i = 0; i < KB_NUM; ++i)
 	{
-		g_u16CalibCoefK[i] = SYSKDEFAULT;
-		g_i16CalibCoefB[i] = SYSBDEFAULT;
+		g_tParam.CalibCoefK[i] = SYSKDEFAULT;
+		g_tParam.CalibCoefB[i] = SYSBDEFAULT;
 	}
 	u8E2P_KB_WriteFlag = KB_NUM;
 	u8E2P_KB_WritePos = 0;
@@ -629,7 +629,7 @@ void EEPROM_ResetData_AllToDefault(void)
 	// Protect
 	for (i = 0; i < E2P_PARA_NUM_PROTECT; ++i)
 	{
-		*(&PRT_E2ROMParas.u16VcellOvp_First + i) = *(&PrtE2PARAS_Default.u16VcellOvp_First + i);
+		*(&g_tParam.protect.u16VcellOvp_First + i) = *(&PrtE2PARAS_Default.u16VcellOvp_First + i);
 	}
 	u32E2P_Pro_VolCur_WriteFlag = E2P_PARA_ALL_VOLCUR_PROTECT;
 	u32E2P_Pro_Temp_WriteFlag = E2P_PARA_ALL_TEM_PROTECT;
@@ -638,14 +638,14 @@ void EEPROM_ResetData_AllToDefault(void)
 	// Other_CanAdd_element
 	for (i = 0; i < E2P_PARA_NUM_OTHER_ELEMENT1; ++i)
 	{
-		*(&OtherElement.u16Balance_OpenVoltage + i) = *(&OtherElement_Default.u16Balance_OpenVoltage + i);
+		*(&g_tParam.other.u16Balance_OpenVoltage + i) = *(&OtherElement_Default.u16Balance_OpenVoltage + i);
 	}
 	u32E2P_OtherElement1_WriteFlag = E2P_PARA_ALL_OTHER_ELEMENT1;
 
 	// HeatCool_element
 	for (i = 0; i < E2P_PARA_NUM_HEAT_COOL; ++i)
 	{
-		*(&Heat_Cool_Element.u16Heat_OpenTemp + i) = *(&HeatCoolEle_Default.u16Heat_OpenTemp + i);
+		*(&g_tParam.heat.u16Heat_OpenTemp + i) = *(&HeatCoolEle_Default.u16Heat_OpenTemp + i);
 	}
 	u32E2P_HeatCool_WriteFlag = E2P_PARA_ALL_HEAT_COOL_ELE;
 }
@@ -728,7 +728,7 @@ void InitData_E2prom(void)
 		// ReadEEPROM_ByteData_StartUp();
 		EEPROM_ResetData_AllToDefault();
 		{
-			g_u32CS_Res_AFE = ((UINT32)OtherElement.u16Sys_CS_Res_Num * 1000) / OtherElement.u16Sys_CS_Res;
+			g_u32CS_Res_AFE = ((UINT32)g_tParam.other.u16Sys_CS_Res_Num * 1000) / g_tParam.other.u16Sys_CS_Res;
 			curr_offset = FlashReadOneHalfWord(FLASH_ADDR_SH367309_VALUE);
 
 			if ((curr_offset & 0x8000) == 0)

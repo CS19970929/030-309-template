@@ -89,7 +89,6 @@ struct HEAT_COOL_ELEMENT {
 								 65000,65000,65000,65000}
 
 
-extern struct HEAT_COOL_ELEMENT Heat_Cool_Element;
 //extern enum HEAT_COOL_CTRL_STATUS HeatCtrl_Command;
 //extern enum HEAT_COOL_CTRL_STATUS CoolCtrl_Command;
 extern union HEAT_COOL_FAULT_FLAG Heat_Cool_FaultFlag;

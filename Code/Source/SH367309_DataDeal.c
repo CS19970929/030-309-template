@@ -94,12 +94,12 @@ void Refresh_Parameters(void)
 		memcpy((UINT8 *)&AFE_ROM_PARAMETERS_Struction, ucMTPBuffer, 26);
 	}
 
-	g_u32CS_Res_AFE = ((UINT32)OtherElement.u16Sys_CS_Res_Num * 1000) / OtherElement.u16Sys_CS_Res;
+	g_u32CS_Res_AFE = ((UINT32)g_tParam.other.u16Sys_CS_Res_Num * 1000) / g_tParam.other.u16Sys_CS_Res;
 
 	AFE_ROM_PARAMETERS_Struction.m00H_01H.CTLC = 2;
 	// AFE_ROM_PARAMETERS_Struction.m00H_01H.CTLC = (0x00 >> 6);
 
-	AFE_ROM_PARAMETERS_Struction.m00H_01H.CN = OtherElement.u16Sys_SeriesNum % 16;
+	AFE_ROM_PARAMETERS_Struction.m00H_01H.CN = g_tParam.other.u16Sys_SeriesNum % 16;
 
 	AFE_ROM_PARAMETERS_Struction.m02H_03H.OVH = ((4300 / 5) >> 8) & 0x3;
 	AFE_ROM_PARAMETERS_Struction.m02H_03H.OVL = (4300 / 5) & 0x00FF;

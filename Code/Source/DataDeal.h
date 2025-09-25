@@ -189,11 +189,8 @@ struct OTHER_ELEMENT {
 
 
 
-extern UINT16 g_u16CalibCoefK[KB_NUM];
-extern INT16  g_i16CalibCoefB[KB_NUM];
 extern UINT16 CopperLoss[CompensateNUM];
 extern UINT16 CopperLoss_Num[CompensateNUM];
-extern struct OTHER_ELEMENT OtherElement;
 extern UINT32 g_u32CS_Res_AFE;
 
 void App_AFEGet(  void);

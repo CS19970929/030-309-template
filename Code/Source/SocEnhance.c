@@ -1657,7 +1657,7 @@ void InitSOC_IntEnhance(void)
 {
 	UINT8 i;
 
-	// SOC_Calculate_Element.C0 = (UINT32)OtherElement.u16Soc_Ah*3600 *10;  //开始不加(UINT32)出现严重计算错误
+	// SOC_Calculate_Element.C0 = (UINT32)g_tParam.other.u16Soc_Ah*3600 *10;  //开始不加(UINT32)出现严重计算错误
 	// 外部获取的数据初始化
 	SOC_Calculate_Element.u32CapFactory = (UINT32)SOC_Enhance_Element.u16_SOC_Ah * 3600; // 去掉*10;改单位这里进来的单位稍微修改一下便可，如此快捷
 	SOC_Calculate_Element.u32Cycle_times = (UINT32)SOC_Enhance_Element.u16_SOC_CycleT_Ever * 100;

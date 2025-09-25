@@ -646,7 +646,7 @@ void Sci_ACK_0x03_RW_Data_Pro(struct RS485MSG *s, UINT8 t_u8BuffTemp[])
 	i = 0;
 	for (j = 0; j < E2P_PARA_NUM_PROTECT; j++)
 	{
-		u16SciTemp = *(&PRT_E2ROMParas.u16VcellOvp_First + j);
+		u16SciTemp = *(&g_tParam.protect.u16VcellOvp_First + j);
 		t_u8BuffTemp[i++] = (u16SciTemp >> 8) & 0x00FF;
 		t_u8BuffTemp[i++] = u16SciTemp & 0x00FF;
 	}
@@ -659,10 +659,10 @@ void Sci_ACK_0x03_RW_Data_Cali(struct RS485MSG *s, UINT8 t_u8BuffTemp[])
 	i = 0;
 	for (j = 0; j < KB_NUM; j++)
 	{
-		u16SciTemp = g_u16CalibCoefK[j];
+		u16SciTemp = g_tParam.CalibCoefK[j];
 		t_u8BuffTemp[i++] = (u16SciTemp >> 8) & 0x00FF;
 		t_u8BuffTemp[i++] = u16SciTemp & 0x00FF;
-		u16SciTemp = g_i16CalibCoefB[j];
+		u16SciTemp = g_tParam.CalibCoefB[j];
 		t_u8BuffTemp[i++] = (u16SciTemp >> 8) & 0x00FF;
 		t_u8BuffTemp[i++] = u16SciTemp & 0x00FF;
 	}
@@ -675,7 +675,7 @@ void Sci_ACK_0x03_RW_Data_Other(struct RS485MSG *s, UINT8 t_u8BuffTemp[])
 	i = 0;
 	for (j = 0; j < SOC_TABLE_SIZE; j++)
 	{ // 由于GetEndValue()函数的问题，只能混在一起
-		switch (OtherElement.u16Soc_TableSelect)
+		switch (g_tParam.other.u16Soc_TableSelect)
 		{
 		case SOC_TABLE_TEST:
 			u16SciTemp = SOC_Table_Set[j];
@@ -728,14 +728,14 @@ void Sci_ACK_0x03_RW_Data_OtherCanAdd(struct RS485MSG *s, UINT8 t_u8BuffTemp[])
 
 	for (j = 0; j < E2P_PARA_NUM_OTHER_ELEMENT1; j++)
 	{
-		u16SciTemp = *(&OtherElement.u16Balance_OpenVoltage + j);
+		u16SciTemp = *(&g_tParam.other.u16Balance_OpenVoltage + j);
 		t_u8BuffTemp[i++] = (u16SciTemp >> 8) & 0x00FF;
 		t_u8BuffTemp[i++] = u16SciTemp & 0x00FF;
 	}
 
 	for (j = 0; j < E2P_PARA_NUM_HEAT_COOL; j++)
 	{
-		u16SciTemp = *(&Heat_Cool_Element.u16Heat_OpenTemp + j);
+		u16SciTemp = *(&g_tParam.heat.u16Heat_OpenTemp + j);
 		// u16SciTemp = 0;
 		t_u8BuffTemp[i++] = (u16SciTemp >> 8) & 0x00FF;
 		t_u8BuffTemp[i++] = u16SciTemp & 0x00FF;
@@ -1492,8 +1492,8 @@ void Sci_WrRegs_0x10_CalibCoef(UINT16 u16Channel, struct RS485MSG *s)
 		}
 
 		t_u16Temp = (u16Channel - RS485_CMD_ADDR_VC1CALIB_K) >> 1;
-		g_u16CalibCoefK[t_u16Temp] = t_u16K;
-		g_i16CalibCoefB[t_u16Temp] = t_i16B;
+		g_tParam.CalibCoefK[t_u16Temp] = t_u16K;
+		g_tParam.CalibCoefB[t_u16Temp] = t_i16B;
 		u8E2P_KB_WriteFlag = 1;
 		u8E2P_KB_WritePos = t_u16Temp;
 	}
@@ -1515,7 +1515,7 @@ void Sci_WrRegs_0x10_Protect(UINT16 u16Channel, struct RS485MSG *s)
 		t_u16Temp = u16Channel - RS485_CMD_ADDR_VCELL_OVP_FIRST;
 		for (i = 0; i < 5; ++i)
 		{
-			*(&PRT_E2ROMParas.u16VcellOvp_First + i + t_u16Temp) = (UINT16)(s->u16Buffer[2 * i + 8] + (s->u16Buffer[2 * i + 7] << 8));
+			*(&g_tParam.protect.u16VcellOvp_First + i + t_u16Temp) = (UINT16)(s->u16Buffer[2 * i + 8] + (s->u16Buffer[2 * i + 7] << 8));
 		}
 
 		if (u16Channel >= RS485_CMD_ADDR_VDELTA_OP_FIRST)
@@ -1610,7 +1610,7 @@ void Sci_WrRegs_0x10_Balance(struct RS485MSG *s)
 	{
 		for (i = 0; i < 8; ++i)
 		{
-			*(&OtherElement.u16Balance_OpenVoltage + i) = (UINT16)(s->u16Buffer[2 * i + 8] + (s->u16Buffer[2 * i + 7] << 8));
+			*(&g_tParam.other.u16Balance_OpenVoltage + i) = (UINT16)(s->u16Buffer[2 * i + 8] + (s->u16Buffer[2 * i + 7] << 8));
 		}
 		u32E2P_OtherElement1_WriteFlag |= EE_FLAG_OTHER1_BALANCE_OV;
 		u32E2P_OtherElement1_WriteFlag |= EE_FLAG_OTHER1_BALANCE_OW;
@@ -1637,7 +1637,7 @@ void Sci_WrRegs_0x10_SysOther(struct RS485MSG *s)
 	{
 		for (i = 0; i < 8; ++i)
 		{
-			*(&OtherElement.u16CS_Cur_CHGmax + i) = (UINT16)(s->u16Buffer[2 * i + 8] + (s->u16Buffer[2 * i + 7] << 8));
+			*(&g_tParam.other.u16CS_Cur_CHGmax + i) = (UINT16)(s->u16Buffer[2 * i + 8] + (s->u16Buffer[2 * i + 7] << 8));
 		}
 		u32E2P_OtherElement1_WriteFlag |= EE_FLAG_CS_CUR_CHGMAX;
 		u32E2P_OtherElement1_WriteFlag |= EE_FLAG_CS_CUR_DSGMAX;
@@ -1672,7 +1672,7 @@ void Sci_WrRegs_0x10_SleepElement(struct RS485MSG *s)
 	{
 		for (i = 0; i < 8; ++i)
 		{
-			*(&OtherElement.u16Sleep_VNormal + i) = (UINT16)(s->u16Buffer[2 * i + 8] + (s->u16Buffer[2 * i + 7] << 8));
+			*(&g_tParam.other.u16Sleep_VNormal + i) = (UINT16)(s->u16Buffer[2 * i + 8] + (s->u16Buffer[2 * i + 7] << 8));
 		}
 		u32E2P_OtherElement1_WriteFlag |= EE_FLAG_OTHER1_SLEEP_V_NORMAL;
 		u32E2P_OtherElement1_WriteFlag |= EE_FLAG_OTHER1_SLEEP_TIME_NORMAL;
@@ -1699,7 +1699,7 @@ void Sci_WrRegs_0x10_SocElement(struct RS485MSG *s)
 	{
 		for (i = 0; i < 4; ++i)
 		{
-			*(&OtherElement.u16Soc_Ah + i) = (UINT16)(s->u16Buffer[2 * i + 8] + (s->u16Buffer[2 * i + 7] << 8));
+			*(&g_tParam.other.u16Soc_Ah + i) = (UINT16)(s->u16Buffer[2 * i + 8] + (s->u16Buffer[2 * i + 7] << 8));
 		}
 		u32E2P_OtherElement1_WriteFlag |= EE_FLAG_OTHER1_SOC_AH;
 		u32E2P_OtherElement1_WriteFlag |= EE_FLAG_OTHER1_SOC_CYCLE_TIME;
@@ -1725,16 +1725,16 @@ void Sci_WrRegs_0x10_SystemElement(struct RS485MSG *s)
 	{
 		for (i = 0; i < 4; ++i)
 		{
-			*(&OtherElement.u16Sys_SeriesNum + i) = (UINT16)(s->u16Buffer[2 * i + 8] + (s->u16Buffer[2 * i + 7] << 8));
+			*(&g_tParam.other.u16Sys_SeriesNum + i) = (UINT16)(s->u16Buffer[2 * i + 8] + (s->u16Buffer[2 * i + 7] << 8));
 		}
 		u32E2P_OtherElement1_WriteFlag |= EE_FLAG_OTHER1_SYS_SERIES_NUM;
 		u32E2P_OtherElement1_WriteFlag |= EE_FLAG_OTHER1_SYS_CS_RESIS;
 		u32E2P_OtherElement1_WriteFlag |= EE_FLAG_OTHER1_SYS_CS_NUM;
 		u32E2P_OtherElement1_WriteFlag |= EE_FLAG_OTHER1_SYS_PRECHG_TIME;
-		SeriesNum = OtherElement.u16Sys_SeriesNum;
+		SeriesNum = g_tParam.other.u16Sys_SeriesNum;
 		// CS，直接使用不需要再赋值，TODO
 		// 还是赋值吧，提高效率
-		g_u32CS_Res_AFE = ((UINT32)OtherElement.u16Sys_CS_Res_Num * 1000) / OtherElement.u16Sys_CS_Res;
+		g_u32CS_Res_AFE = ((UINT32)g_tParam.other.u16Sys_CS_Res_Num * 1000) / g_tParam.other.u16Sys_CS_Res;
 		AFE_PARAM_WRITE_Flag = 1;
 	}
 	else
@@ -1753,7 +1753,7 @@ void Sci_WrRegs_0x10_HeatCoolElement(struct RS485MSG *s)
 	{
 		for (i = 0; i < E2P_PARA_NUM_HEAT_COOL; ++i)
 		{
-			*(&Heat_Cool_Element.u16Heat_OpenTemp + i) = (UINT16)(s->u16Buffer[2 * i + 8] + (s->u16Buffer[2 * i + 7] << 8));
+			*(&g_tParam.heat.u16Heat_OpenTemp + i) = (UINT16)(s->u16Buffer[2 * i + 8] + (s->u16Buffer[2 * i + 7] << 8));
 		}
 		u32E2P_HeatCool_WriteFlag |= E2P_PARA_ALL_HEAT_COOL_ELE;
 	}
@@ -1864,51 +1864,51 @@ void Sci_WrReg_0x06_Reset_CalibCoef(struct RS485MSG *s)
 	case 0x55AA:
 		for (i = 0; i < 32; i++)
 		{
-			g_u16CalibCoefK[i] = SYSKDEFAULT;
-			g_i16CalibCoefB[i] = SYSBDEFAULT;
-			WriteEEPROM_Word_WithZone((E2P_ADDR_START_CALIB_K + (i << 1)), g_u16CalibCoefK[i]);
-			WriteEEPROM_Word_WithZone((E2P_ADDR_START_CALIB_B + (i << 1)), g_i16CalibCoefB[i]);
+			g_tParam.CalibCoefK[i] = SYSKDEFAULT;
+			g_tParam.CalibCoefB[i] = SYSBDEFAULT;
+			WriteEEPROM_Word_WithZone((E2P_ADDR_START_CALIB_K + (i << 1)), g_tParam.CalibCoefK[i]);
+			WriteEEPROM_Word_WithZone((E2P_ADDR_START_CALIB_B + (i << 1)), g_tParam.CalibCoefB[i]);
 		}
 		break;
 	case 0x55AB:
 
-		g_u16CalibCoefK[VOLT_AFE1] = SYSKDEFAULT;
-		g_i16CalibCoefB[VOLT_AFE1] = SYSBDEFAULT;
-		WriteEEPROM_Word_WithZone((E2P_ADDR_START_CALIB_K + (VOLT_AFE1 << 1)), g_u16CalibCoefK[VOLT_AFE1]);
-		WriteEEPROM_Word_WithZone((E2P_ADDR_START_CALIB_B + (VOLT_AFE1 << 1)), g_i16CalibCoefB[VOLT_AFE1]);
+		g_tParam.CalibCoefK[VOLT_AFE1] = SYSKDEFAULT;
+		g_tParam.CalibCoefB[VOLT_AFE1] = SYSBDEFAULT;
+		WriteEEPROM_Word_WithZone((E2P_ADDR_START_CALIB_K + (VOLT_AFE1 << 1)), g_tParam.CalibCoefK[VOLT_AFE1]);
+		WriteEEPROM_Word_WithZone((E2P_ADDR_START_CALIB_B + (VOLT_AFE1 << 1)), g_tParam.CalibCoefB[VOLT_AFE1]);
 		break;
 	case 0x55AC:
-		g_u16CalibCoefK[VOLT_AFE2] = SYSKDEFAULT;
-		g_i16CalibCoefB[VOLT_AFE2] = SYSBDEFAULT;
-		WriteEEPROM_Word_WithZone((E2P_ADDR_START_CALIB_K + (VOLT_AFE2 << 1)), g_u16CalibCoefK[VOLT_AFE2]);
-		WriteEEPROM_Word_WithZone((E2P_ADDR_START_CALIB_B + (VOLT_AFE2 << 1)), g_i16CalibCoefB[VOLT_AFE2]);
+		g_tParam.CalibCoefK[VOLT_AFE2] = SYSKDEFAULT;
+		g_tParam.CalibCoefB[VOLT_AFE2] = SYSBDEFAULT;
+		WriteEEPROM_Word_WithZone((E2P_ADDR_START_CALIB_K + (VOLT_AFE2 << 1)), g_tParam.CalibCoefK[VOLT_AFE2]);
+		WriteEEPROM_Word_WithZone((E2P_ADDR_START_CALIB_B + (VOLT_AFE2 << 1)), g_tParam.CalibCoefB[VOLT_AFE2]);
 		break;
 	case 0x55AD:
-		g_u16CalibCoefK[VOLT_VBUS] = SYSKDEFAULT;
-		g_i16CalibCoefB[VOLT_VBUS] = SYSBDEFAULT;
-		WriteEEPROM_Word_WithZone((E2P_ADDR_START_CALIB_K + (VOLT_VBUS << 1)), g_u16CalibCoefK[VOLT_VBUS]);
-		WriteEEPROM_Word_WithZone((E2P_ADDR_START_CALIB_B + (VOLT_VBUS << 1)), g_i16CalibCoefB[VOLT_VBUS]);
+		g_tParam.CalibCoefK[VOLT_VBUS] = SYSKDEFAULT;
+		g_tParam.CalibCoefB[VOLT_VBUS] = SYSBDEFAULT;
+		WriteEEPROM_Word_WithZone((E2P_ADDR_START_CALIB_K + (VOLT_VBUS << 1)), g_tParam.CalibCoefK[VOLT_VBUS]);
+		WriteEEPROM_Word_WithZone((E2P_ADDR_START_CALIB_B + (VOLT_VBUS << 1)), g_tParam.CalibCoefB[VOLT_VBUS]);
 		break;
 	case 0x55AE:
 		for (i = 0; i < 10; i++)
 		{
-			g_u16CalibCoefK[MDL_TEMP1 + i] = SYSKDEFAULT;
-			g_i16CalibCoefB[MDL_TEMP1 + i] = SYSBDEFAULT;
-			WriteEEPROM_Word_WithZone((E2P_ADDR_START_CALIB_K + ((MDL_TEMP1 + i) << 1)), g_u16CalibCoefK[i]);
-			WriteEEPROM_Word_WithZone((E2P_ADDR_START_CALIB_B + ((MDL_TEMP1 + i) << 1)), g_i16CalibCoefB[i]);
+			g_tParam.CalibCoefK[MDL_TEMP1 + i] = SYSKDEFAULT;
+			g_tParam.CalibCoefB[MDL_TEMP1 + i] = SYSBDEFAULT;
+			WriteEEPROM_Word_WithZone((E2P_ADDR_START_CALIB_K + ((MDL_TEMP1 + i) << 1)), g_tParam.CalibCoefK[i]);
+			WriteEEPROM_Word_WithZone((E2P_ADDR_START_CALIB_B + ((MDL_TEMP1 + i) << 1)), g_tParam.CalibCoefB[i]);
 		}
 		break;
 	case 0x55AF:
-		g_u16CalibCoefK[MDL_IDSG] = SYSKDEFAULT;
-		g_i16CalibCoefB[MDL_IDSG] = SYSBDEFAULT;
-		WriteEEPROM_Word_WithZone((E2P_ADDR_START_CALIB_K + (MDL_IDSG << 1)), g_u16CalibCoefK[MDL_IDSG]);
-		WriteEEPROM_Word_WithZone((E2P_ADDR_START_CALIB_B + (MDL_IDSG << 1)), g_i16CalibCoefB[MDL_IDSG]);
+		g_tParam.CalibCoefK[MDL_IDSG] = SYSKDEFAULT;
+		g_tParam.CalibCoefB[MDL_IDSG] = SYSBDEFAULT;
+		WriteEEPROM_Word_WithZone((E2P_ADDR_START_CALIB_K + (MDL_IDSG << 1)), g_tParam.CalibCoefK[MDL_IDSG]);
+		WriteEEPROM_Word_WithZone((E2P_ADDR_START_CALIB_B + (MDL_IDSG << 1)), g_tParam.CalibCoefB[MDL_IDSG]);
 		break;
 	case 0x55B0:
-		g_u16CalibCoefK[MDL_ICHG] = SYSKDEFAULT;
-		g_i16CalibCoefB[MDL_ICHG] = SYSBDEFAULT;
-		WriteEEPROM_Word_WithZone((E2P_ADDR_START_CALIB_K + (MDL_ICHG << 1)), g_u16CalibCoefK[MDL_ICHG]);
-		WriteEEPROM_Word_WithZone((E2P_ADDR_START_CALIB_B + (MDL_ICHG << 1)), g_i16CalibCoefB[MDL_ICHG]);
+		g_tParam.CalibCoefK[MDL_ICHG] = SYSKDEFAULT;
+		g_tParam.CalibCoefB[MDL_ICHG] = SYSBDEFAULT;
+		WriteEEPROM_Word_WithZone((E2P_ADDR_START_CALIB_K + (MDL_ICHG << 1)), g_tParam.CalibCoefK[MDL_ICHG]);
+		WriteEEPROM_Word_WithZone((E2P_ADDR_START_CALIB_B + (MDL_ICHG << 1)), g_tParam.CalibCoefB[MDL_ICHG]);
 		break;
 	default:
 		s->AckType = RS485_ACK_NEG;
@@ -1954,7 +1954,7 @@ void Sci_WrReg_0x06_Reset_ProtectElement(struct RS485MSG *s)
 	{
 		for (i = 0; i < E2P_PARA_NUM_PROTECT; ++i)
 		{
-			*(&PRT_E2ROMParas.u16VcellOvp_First + i) = *(&PrtE2PARAS_Default.u16VcellOvp_First + i);
+			*(&g_tParam.protect.u16VcellOvp_First + i) = *(&PrtE2PARAS_Default.u16VcellOvp_First + i);
 		}
 		u32E2P_Pro_VolCur_WriteFlag = E2P_PARA_ALL_VOLCUR_PROTECT;
 		u32E2P_Pro_Temp_WriteFlag = E2P_PARA_ALL_TEM_PROTECT;
@@ -1978,11 +1978,11 @@ void Sci_WrReg_0x06_Reset_OtherCanAdd(struct RS485MSG *s)
 	{
 		for (i = 0; i < E2P_PARA_NUM_OTHER_ELEMENT1; ++i)
 		{
-			*(&OtherElement.u16Balance_OpenVoltage + i) = *(&OtherElement_Default.u16Balance_OpenVoltage + i);
+			*(&g_tParam.other.u16Balance_OpenVoltage + i) = *(&OtherElement_Default.u16Balance_OpenVoltage + i);
 		}
 		u32E2P_OtherElement1_WriteFlag = E2P_PARA_ALL_OTHER_ELEMENT1;
-		SeriesNum = OtherElement.u16Sys_SeriesNum;
-		g_u32CS_Res_AFE = ((UINT32)OtherElement.u16Sys_CS_Res_Num * 1000) / OtherElement.u16Sys_CS_Res;
+		SeriesNum = g_tParam.other.u16Sys_SeriesNum;
+		g_u32CS_Res_AFE = ((UINT32)g_tParam.other.u16Sys_CS_Res_Num * 1000) / g_tParam.other.u16Sys_CS_Res;
 		AFE_PARAM_WRITE_Flag = 1; // CS检流电阻修改，则过流保护等要跟着修改。
 
 		InitData_SOC();
@@ -2007,7 +2007,7 @@ void Sci_WrReg_0x06_Reset_HeatCool(struct RS485MSG *s)
 	{
 		for (i = 0; i < E2P_PARA_NUM_HEAT_COOL; ++i)
 		{
-			*(&Heat_Cool_Element.u16Heat_OpenTemp + i) = *(&HeatCoolEle_Default.u16Heat_OpenTemp + i);
+			*(&g_tParam.heat.u16Heat_OpenTemp + i) = *(&HeatCoolEle_Default.u16Heat_OpenTemp + i);
 		}
 		u32E2P_HeatCool_WriteFlag = E2P_PARA_ALL_HEAT_COOL_ELE;
 	}

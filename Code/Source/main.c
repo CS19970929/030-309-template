@@ -68,7 +68,10 @@ int main(void)
 		// App_LogRecord();
 		// App_ProID_Deal();
 
+#ifdef wdog_enable
 		Feed_IWatchDog;
+#endif
+
 #endif
 	}
 }
@@ -117,7 +120,7 @@ void InitDevice(void)
 	// Board_PowerOn(); // …œµÁ∂Øª≠
 	// FlashEEPROM_Init();
 
-#ifndef _DEBUG_
+#ifdef wdog_enable
 	Init_IWDG();
 #endif // !1
 
@@ -127,8 +130,8 @@ void InitDevice(void)
 void InitVar(void)
 {
 	InitSystemMonitorData_EEPROM();
-	SeriesNum = OtherElement.u16Sys_SeriesNum;
-	g_u32CS_Res_AFE = ((UINT32)OtherElement.u16Sys_CS_Res_Num * 1000) / OtherElement.u16Sys_CS_Res;
+	SeriesNum = g_tParam.other.u16Sys_SeriesNum;
+	g_u32CS_Res_AFE = ((UINT32)g_tParam.other.u16Sys_CS_Res_Num * 1000) / g_tParam.other.u16Sys_CS_Res;
 
 	// SystemStatus.bits.b4Status_ProjectVer = 1;
 	// LogRecord_Flag.bits.Log_StartUp = 1;

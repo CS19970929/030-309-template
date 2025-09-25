@@ -613,13 +613,13 @@ void SleepDeal_Normal_L1(void)
 	switch (s_u8SleepStatus)
 	{
 	case FIRST:
-		if (OtherElement.u16Sleep_TimeRTC == 0)
+		if (g_tParam.other.u16Sleep_TimeRTC == 0)
 		{
 			// 为0时默认RTC不进入休眠
 		}
 		else
 		{
-			if (++s_u32SleepFirstCnt > (UINT32)OtherElement.u16Sleep_TimeRTC * 60)
+			if (++s_u32SleepFirstCnt > (UINT32)g_tParam.other.u16Sleep_TimeRTC * 60)
 			{
 				// if(++s_u32SleepFirstCnt >= 5) {			//这个，第一次个后面都是一样
 				s_u32SleepFirstCnt = 0;
@@ -630,7 +630,7 @@ void SleepDeal_Normal_L1(void)
 		break;
 
 	case HICCUP:
-		if (++s_u32SleepHiccupCnt > (UINT32)OtherElement.u16Sleep_TimeRTC * 60)
+		if (++s_u32SleepHiccupCnt > (UINT32)g_tParam.other.u16Sleep_TimeRTC * 60)
 		{
 			s_u32SleepHiccupCnt = 0;
 			Sleep_Status = SLEEP_HICCUP_CONTINUE;
@@ -642,7 +642,7 @@ void SleepDeal_Normal_L1(void)
 		break;
 	}
 
-	if (g_stCellInfoReport.u16Ichg > OtherElement.u16Sleep_VirCur_Chg || g_stCellInfoReport.u16IDischg > OtherElement.u16Sleep_VirCur_Dsg)
+	if (g_stCellInfoReport.u16Ichg > g_tParam.other.u16Sleep_VirCur_Chg || g_stCellInfoReport.u16IDischg > g_tParam.other.u16Sleep_VirCur_Dsg)
 	{
 		if (s_u32SleepFirstCnt)
 			s_u32SleepFirstCnt = 0;
@@ -650,7 +650,7 @@ void SleepDeal_Normal_L1(void)
 			s_u32SleepHiccupCnt = 0;
 	}
 
-	if (g_stCellInfoReport.u16VCellMin <= OtherElement.u16Sleep_VNormal)
+	if (g_stCellInfoReport.u16VCellMin <= g_tParam.other.u16Sleep_VNormal)
 	{
 		Sleep_Mode.bits.b1NormalSleep_L1 = 0;
 		Sleep_Status = SLEEP_HICCUP_SHIFT;
@@ -695,7 +695,7 @@ void SleepDeal_Normal_L2(void)
 	switch (s_u8SleepStatus)
 	{
 	case FIRST:
-		if (++s_u32SleepFirstCnt > (UINT32)OtherElement.u16Sleep_TimeNormal * 60)
+		if (++s_u32SleepFirstCnt > (UINT32)g_tParam.other.u16Sleep_TimeNormal * 60)
 		{
 			// if(++s_u32SleepFirstCnt >= 3) {			//这个，第一次个后面都是一样
 			s_u32SleepFirstCnt = 0;
@@ -705,7 +705,7 @@ void SleepDeal_Normal_L2(void)
 		break;
 
 	case HICCUP:
-		if (++s_u32SleepHiccupCnt > (UINT32)OtherElement.u16Sleep_TimeNormal * 60)
+		if (++s_u32SleepHiccupCnt > (UINT32)g_tParam.other.u16Sleep_TimeNormal * 60)
 		{
 			// if(++s_u32SleepHiccupCnt >= 1) {
 			s_u32SleepHiccupCnt = 0;
@@ -718,7 +718,7 @@ void SleepDeal_Normal_L2(void)
 		break;
 	}
 
-	if (g_stCellInfoReport.u16Ichg > OtherElement.u16Sleep_VirCur_Chg || g_stCellInfoReport.u16IDischg > OtherElement.u16Sleep_VirCur_Dsg)
+	if (g_stCellInfoReport.u16Ichg > g_tParam.other.u16Sleep_VirCur_Chg || g_stCellInfoReport.u16IDischg > g_tParam.other.u16Sleep_VirCur_Dsg)
 	{
 		if (s_u32SleepFirstCnt)
 			s_u32SleepFirstCnt = 0;
@@ -726,7 +726,7 @@ void SleepDeal_Normal_L2(void)
 			s_u32SleepHiccupCnt = 0;
 	}
 
-	if (g_stCellInfoReport.u16VCellMin < OtherElement.u16Sleep_Vlow || g_stCellInfoReport.u16VCellMin > OtherElement.u16Sleep_VNormal)
+	if (g_stCellInfoReport.u16VCellMin < g_tParam.other.u16Sleep_Vlow || g_stCellInfoReport.u16VCellMin > g_tParam.other.u16Sleep_VNormal)
 	{ // 触发条件才跳转，别的时间不跳转
 		Sleep_Mode.bits.b1NormalSleep_L2 = 0;
 		Sleep_Status = SLEEP_HICCUP_SHIFT;
@@ -769,7 +769,7 @@ void SleepDeal_Normal_L3(void)
 	switch (s_u8SleepStatus)
 	{
 	case FIRST:
-		if (++s_u32SleepFirstCnt > (UINT32)OtherElement.u16Sleep_TimeVlow * 60)
+		if (++s_u32SleepFirstCnt > (UINT32)g_tParam.other.u16Sleep_TimeVlow * 60)
 		{
 			// if(++s_u32SleepFirstCnt >= 1) {			//这个，第一次个后面都是一样
 			s_u32SleepFirstCnt = 0;
@@ -779,7 +779,7 @@ void SleepDeal_Normal_L3(void)
 		break;
 
 	case HICCUP:
-		if (++s_u32SleepHiccupCnt > (UINT32)OtherElement.u16Sleep_TimeVlow * 60)
+		if (++s_u32SleepHiccupCnt > (UINT32)g_tParam.other.u16Sleep_TimeVlow * 60)
 		{
 			// if(++s_u32SleepHiccupCnt >= 1) {
 			s_u32SleepHiccupCnt = 0;
@@ -792,7 +792,7 @@ void SleepDeal_Normal_L3(void)
 		break;
 	}
 
-	if (g_stCellInfoReport.u16Ichg > OtherElement.u16Sleep_VirCur_Chg || g_stCellInfoReport.u16IDischg > OtherElement.u16Sleep_VirCur_Dsg)
+	if (g_stCellInfoReport.u16Ichg > g_tParam.other.u16Sleep_VirCur_Chg || g_stCellInfoReport.u16IDischg > g_tParam.other.u16Sleep_VirCur_Dsg)
 	{
 		if (s_u32SleepFirstCnt)
 			s_u32SleepFirstCnt = 0;
@@ -800,7 +800,7 @@ void SleepDeal_Normal_L3(void)
 			s_u32SleepHiccupCnt = 0;
 	}
 
-	if (g_stCellInfoReport.u16VCellMin >= OtherElement.u16Sleep_Vlow)
+	if (g_stCellInfoReport.u16VCellMin >= g_tParam.other.u16Sleep_Vlow)
 	{ // 触发条件才跳转，别的时间不跳转
 		Sleep_Mode.bits.b1NormalSleep_L3 = 0;
 		Sleep_Status = SLEEP_HICCUP_SHIFT;
@@ -826,14 +826,14 @@ void SleepDeal_Normal_Select(void)
 		return;
 	}
 
-	if (g_stCellInfoReport.u16Ichg <= OtherElement.u16Sleep_VirCur_Chg && g_stCellInfoReport.u16IDischg <= OtherElement.u16Sleep_VirCur_Chg)
+	if (g_stCellInfoReport.u16Ichg <= g_tParam.other.u16Sleep_VirCur_Chg && g_stCellInfoReport.u16IDischg <= g_tParam.other.u16Sleep_VirCur_Chg)
 	{
-		if (g_stCellInfoReport.u16VCellMin < OtherElement.u16Sleep_Vlow)
+		if (g_stCellInfoReport.u16VCellMin < g_tParam.other.u16Sleep_Vlow)
 		{
 			Sleep_Mode.bits.b1NormalSleep_L3 = 1;
 			Sleep_Status = SLEEP_HICCUP_NORMAL_L3;
 		}
-		else if (g_stCellInfoReport.u16VCellMin > OtherElement.u16Sleep_VNormal)
+		else if (g_stCellInfoReport.u16VCellMin > g_tParam.other.u16Sleep_VNormal)
 		{
 			Sleep_Mode.bits.b1NormalSleep_L1 = 1;
 			Sleep_Status = SLEEP_HICCUP_NORMAL_L1;

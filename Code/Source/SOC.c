@@ -86,15 +86,15 @@ void InitData_SOC(void)
 {
 	UINT16 i;
 
-	SOC_Enhance_Element.u16_SOC_Ah = OtherElement.u16Soc_Ah;
+	SOC_Enhance_Element.u16_SOC_Ah = g_tParam.other.u16Soc_Ah;
 	;
-	SOC_Enhance_Element.u16_SOC_CycleT_Ever = OtherElement.u16Soc_Cycle_times;
+	SOC_Enhance_Element.u16_SOC_CycleT_Ever = g_tParam.other.u16Soc_Cycle_times;
 	;
 	SOC_Enhance_Element.u16_SOC_CycleT_Limit = 5000;
-	SOC_Enhance_Element.u16_SOC_TableSelect = OtherElement.u16Soc_TableSelect;
-	// SOC_Enhance_Element.u16_SOC_DsgVcell_Limit = OtherElement.u16Soc_V_0;
-	SOC_Enhance_Element.u16_SOC_100_Vol = OtherElement.u16Soc_V_100;
-	SOC_Enhance_Element.u16_SOC_0_Vol = OtherElement.u16Soc_V_0;
+	SOC_Enhance_Element.u16_SOC_TableSelect = g_tParam.other.u16Soc_TableSelect;
+	// SOC_Enhance_Element.u16_SOC_DsgVcell_Limit = g_tParam.other.u16Soc_V_0;
+	SOC_Enhance_Element.u16_SOC_100_Vol = g_tParam.other.u16Soc_V_100;
+	SOC_Enhance_Element.u16_SOC_0_Vol = g_tParam.other.u16Soc_V_0;
 
 	SOC_Enhance_Element.u8_LargeCurFlag_Chg = 0; // 默认是0，除非末端大电流CC充放电导致没法在端点达到100%和0%置1
 	SOC_Enhance_Element.u8_LargeCurFlag_Dsg = 0;

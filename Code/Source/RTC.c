@@ -87,11 +87,11 @@ void RTC_AlarmConfig(void)
 	RTC_AlarmStructure.RTC_AlarmTime.RTC_H12 = RTC_H12_AM; // 24小时制
 
 #if 1
-	RTC_AlarmStructure.RTC_AlarmTime.RTC_Hours = RTC_time.RTC_Alarm_Hour + (OtherElement.u16Sleep_RTC_WakeUpTime / 60);
+	RTC_AlarmStructure.RTC_AlarmTime.RTC_Hours = RTC_time.RTC_Alarm_Hour + (g_tParam.other.u16Sleep_RTC_WakeUpTime / 60);
 	UPDNLMT16(RTC_AlarmStructure.RTC_AlarmTime.RTC_Hours, 23, 0);
 
 	// 下面那个不会超过59
-	RTC_AlarmStructure.RTC_AlarmTime.RTC_Minutes = RTC_time.RTC_Alarm_Minute + (OtherElement.u16Sleep_RTC_WakeUpTime % 60);
+	RTC_AlarmStructure.RTC_AlarmTime.RTC_Minutes = RTC_time.RTC_Alarm_Minute + (g_tParam.other.u16Sleep_RTC_WakeUpTime % 60);
 	RTC_AlarmStructure.RTC_AlarmTime.RTC_Seconds = RTC_time.RTC_Alarm_Second;
 #endif
 

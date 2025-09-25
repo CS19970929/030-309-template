@@ -124,13 +124,13 @@ void GetData_Drivers(void)
 
 void InitData_Drivers(void)
 {
-	Driver_Element.u16_PreChg_Time = OtherElement.u16Sys_PreChg_Time;
+	Driver_Element.u16_PreChg_Time = g_tParam.other.u16Sys_PreChg_Time;
 
 	Driver_Element.u16_PreChg_Duty = 10;
 	Driver_Element.u16_PreChg_Period = 1;
 
-	// Driver_Element.u16_VirCur_Chg = OtherElement.u16Sleep_VirCur_Chg;
-	// Driver_Element.u16_VirCur_Dsg = OtherElement.u16Sleep_VirCur_Dsg;
+	// Driver_Element.u16_VirCur_Chg = g_tParam.other.u16Sleep_VirCur_Chg;
+	// Driver_Element.u16_VirCur_Dsg = g_tParam.other.u16Sleep_VirCur_Dsg;
 
 	// 为了处理管子打开，有可能虚电流导致电池放空的现象(主接触器类型尤为明显
 	// MOS带预的驱动(接触器类型没有这个机制)，改为写死2A，充电电流大于2A则退出预充机制，立刻打开放电管

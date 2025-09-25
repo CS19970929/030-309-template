@@ -4,8 +4,6 @@ enum HEAT_COOL_CTRL_STATUS HeatCtrl_Command = ST_HEAT_DET_SELF;
 enum HEAT_COOL_CTRL_STATUS CoolCtrl_Command = ST_COOL_DET_SELF;
 union HEAT_COOL_FAULT_FLAG Heat_Cool_FaultFlag;
 
-struct HEAT_COOL_ELEMENT Heat_Cool_Element;
-
 #define HEAT_CLOSE_CUR 0 // 默认写死1A关闭，充电的时候，开启加热会减少充电电流
 						 // 改为0A，因为加热膜吸收电流之后(小功率充电器)，可能就从2.5A变成0.5A，
 						 // 然后关闭，电流又起来，加热又打开，就在这里疯狂开关。
@@ -21,7 +19,7 @@ void Cool_StartUp_SelfCheck(void)
 // 冷凝策略很简单，只要温度到了就打开就行，因为这个时候大概率在大功率使用。
 void Cool_OnOFF_Det_Normal(void)
 {
-	if (g_stCellInfoReport.u16TempMax >= Heat_Cool_Element.u16Cool_OpenTemp)
+	if (g_stCellInfoReport.u16TempMax >= g_tParam.heat.u16Cool_OpenTemp)
 	{
 		SystemStatus.bits.b1Status_Cool = 1;
 		CoolCtrl_Command = ST_COOL_CONT;
@@ -32,7 +30,7 @@ void Cool_OnOFF_CONT(void)
 {
 	static UINT16 su16_CoolTime_Cnt = 0;
 
-	if (g_stCellInfoReport.u16TempMax < Heat_Cool_Element.u16Cool_CloseTemp)
+	if (g_stCellInfoReport.u16TempMax < g_tParam.heat.u16Cool_CloseTemp)
 	{
 		if (++su16_CoolTime_Cnt > 3)
 		{
@@ -116,9 +114,9 @@ void Heat_StartUp_SelfCheck(void)
 void Heat_OnOFF_Det_Normal(void)
 {
 	// 正常加热逻辑，既可电池加热，也可充电枪加热
-	if (g_stCellInfoReport.u16TempMin <= Heat_Cool_Element.u16Heat_OpenTemp)
+	if (g_stCellInfoReport.u16TempMin <= g_tParam.heat.u16Heat_OpenTemp)
 	{
-		if (g_stCellInfoReport.u16Ichg >= Heat_Cool_Element.u16Heat_OpenCur || g_stCellInfoReport.u16IDischg >= Heat_Cool_Element.u16Heat_OpenCur)
+		if (g_stCellInfoReport.u16Ichg >= g_tParam.heat.u16Heat_OpenCur || g_stCellInfoReport.u16IDischg >= g_tParam.heat.u16Heat_OpenCur)
 		{
 			SystemStatus.bits.b1Status_Heat = 1;
 			HeatCtrl_Command = ST_HEAT_CONT;
@@ -141,7 +139,7 @@ void Heat_OnOFF_CONT(void)
 	/*
 	if((g_stCellInfoReport.u16Ichg <= HEAT_CLOSE_CUR\
 		&& g_stCellInfoReport.u16IDischg <= HEAT_CLOSE_CUR)\
-		|| g_stCellInfoReport.u16TempMin > Heat_Cool_Element.u16Heat_CloseTemp) {
+		|| g_stCellInfoReport.u16TempMin > g_tParam.heat.u16Heat_CloseTemp) {
 		if(++su16_HeatTime_Cnt > 3) {
 			su16_HeatTime_Cnt = 0;
 			SystemStatus.bits.b1Status_Heat = 0;
@@ -152,7 +150,7 @@ void Heat_OnOFF_CONT(void)
 	// 因为加热膜吸收电流之后(小功率充电器)，可能就从2.5A变成0.5A，
 	// 然后关闭，电流又起来，加热又打开，就在这里疯狂开关。
 	// 干脆一了百了，只要打开了，温度必须回来，才关闭，后续需要修改，再作定制
-	if (g_stCellInfoReport.u16TempMin > Heat_Cool_Element.u16Heat_CloseTemp)
+	if (g_stCellInfoReport.u16TempMin > g_tParam.heat.u16Heat_CloseTemp)
 	{
 		if (++su16_HeatTime_Cnt > 3)
 		{
