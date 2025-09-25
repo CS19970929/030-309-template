@@ -25,7 +25,7 @@
 
 #define VERSION         (5)
 
-// #define __VIRTURE_CURRENT__
+#define __VIRTURE_CURRENT__
 
 #define   CURR_80A      0
 #define   CURR_100A     1

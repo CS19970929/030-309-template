@@ -99,6 +99,7 @@ typedef struct
 	struct HEAT_COOL_ELEMENT  heat;
 	UINT16 					CalibCoefK[KB_NUM];
 	INT16 					CalibCoefB[KB_NUM];
+	uint16_t  				erase_cnt;
 	uint16_t                  current_offset_309;
 }
 PARAM_T;
