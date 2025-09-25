@@ -65,7 +65,7 @@ int main(void)
 		// App_Heat_Cool_Ctrl();
 
 		App_FlashUpdateDet();
-		// App_LogRecord();
+		App_LogRecord();
 		// App_ProID_Deal();
 
 #ifdef wdog_enable
@@ -134,7 +134,7 @@ void InitVar(void)
 	g_u32CS_Res_AFE = ((UINT32)g_tParam.other.u16Sys_CS_Res_Num * 1000) / g_tParam.other.u16Sys_CS_Res;
 
 	// SystemStatus.bits.b4Status_ProjectVer = 1;
-	// LogRecord_Flag.bits.Log_StartUp = 1;
+	LogRecord_Flag.bits.Log_StartUp = 1;
 	SystemStatus.bits.b1StartUpBMS = 0;
 }
 

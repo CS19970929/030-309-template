@@ -1023,11 +1023,11 @@ void App_SleepDeal(void)
 		SystemStatus.bits.b1Status_ToSleep = 1;
 	}
 
-	// if (Sleep_Mode.bits.b1_ToSleepFlag)
-	// {
-	// 	LogRecord_Flag.bits.Log_Sleep = 1;
-	// 	return;
-	// }
+	if (Sleep_Mode.bits.b1_ToSleepFlag)
+	{
+		LogRecord_Flag.bits.Log_Sleep = 1;
+		return;
+	}
 
 	if (0 == g_st_SysTimeFlag.bits.b1Sys1000msFlag1 && !Sleep_Mode.bits.b1ForceToSleep_L1 && !Sleep_Mode.bits.b1ForceToSleep_L2 && !Sleep_Mode.bits.b1ForceToSleep_L3)
 	{

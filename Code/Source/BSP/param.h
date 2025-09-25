@@ -30,7 +30,7 @@
 	//#define PARAM_ADDR	 ADDR_FLASH_SECTOR_11		/* 0x080E0000 Flash���128K����������Ų��� */
 #endif
 
-#define PARAM_VER			0x0002					/* �����汾 */
+#define PARAM_VER			0x2002					/* �����汾 */
 
 #if 0
 /* ȫ�ֲ��� */
@@ -100,27 +100,6 @@ typedef struct
 	UINT16 					CalibCoefK[KB_NUM];
 	INT16 					CalibCoefB[KB_NUM];
 	uint16_t                  current_offset_309;
-
-	// /* uip ip ��ַ���� */
-	// uint8_t uip_ip[4];			/* ����IP��ַ */
-	// uint8_t uip_net_mask[4];	/* �������� */
-	// uint8_t uip_gateway[4];	/* Ĭ������ */
-
-	// /* lwip ip ��ַ���� */
-	// uint8_t lwip_ip[4];			/* ����IP��ַ */
-	// uint8_t lwip_net_mask[4];	/* �������� */
-	// uint8_t lwip_gateway[4];	/* Ĭ������ */
-
-	// /* ���������� */
-	// uint8_t ucRadioMode;		/* AM �� FM */
-	// uint8_t ucRadioListType;		/* ��̨�б����͡��人������ȫ�� */
-	// uint8_t ucIndexFM;			/* ��ǰFM��̨���� */
-	// uint8_t ucIndexAM;			/* ��ǰ��̨���� */
-	// uint8_t ucRadioVolume;		/* ���� */
-	// uint8_t ucSpkOutEn;			/* ���������ʹ�� */
-	
-	// uint8_t Addr485;
-	// uint32_t Baud485;
 }
 PARAM_T;
 

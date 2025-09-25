@@ -52,6 +52,8 @@ void LoadParam(void)
 		}
 	}
 
+	ReadEEPROM_EventRecord_Parameters();
+
 #ifdef PARAM_SAVE_TO_EEPROM
 	/* 读取EEPROM中的参数 */
 	ee_ReadBytes((uint8_t *)&g_tParam, PARAM_ADDR, sizeof(PARAM_T));
@@ -86,6 +88,8 @@ void LoadParam(void)
 			} while (ret == false);
 			DataLoad_CurrentCali_startup();
 		}
+
+		EEPROM_ResetData_EventRecord_ToDefault();
 
 		SaveParam(); /* 将新参数写入Flash */
 		MCU_RESET();
@@ -129,7 +133,7 @@ void SaveParam(void)
 	ee_WriteBytes((uint8_t *)&g_tParam, PARAM_ADDR, sizeof(PARAM_T));
 #endif
 
-	LoadParam();
+	// LoadParam();
 }
 
 /***************************** 安富莱电子 www.armfly.com (END OF FILE) *********************************/

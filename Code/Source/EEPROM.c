@@ -723,49 +723,49 @@ UINT16 OffsetValue_CHG = 0;
 UINT16 OffsetValue_DSG = 0;
 void InitData_E2prom(void)
 {
-	if (EEPROM_VALUE_BEGIN_FLAG == FlashReadOneHalfWord(FLASH_ADDR_PARAM_VALUE))
-	{ // 第二次上电就会执行这个
-		// ReadEEPROM_ByteData_StartUp();
-		EEPROM_ResetData_AllToDefault();
-		{
-			g_u32CS_Res_AFE = ((UINT32)g_tParam.other.u16Sys_CS_Res_Num * 1000) / g_tParam.other.u16Sys_CS_Res;
-			curr_offset = FlashReadOneHalfWord(FLASH_ADDR_SH367309_VALUE);
+	// if (EEPROM_VALUE_BEGIN_FLAG == FlashReadOneHalfWord(FLASH_ADDR_PARAM_VALUE))
+	// { // 第二次上电就会执行这个
+	// 	// ReadEEPROM_ByteData_StartUp();
+	// 	EEPROM_ResetData_AllToDefault();
+	// 	{
+	// 		g_u32CS_Res_AFE = ((UINT32)g_tParam.other.u16Sys_CS_Res_Num * 1000) / g_tParam.other.u16Sys_CS_Res;
+	// 		curr_offset = FlashReadOneHalfWord(FLASH_ADDR_SH367309_VALUE);
 
-			if ((curr_offset & 0x8000) == 0)
-			{
-				OffsetValue_CHG = (UINT32)curr_offset * 200 * g_u32CS_Res_AFE / (21470);
-			}
-			else
-			{
-				OffsetValue_DSG = (UINT32)((UINT16)(0xFFFF - curr_offset + 1)) * 200 * g_u32CS_Res_AFE / (21470); // mA
-			}
-		}
-	}
-	else
-	{ // 第一次上电，用于量产
-		EEPROM_ResetData_AllToDefault();
-		// while (u8E2P_KB_WriteFlag || u32E2P_Pro_VolCur_WriteFlag || u32E2P_Pro_Temp_WriteFlag || u32E2P_Pro_Other_WriteFlag || u8E2P_SocTable_WriteFlag || u8E2P_CopperLoss_WriteFlag || u32E2P_RTC_Element_WriteFlag || u32E2P_OtherElement1_WriteFlag)
-		// { // 0x2000,0x2100,0x2200,0x2300
-		// 	WriteEEPROM_ByteData_Circle();
-		// }
-		// EEPROM_ResetData_OtherToDefault(); // 把E2P_BEGIN_FLAG写进头地址，
-										   // 如果有别的添加，可以往这个函数写，目前加了保护记录初始化
-		// WriteProID_Default();
+	// 		if ((curr_offset & 0x8000) == 0)
+	// 		{
+	// 			OffsetValue_CHG = (UINT32)curr_offset * 200 * g_u32CS_Res_AFE / (21470);
+	// 		}
+	// 		else
+	// 		{
+	// 			OffsetValue_DSG = (UINT32)((UINT16)(0xFFFF - curr_offset + 1)) * 200 * g_u32CS_Res_AFE / (21470); // mA
+	// 		}
+	// 	}
+	// }
+	// else
+	// { // 第一次上电，用于量产
+	// 	EEPROM_ResetData_AllToDefault();
+	// 	// while (u8E2P_KB_WriteFlag || u32E2P_Pro_VolCur_WriteFlag || u32E2P_Pro_Temp_WriteFlag || u32E2P_Pro_Other_WriteFlag || u8E2P_SocTable_WriteFlag || u8E2P_CopperLoss_WriteFlag || u32E2P_RTC_Element_WriteFlag || u32E2P_OtherElement1_WriteFlag)
+	// 	// { // 0x2000,0x2100,0x2200,0x2300
+	// 	// 	WriteEEPROM_ByteData_Circle();
+	// 	// }
+	// 	// EEPROM_ResetData_OtherToDefault(); // 把E2P_BEGIN_FLAG写进头地址，
+	// 									   // 如果有别的添加，可以往这个函数写，目前加了保护记录初始化
+	// 	// WriteProID_Default();
 
-		bool ret = false;
-		do
-		{
-			initAFE1_IIC();
-			AFE_IsReady();
-			AFE_PARAM_WRITE_Flag = 1;
-			ret = SH367309_UpdataAfeConfig();
+	// 	bool ret = false;
+	// 	do
+	// 	{
+	// 		initAFE1_IIC();
+	// 		AFE_IsReady();
+	// 		AFE_PARAM_WRITE_Flag = 1;
+	// 		ret = SH367309_UpdataAfeConfig();
 
-		} while (ret == false);
-		DataLoad_CurrentCali_startup();
+	// 	} while (ret == false);
+	// 	DataLoad_CurrentCali_startup();
 
-		// WriteEEPROM_Word_NoZone(EEPROM_ADDR_PASS, EEPROM_VALUE_BEGIN_FLAG); // 第一次上电初始化完成
-		FlashWriteOneHalfWord(FLASH_ADDR_PARAM_VALUE, EEPROM_VALUE_BEGIN_FLAG);
-	}
+	// 	// WriteEEPROM_Word_NoZone(EEPROM_ADDR_PASS, EEPROM_VALUE_BEGIN_FLAG); // 第一次上电初始化完成
+	// 	FlashWriteOneHalfWord(FLASH_ADDR_PARAM_VALUE, EEPROM_VALUE_BEGIN_FLAG);
+	// }
 }
 
 void App_E2promDeal(void)
