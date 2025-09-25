@@ -112,6 +112,7 @@ void InitDevice(void)
 	sys_time.sample_voltage = (float)g_stCellInfoReport.u16VCellTotle / 100;
 	SOC_LED_Init(sys_time.sample_voltage);
 	// Board_PowerOn(); // …œµÁ∂Øª≠
+	// FlashEEPROM_Init();
 
 #ifndef _DEBUG_
 	Init_IWDG();
@@ -127,7 +128,7 @@ void InitVar(void)
 	g_u32CS_Res_AFE = ((UINT32)OtherElement.u16Sys_CS_Res_Num * 1000) / OtherElement.u16Sys_CS_Res;
 
 	// SystemStatus.bits.b4Status_ProjectVer = 1;
-	LogRecord_Flag.bits.Log_StartUp = 1;
+	//LogRecord_Flag.bits.Log_StartUp = 1;
 	SystemStatus.bits.b1StartUpBMS = 0;
 }
 

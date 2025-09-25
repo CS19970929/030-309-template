@@ -1,4 +1,5 @@
 #include "main.h"
+#include "LogRecord.h"
 
 #define EVENT_RECORD_LENGTH 100
 

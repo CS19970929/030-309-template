@@ -662,123 +662,6 @@ void EEPROM_ResetData_OtherToDefault(void)
 // Sci命令表中，因为STM8的缘故，决定全部从通讯中移出来写
 void WriteEEPROM_ByteData_Circle(void)
 {
-	UINT8 i = 0;
-	UINT8 u8temp;
-
-	const struct PRT_E2ROM_PARAS PrtE2paras_Pos = E2P_ADDR_E2POS_PROTECT;
-	const struct OTHER_ELEMENT OtherCanAdd_Pos = E2P_ADDR_E2POS_OTHER_ELEMENT1;
-	// const struct RTC_ELEMENT RTC_Element_Pos = E2P_ADDR_E2POS_RTC;
-	const struct HEAT_COOL_ELEMENT HeatCoolEle_Pos = E2P_ADDR_E2POS_HEAT_COOL;
-
-	if (u8E2P_KB_WriteFlag)
-	{ // 完美KB值操作，既可全部写一遍，也可以单独写其中一对KB值
-		WriteEEPROM_Word_WithZone((E2P_ADDR_START_CALIB_K + (u8E2P_KB_WritePos << 1)), g_u16CalibCoefK[u8E2P_KB_WritePos]);
-		WriteEEPROM_Word_WithZone((E2P_ADDR_START_CALIB_B + (u8E2P_KB_WritePos << 1)), g_i16CalibCoefB[u8E2P_KB_WritePos]);
-		++u8E2P_KB_WritePos; // 如果u8E2P_KB_WriteFlag=0，则Pos就算错也没用，别的地方想修改KB值的话，这两者必须同时操作。
-		--u8E2P_KB_WriteFlag;
-	}
-	else if (u32E2P_Pro_VolCur_WriteFlag & E2P_PARA_ALL_VOLCUR_PROTECT)
-	{
-		while (i < E2P_PARA_ALL_VOLCUR_PROTECT)
-		{
-			if ((u32E2P_Pro_VolCur_WriteFlag >> i) & 1)
-			{
-				WriteEEPROM_Word_WithZone((UINT16) * (&PrtE2paras_Pos.u16VcellOvp_First + i),
-										  *(&PRT_E2ROMParas.u16VcellOvp_First + i));
-				u32E2P_Pro_VolCur_WriteFlag -= ((long)1 << i); // 按位操作，有一个减一个。
-				break;
-			}
-			i++;
-		}
-	}
-	else if (u32E2P_Pro_Temp_WriteFlag & E2P_PARA_ALL_TEM_PROTECT)
-	{
-		while (i < E2P_PARA_ALL_TEM_PROTECT)
-		{
-			if ((u32E2P_Pro_Temp_WriteFlag >> i) & 1)
-			{
-				WriteEEPROM_Word_WithZone((UINT16) * (&PrtE2paras_Pos.u16TChgOTp_First + i),
-										  *(&PRT_E2ROMParas.u16TChgOTp_First + i));
-				u32E2P_Pro_Temp_WriteFlag -= ((long)1 << i);
-				break;
-			}
-			i++;
-		}
-	}
-	else if (u32E2P_Pro_Other_WriteFlag & E2P_PARA_ALL_OTHER_PROTECT)
-	{
-		while (i < E2P_PARA_ALL_OTHER_PROTECT)
-		{
-			if ((u32E2P_Pro_Other_WriteFlag >> i) & 1)
-			{
-				WriteEEPROM_Word_WithZone((UINT16) * (&PrtE2paras_Pos.u16VdeltaOvp_First + i),
-										  *(&PRT_E2ROMParas.u16VdeltaOvp_First + i));
-				u32E2P_Pro_Other_WriteFlag -= ((long)1 << i);
-				break;
-			}
-			i++;
-		}
-	}
-	else if (u32E2P_OtherElement1_WriteFlag & E2P_PARA_ALL_OTHER_ELEMENT1)
-	{
-		while (i < E2P_PARA_ALL_OTHER_ELEMENT1)
-		{
-			if ((u32E2P_OtherElement1_WriteFlag >> i) & 1)
-			{
-				WriteEEPROM_Word_WithZone((UINT16) * (&OtherCanAdd_Pos.u16Balance_OpenVoltage + i),
-										  *(&OtherElement.u16Balance_OpenVoltage + i));
-				u32E2P_OtherElement1_WriteFlag -= ((long)1 << i);
-				break;
-			}
-			i++;
-		}
-	}
-	else if (u32E2P_HeatCool_WriteFlag)
-	{
-		for (i = 0; i < E2P_PARA_NUM_HEAT_COOL; ++i)
-		{
-			if ((u32E2P_HeatCool_WriteFlag >> i) & 1)
-			{
-				WriteEEPROM_Word_WithZone((UINT16) * (&HeatCoolEle_Pos.u16Heat_OpenTemp + i), *(&Heat_Cool_Element.u16Heat_OpenTemp + i));
-				u32E2P_HeatCool_WriteFlag -= ((long)1 << i);
-				break;
-			}
-		}
-	}
-	else if (gu8_Reset_EventRecord)
-	{
-		u8temp = 100 - gu8_Reset_EventRecord;
-		WriteEEPROM_Word_WithZone(E2P_ADDR_START_EVENT_RECORD + (u8temp << 1), 0);
-		gu8_Reset_EventRecord--;
-		if (gu8_Reset_EventRecord == 1)
-		{
-			WriteEEPROM_Word_WithZone(E2P_ADDR_E2POS_EVENT_POINT, 0);
-		}
-	}
-	/*
-	else if(u32E2P_RTC_Element_WriteFlag) {
-		while(i < E2P_PARA_ALL_RTC_ELEMENT) {
-			if((u32E2P_RTC_Element_WriteFlag>>i)&1) {
-				WriteEEPROM_Word_WithZone((UINT16)*(&RTC_Element_Pos.RTC_Time_Year+i),
-					*(&RTC_time.RTC_Time_Year+i));
-				u32E2P_RTC_Element_WriteFlag -= ((long)1<<i);
-				break;
-			}
-			i++;
-		}
-	}
-	else if(u8E2P_SocTable_WriteFlag) {
-		u8temp = E2P_PARA_NUM_SOC_TABLE - u8E2P_SocTable_WriteFlag;
-		WriteEEPROM_Word_WithZone(E2P_ADDR_START_SOC_TABLE + (u8temp<<1), SOC_Table_Set[u8temp]);
-		u8E2P_SocTable_WriteFlag--;
-	}
-	else if(u8E2P_CopperLoss_WriteFlag) {
-		u8temp = E2P_PARA_NUM_COPPERLOSS - u8E2P_CopperLoss_WriteFlag;
-		WriteEEPROM_Word_WithZone(E2P_ADDR_START_COPPERLOSS + (u8temp<<1), CopperLoss[u8temp]);
-		WriteEEPROM_Word_WithZone(E2P_ADDR_START_COPPERLOSS_NUM + (u8temp<<1), CopperLoss_Num[u8temp]);
-		u8E2P_CopperLoss_WriteFlag--;
-	}
-	*/
 }
 
 void InitE2PROM(void)
@@ -887,15 +770,6 @@ void InitData_E2prom(void)
 
 void App_E2promDeal(void)
 {
-	if (u8E2P_KB_WriteFlag || u32E2P_Pro_VolCur_WriteFlag || u32E2P_Pro_Temp_WriteFlag || u32E2P_Pro_Other_WriteFlag || u8E2P_SocTable_WriteFlag || u8E2P_CopperLoss_WriteFlag || u32E2P_RTC_Element_WriteFlag || u32E2P_OtherElement1_WriteFlag || u32E2P_HeatCool_WriteFlag)
-	{ // 0x2000,0x2100,0x2200,0x2300
-		WriteEEPROM_ByteData_Circle();
-	}
-
-	if (gu8_Reset_EventRecord)
-	{ // 补充在这里吧
-		WriteEEPROM_ByteData_Circle();
-	}
 }
 
 // 问题找出来，就是BC区写不进去，返回0xFF

@@ -4,6 +4,58 @@
 #include "stm32f0xx.h"
 #include <stdint.h>
 
+typedef enum _LogEventArray {
+	BMS_EVENT_NULL1 = 0,
+	BMS_START_UP,
+	BMS_SLEEP,
+	BALANCE_OPEN,
+	HEAT_OPEN,
+	COOL_OPEN,
+	
+	VCELL_OVP,
+	VBUS_OVP,
+	CHG_OCP,
+	
+	VCELL_UVP,
+	VBUS_UVP,
+	DSG_OCP,
+
+	CHG_UTP,
+	DSG_UTP,
+	CHG_OTP,
+	DSG_OTP,
+	VDELTA_OP,
+	CBC_ERR,
+	AFE1_ERR,
+	AFE2_ERR,
+	EEPROM_ERR,
+
+	EVENT_NUM
+}LogEventArray;
+
+
+typedef union __LOG_RECORD_FLAG {
+    UINT8 all;
+    struct _LOG_RECORD_FLAG {
+		UINT8 Log_StartUp  		:1;
+		UINT8 Log_Sleep     	:1;
+		UINT8 BatOvp_Third      :1;
+		UINT8 BatUvp_Third      :1;
+		
+		UINT8 Rcv				:4;
+     }bits;
+}LOG_RECORD_FLAG;
+
+
+extern LOG_RECORD_FLAG LogRecord_Flag;
+extern UINT8 gu8_Reset_EventRecord;
+
+//����ɾ��
+//extern UINT8 BMS_LOG_POINT;
+//extern UINT8 BMS_LOG_RECORD[100][2];
+
+
+
 /*
   配置（务必根据目标芯片/闪存布局调整）：
   - EEPROM_FLASH_BASE: 模拟 EEPROM 区域起始地址（必须页对齐）
@@ -27,11 +79,18 @@
 void FlashEEPROM_Init(void);
 
 /* 与原接口完全兼容（参数为 flash 区的字节地址） */
-uint16_t ReadEEPROM_Word_NoZone(uint32_t u32ByteAddr);
-void WriteEEPROM_Word_NoZone(uint32_t u32ByteAddr, uint16_t u16Data);
+uint16_t ReadEEPROM_Word_NoZone_flash(uint32_t u32ByteAddr);
+void WriteEEPROM_Word_NoZone_flash(uint32_t u32ByteAddr, uint16_t u16Data);
 
 /* 额外的工具接口（可选） */
 int FlashEEPROM_Format(void); /* 清空两页并初始化（危险，谨慎使用） */
+
+
+void App_LogRecord(void);
+void Sci_ACK_0x03_ReadRegs_EventRecord(UINT8 t_u8BuffTemp[]);
+void EEPROM_ResetData_EventRecord_ToDefault(void);
+void ReadEEPROM_EventRecord_Parameters(void);
+void Sci_WrReg_0x06_Reset_EventRecord(struct RS485MSG *s);
 
 #endif /* FLASH_EEPROM_H */
 
