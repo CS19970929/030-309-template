@@ -37,6 +37,7 @@
 #include "led_soc.h"
 
 // #include "FlashEEPROM.h"
+#include "param.h"
 
 #include "conf.h"
 

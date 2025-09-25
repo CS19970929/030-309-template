@@ -325,8 +325,8 @@
             <wLevel>2</wLevel>
             <uThumb>0</uThumb>
             <uSurpInc>0</uSurpInc>
-            <uC99>0</uC99>
-            <uGnu>0</uGnu>
+            <uC99>1</uC99>
+            <uGnu>1</uGnu>
             <useXO>0</useXO>
             <v6Lang>1</v6Lang>
             <v6LangP>1</v6LangP>
@@ -339,7 +339,7 @@
               <MiscControls>--C99</MiscControls>
               <Define>USE_STDPERIPH_DRIVER STM32F0XX</Define>
               <Undefine></Undefine>
-              <IncludePath>.\Code\Drivers;.\Code\STM32F0xx_StdPeriph_Driver\inc;.\Code\Source\NewFunc;.\Code\Source;.\Code\Source\conf</IncludePath>
+              <IncludePath>.\Code\Drivers;.\Code\STM32F0xx_StdPeriph_Driver\inc;.\Code\Source\NewFunc;.\Code\Source;.\Code\Source\conf;.\Code\Source\BSP</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -893,6 +893,26 @@
               <FileName>conf_gpio.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\Code\Source\conf\conf_gpio.h</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>bsp</GroupName>
+          <Files>
+            <File>
+              <FileName>param.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Code\Source\BSP\param.c</FilePath>
+            </File>
+            <File>
+              <FileName>bsp.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Code\Source\BSP\bsp.c</FilePath>
+            </File>
+            <File>
+              <FileName>bsp_cpu_flash.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Code\Source\BSP\bsp_cpu_flash.c</FilePath>
             </File>
           </Files>
         </Group>

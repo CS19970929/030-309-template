@@ -713,7 +713,8 @@ void DataLoad_CurrentCali_startup(void)
 	// step 2
 	{
 		// 如果是normal的休眠和唤醒，则需要再次保存最新的值。
-		FlashWriteOneHalfWord(FLASH_ADDR_SH367309_VALUE, su16_OffsetValue);
+		// FlashWriteOneHalfWord(FLASH_ADDR_SH367309_VALUE, su16_OffsetValue);
+		g_tParam.current_offset_309 = su16_OffsetValue;
 	}
 }
 
@@ -726,7 +727,6 @@ void InitData_E2prom(void)
 	{ // 第二次上电就会执行这个
 		// ReadEEPROM_ByteData_StartUp();
 		EEPROM_ResetData_AllToDefault();
-
 		{
 			g_u32CS_Res_AFE = ((UINT32)OtherElement.u16Sys_CS_Res_Num * 1000) / OtherElement.u16Sys_CS_Res;
 			curr_offset = FlashReadOneHalfWord(FLASH_ADDR_SH367309_VALUE);

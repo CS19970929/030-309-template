@@ -210,8 +210,4 @@ void RTC_IRQHandler(void)
 	}
 	EXTI_ClearITPendingBit(EXTI_Line17);
 
-	if (FLASH_COMPLETE == FlashWriteOneHalfWord(FLASH_ADDR_SH367309_FLAG, FLASH_309_RTC_RTC_VALUE))
-	{
-		// RTC唤醒，则写标志位
-	}
 }

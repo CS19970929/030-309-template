@@ -92,7 +92,8 @@ void InitDevice(void)
 	InitIO();
 
 	InitTimer();
-	InitE2PROM(); // 内部EEPROM，不需要初始化
+	// InitE2PROM(); // 内部EEPROM，不需要初始化
+	LoadParam();
 	InitSystemWakeUp();
 	InitUSART_CommonUpper();
 	InitADC();
@@ -101,6 +102,8 @@ void InitDevice(void)
 	// InitHeat_Cool();
 	InitAFE1();
 	InitMosRelay_DOx();
+
+	MCU_GetResetType();
 
 	UpdateVoltageFromBqMaximo();
 	DataLoad_CellVolt();
@@ -128,7 +131,7 @@ void InitVar(void)
 	g_u32CS_Res_AFE = ((UINT32)OtherElement.u16Sys_CS_Res_Num * 1000) / OtherElement.u16Sys_CS_Res;
 
 	// SystemStatus.bits.b4Status_ProjectVer = 1;
-	//LogRecord_Flag.bits.Log_StartUp = 1;
+	// LogRecord_Flag.bits.Log_StartUp = 1;
 	SystemStatus.bits.b1StartUpBMS = 0;
 }
 

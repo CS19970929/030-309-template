@@ -6,9 +6,9 @@
 #define FLASH_ADDR_IAP_START 			0x08000000		//IAP=7K������ط�����һ�����⣬�޸ĺ����6K�����淴ӳ���������Zi-dataҲ��flash�Ķ���
 #define FLASH_ADDR_APP_START 			0x08001C00		//APP=64-7-1-1=55K
 
+#define FLASH_ADDR_TEST_BMS_PARAM       0x0800F000
 #define FLASH_ADDR_PARAM_VALUE 		0x0800EC00		//���ߴ���ؼ�����(����ƫ��ֵ)��1K
 #define FLASH_ADDR_SH367309_VALUE 		0x0800F000		//���ߴ���ؼ�����(����ƫ��ֵ)��1K
-#define FLASH_ADDR_SH367309_FLAG 		0x0800F400		//�����Ƿ�����־λ��1K
 
 #define FLASH_ADDR_UPDATE_FLAG 			0x0800F800		//������־λ��1K
 #define FLASH_ADDR_SLEEP_FLAG           0x0800FC00		//���߹ؼ�ָ�1K

@@ -39,18 +39,14 @@ void bsp_Init(void)
 
 	/* 优先级分组设置为4 */
 	// NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4);
-	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
+	// NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
 	
 	
 	//bsp_InitLed();		/* 配置LED的GPIO端口 */
-	bsp_InitKey();		/* 初始化按键 */
+	//bsp_InitKey();		/* 初始化按键 */
 	//System_SysTickInit();
 
-	bsp_InitTimer();	/* 初始化系统滴答定时器 (此函数会开中断) */
-
-	// InitIO();
-	// InitSci();
-
+	// bsp_InitTimer();	/* 初始化系统滴答定时器 (此函数会开中断) */
 }
 
 /*
@@ -64,16 +60,13 @@ void bsp_Init(void)
 */
 void bsp_RunPer10ms(void)
 {
-	bsp_KeyScan();		/* 每10ms扫描按键一次 */
-
-	//MCUO_DEBUG_LED1 = ~MCUO_DEBUG_LED1;
+	// bsp_KeyScan();		/* 每10ms扫描按键一次 */
 }
 
 void bsp_RunPer500ms(void)
 {
-	// MCUO_DEBUG_LED1 = ~MCUO_DEBUG_LED1;
 
-	// BSP_Printf("test\n");
+	// log_w("test\n");
 }
 
 /*
