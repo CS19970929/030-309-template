@@ -242,27 +242,11 @@ void EEPROM_ResetData_EventRecord_ToDefault(void)
 	}
 	BMS_LOG_POINT = 0;
 
-	// for (i = 0; i < EVENT_RECORD_LENGTH; ++i)
-	// {
-	// 	WriteEEPROM_Word_WithZone(E2P_ADDR_START_EVENT_RECORD + (i << 1), 0);
-	// }
-	// WriteEEPROM_Word_WithZone(E2P_ADDR_E2POS_EVENT_POINT, BMS_LOG_POINT);
 	FLASH_Status result;
 	FLASH_Unlock();
 	FLASH_ClearFlag(FLASH_FLAG_EOP | FLASH_FLAG_PGERR | FLASH_FLAG_WRPERR);
 	while (FLASH_ErasePage(FLASH_ADDR_LOG_FLASH_START) != FLASH_COMPLETE)
 		;
-
-	// log.event = HEAT_OPEN;
-	// // log.time  = 3600 * 5;
-	// log.time = 171;
-	// log.index = 0;
-	// log.res = 0;
-	// FLASH_ProgramWord(FLASH_ADDR_LOG_FLASH_START, (uint32_t)log);
-	log.byte.event = HEAT_OPEN;
-	log.byte.time = 3;
-	log.byte.index = BMS_LOG_POINT;
-	FLASH_ProgramWord(FLASH_ADDR_LOG_FLASH_START, log.data);
 
 	log.byte.event = BMS_SLEEP;
 	log.byte.time = 7;
