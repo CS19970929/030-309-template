@@ -40,7 +40,8 @@
 #include "param.h"
 
 #include "conf.h"
-#include "LogRecord_flash.h"
+// #include "LogRecord_flash.h"
+#include "log_test.h"
 
 #define APPLICATION_ADDRESS     (uint32_t)0x08001C00
 #define UPDNLMT16(Var,Max,Min)	{(Var)=((Var)>=(Max))?(Max):(Var);(Var)=((Var)<=(Min))?(Min):(Var);}

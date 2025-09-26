@@ -1,27 +1,62 @@
-#ifndef __LOGRECORD_H
-#define __LOGRECORD_H
+#ifndef LOG_RECORD_H
+#define LOG_RECORD_H
 
-#include "stm32f0xx.h"
-#include <stdint.h>
+/* 依赖项目内的基础类型（如 UINT8/UINT16/UINT32）等，应在 main.h 等处定义 */
+typedef enum _LogEventArray {
+    BMS_EVENT_NULL1 = 0,
+    BMS_START_UP,
+    BMS_SLEEP,
+    BALANCE_OPEN,
+    HEAT_OPEN,
+    COOL_OPEN,
 
-/* 日志数量上限 */
-#define BMS_LOG_POINT       100
-#define BMS_LOG_INDEX_NULL  0xFFFF
+    VCELL_OVP,
+    VBUS_OVP,
+    CHG_OCP,
 
-typedef struct
-{
-    uint16_t u16Index;
-    uint16_t u16Event;
-} BMS_LOG_ITEM;
+    VCELL_UVP,
+    VBUS_UVP,
+    DSG_OCP,
 
-/* API：应用层调用保持不变 */
-void LogRecord_Init(void);
-void LogRecord_AddEvent(uint16_t event);
-BMS_LOG_ITEM LogRecord_Read(uint16_t index);
-uint16_t LogRecord_GetLastIndex(void);
+    CHG_UTP,
+    DSG_UTP,
+    CHG_OTP,
+    DSG_OTP,
+    VDELTA_OP,
+    CBC_ERR,
+    AFE1_ERR,
+    AFE2_ERR,
+    EEPROM_ERR,
 
-/* 提供的 EEPROM 接口（实际由 Flash 模拟实现） */
-uint16_t ReadEEPROM_Word_NoZone(uint32_t u32ByteAddr);
-void WriteEEPROM_Word_NoZone(uint32_t u32ByteAddr, uint16_t u16Data);
+    EVENT_NUM
+} LogEventArray;
 
-#endif /* __LOGRECORD_H */
+
+typedef union __LOG_RECORD_FLAG {
+    UINT8 all;
+    struct _LOG_RECORD_FLAG {
+        UINT8 Log_StartUp      :1;
+        UINT8 Log_Sleep        :1;
+        UINT8 BatOvp_Third     :1;
+        UINT8 BatUvp_Third     :1;
+
+        UINT8 Rcv              :4;
+    } bits;
+} LOG_RECORD_FLAG;
+
+
+extern LOG_RECORD_FLAG LogRecord_Flag;
+extern UINT8 gu8_Reset_EventRecord;
+
+/* API 保持与你原来一致（应用层调用不变） */
+void App_LogRecord(void);
+void Sci_ACK_0x03_ReadRegs_EventRecord(UINT8 t_u8BuffTemp[]);
+void Sci_WrReg_0x06_Reset_EventRecord(struct RS485MSG *s);
+void EEPROM_ResetData_EventRecord_ToDefault(void);
+void ReadEEPROM_EventRecord_Parameters(void);
+
+// /* 底层 EEPROM 替代接口（实现已在 LogRecord.c 中） */
+// uint16_t ReadEEPROM_Word_NoZone(uint32_t u32ByteAddr);
+// void WriteEEPROM_Word_NoZone(uint32_t u32ByteAddr, uint16_t u16Data);
+
+#endif /* LOG_RECORD_H */
