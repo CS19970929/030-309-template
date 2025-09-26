@@ -56,7 +56,7 @@ void EEPROM_ResetData_EventRecord_ToDefault(void);
 void ReadEEPROM_EventRecord_Parameters(void);
 
 // /* 底层 EEPROM 替代接口（实现已在 LogRecord.c 中） */
-// uint16_t ReadEEPROM_Word_NoZone(uint32_t u32ByteAddr);
-// void WriteEEPROM_Word_NoZone(uint32_t u32ByteAddr, uint16_t u16Data);
+// uint16_t ReadEEPROM_Word_NoZone_flash(uint32_t u32ByteAddr);
+// void WriteEEPROM_Word_NoZone_flash(uint32_t u32ByteAddr, uint16_t u16Data);
 
 #endif /* LOG_RECORD_H */

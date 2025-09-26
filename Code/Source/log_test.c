@@ -310,7 +310,7 @@ static int append_record_to_active(uint16_t vaddr, uint16_t data)
 /* ========================= EEPROM 替代接口（对外） ========================= */
 
 /* 读取一个半字（16-bit），参数 u32ByteAddr 支持偏移或绝对地址两种格式 */
-uint16_t ReadEEPROM_Word_NoZone(uint32_t u32ByteAddr)
+uint16_t ReadEEPROM_Word_NoZone_flash(uint32_t u32ByteAddr)
 {
     uint32_t absAddr = normalize_eeprom_addr(u32ByteAddr);
     if (absAddr < EEPROM_FLASH_BASE) return 0xFFFF;
@@ -325,7 +325,7 @@ uint16_t ReadEEPROM_Word_NoZone(uint32_t u32ByteAddr)
 /* 写一个半字（16-bit）：先比较现值，相同则跳过；否则追加记录到 active page。
    若当前页无空位则触发 page_transfer（把当前页数据搬到另一页）再追加。
 */
-void WriteEEPROM_Word_NoZone(uint32_t u32ByteAddr, uint16_t u16Data)
+void WriteEEPROM_Word_NoZone_flash(uint32_t u32ByteAddr, uint16_t u16Data)
 {
     uint32_t absAddr = normalize_eeprom_addr(u32ByteAddr);
     if (absAddr < EEPROM_FLASH_BASE) return;
@@ -333,7 +333,7 @@ void WriteEEPROM_Word_NoZone(uint32_t u32ByteAddr, uint16_t u16Data)
     if (off & 1U) return;
     uint16_t vaddr = (uint16_t)(off / 2U);
 
-    uint16_t cur = ReadEEPROM_Word_NoZone(u32ByteAddr);
+    uint16_t cur = ReadEEPROM_Word_NoZone_flash(u32ByteAddr);
     if (cur == u16Data) return;
 
     if (append_record_to_active(vaddr, u16Data) == 0) return;
@@ -381,8 +381,8 @@ void LogEvent_EEPROM(LogEventArray event, UINT32 *Time_S_Cnt)
     temp = (UINT16)(BMS_LOG_RECORD[BMS_LOG_POINT - 1][0] + (BMS_LOG_RECORD[BMS_LOG_POINT - 1][1] << 8));
 
     /* 保存到仿 EEPROM（兼容原调用） */
-    WriteEEPROM_Word_NoZone(E2P_ADDR_START_EVENT_RECORD + ((BMS_LOG_POINT - 1) << 1), temp);
-    WriteEEPROM_Word_NoZone(E2P_ADDR_E2POS_EVENT_POINT, BMS_LOG_POINT);
+    WriteEEPROM_Word_NoZone_flash(E2P_ADDR_START_EVENT_RECORD + ((BMS_LOG_POINT - 1) << 1), temp);
+    WriteEEPROM_Word_NoZone_flash(E2P_ADDR_E2POS_EVENT_POINT, BMS_LOG_POINT);
 }
 
 /* 日志记录器：调用上层的逻辑（保留原有分支实现） */
@@ -550,9 +550,9 @@ void EEPROM_ResetData_EventRecord_ToDefault(void)
     /* 将每条记录写为 0（原来是写半字），并写指针为 0 */
     for (i = 0; i < EVENT_RECORD_LENGTH; ++i)
     {
-        WriteEEPROM_Word_NoZone(E2P_ADDR_START_EVENT_RECORD + (i << 1), 0);
+        WriteEEPROM_Word_NoZone_flash(E2P_ADDR_START_EVENT_RECORD + (i << 1), 0);
     }
-    WriteEEPROM_Word_NoZone(E2P_ADDR_E2POS_EVENT_POINT, BMS_LOG_POINT);
+    WriteEEPROM_Word_NoZone_flash(E2P_ADDR_E2POS_EVENT_POINT, BMS_LOG_POINT);
 }
 
 /* 启动/上电读回 EEPROM EventRecord 数据并校验（保持你原来的校验逻辑） */
@@ -562,7 +562,7 @@ void ReadEEPROM_EventRecord_Parameters(void)
     UINT16 t_u16RdTemp;
 
     /* 读取指针（偏移地址或绝对地址均被 normalize） */
-    BMS_LOG_POINT = (UINT8)ReadEEPROM_Word_NoZone(E2P_ADDR_E2POS_EVENT_POINT);
+    BMS_LOG_POINT = (UINT8)ReadEEPROM_Word_NoZone_flash(E2P_ADDR_E2POS_EVENT_POINT);
     if (BMS_LOG_POINT >= 101)
     { /* 如果指针出问题，全部 Reset */
         System_ERROR_UserCallback(ERROR_EEPROM_STORE);
@@ -571,7 +571,7 @@ void ReadEEPROM_EventRecord_Parameters(void)
 
     for (i = 0; i < EVENT_RECORD_LENGTH; ++i)
     {
-        t_u16RdTemp = ReadEEPROM_Word_NoZone(E2P_ADDR_START_EVENT_RECORD + (i << 1));
+        t_u16RdTemp = ReadEEPROM_Word_NoZone_flash(E2P_ADDR_START_EVENT_RECORD + (i << 1));
         /* 校验：低 8 bit 为事件编号，高 8 bit 为时间映射（<=171），并且事件编号在 EVENT_NUM 范围内 */
         if (((t_u16RdTemp & 0x00FF) <= EVENT_NUM) && ((t_u16RdTemp >> 8) <= 171))
         {
@@ -587,7 +587,7 @@ void ReadEEPROM_EventRecord_Parameters(void)
             BMS_LOG_RECORD[i][0] = 0;
             BMS_LOG_RECORD[i][1] = 0;
             /* 出现错误，日志可以尝试恢复为默认值 */
-            WriteEEPROM_Word_NoZone(E2P_ADDR_START_EVENT_RECORD + (i << 1), 0);
+            WriteEEPROM_Word_NoZone_flash(E2P_ADDR_START_EVENT_RECORD + (i << 1), 0);
         }
     }
 }

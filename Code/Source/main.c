@@ -65,7 +65,7 @@ int main(void)
 		// App_Heat_Cool_Ctrl();
 
 		App_FlashUpdateDet();
-		App_LogRecord();
+		// App_LogRecord();
 		// App_ProID_Deal();
 
 #ifdef wdog_enable
