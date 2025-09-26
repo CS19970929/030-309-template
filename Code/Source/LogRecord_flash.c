@@ -33,9 +33,30 @@ void LogEvent_EEPROM(LogEventArray event, UINT32 *Time_S_Cnt)
 {
 	UINT16 temp = 0;
 	union LOG_ITEM_T log;
+	uint8_t i = 0;
 
 	if (BMS_LOG_POINT >= EVENT_RECORD_LENGTH)
+	{
 		BMS_LOG_POINT = 0;
+
+		FLASH_Unlock();
+		FLASH_ClearFlag(FLASH_FLAG_EOP | FLASH_FLAG_PGERR | FLASH_FLAG_WRPERR);
+
+		while (FLASH_ErasePage(FLASH_ADDR_LOG_FLASH_PAGE1) != FLASH_COMPLETE)
+			;
+		while (FLASH_ErasePage(FLASH_ADDR_LOG_BMS_LOG_POINT) != FLASH_COMPLETE)
+			;
+
+		for (i = 0; i < EVENT_RECORD_LENGTH; i++)
+		{
+			temp = BMS_LOG_RECORD[i][0] + (BMS_LOG_RECORD[i][1] << 8);
+			FLASH_ProgramHalfWord(FLASH_ADDR_LOG_FLASH_PAGE1 + (i << 1), temp);
+		}
+		
+		while (FLASH_ErasePage(FLASH_ADDR_LOG_FLASH_PAGE0) != FLASH_COMPLETE)
+			;
+		FLASH_Lock();
+	}
 	BMS_LOG_RECORD[BMS_LOG_POINT][0] = event;
 	BMS_LOG_RECORD[BMS_LOG_POINT][1] = LogTime_Map(Time_S_Cnt);
 	if (event == BMS_START_UP)
@@ -45,16 +66,14 @@ void LogEvent_EEPROM(LogEventArray event, UINT32 *Time_S_Cnt)
 
 	temp = BMS_LOG_RECORD[BMS_LOG_POINT - 1][0] + (BMS_LOG_RECORD[BMS_LOG_POINT - 1][1] << 8);
 
-	log.byte.event = BMS_LOG_RECORD[BMS_LOG_POINT - 1][0];
-	log.byte.time  = BMS_LOG_RECORD[BMS_LOG_POINT - 1][1];
-	log.byte.index = BMS_LOG_POINT;
+	// log.byte.event = BMS_LOG_RECORD[BMS_LOG_POINT - 1][0];
+	// log.byte.time = BMS_LOG_RECORD[BMS_LOG_POINT - 1][1];
+	// log.byte.index = BMS_LOG_POINT;
 
 	FLASH_Unlock();
-	FLASH_ProgramWord(FLASH_ADDR_LOG_FLASH_START + 4 * BMS_LOG_POINT, log.data);
+	FLASH_ProgramHalfWord(FLASH_ADDR_LOG_FLASH_PAGE0 + ((BMS_LOG_POINT - 1) << 1), temp);
+	FLASH_ProgramHalfWord(FLASH_ADDR_LOG_BMS_LOG_POINT + ((BMS_LOG_POINT - 1) << 1), BMS_LOG_POINT);
 	FLASH_Lock();
-
-	// WriteEEPROM_Word_WithZone(E2P_ADDR_START_EVENT_RECORD + ((BMS_LOG_POINT - 1) << 1), temp);
-	// WriteEEPROM_Word_WithZone(E2P_ADDR_E2POS_EVENT_POINT, BMS_LOG_POINT);
 }
 
 void LogEvent_Record(UINT8 temp, LogEventArray event, UINT32 *Time_S_Cnt)
@@ -245,36 +264,68 @@ void EEPROM_ResetData_EventRecord_ToDefault(void)
 	FLASH_Status result;
 	FLASH_Unlock();
 	FLASH_ClearFlag(FLASH_FLAG_EOP | FLASH_FLAG_PGERR | FLASH_FLAG_WRPERR);
-	while (FLASH_ErasePage(FLASH_ADDR_LOG_FLASH_START) != FLASH_COMPLETE)
+	while (FLASH_ErasePage(FLASH_ADDR_LOG_FLASH_PAGE0) != FLASH_COMPLETE)
+		;
+	while (FLASH_ErasePage(FLASH_ADDR_LOG_FLASH_PAGE1) != FLASH_COMPLETE)
+		;
+	while (FLASH_ErasePage(FLASH_ADDR_LOG_BMS_LOG_POINT) != FLASH_COMPLETE)
 		;
 
-	log.byte.event = BMS_SLEEP;
-	log.byte.time = 7;
-	BMS_LOG_POINT++;
-	log.byte.index = BMS_LOG_POINT;
-	FLASH_ProgramWord(FLASH_ADDR_LOG_FLASH_START + 4 * BMS_LOG_POINT, log.data);
+	// log.byte.event = BMS_SLEEP;
+	// log.byte.time = 7;
+	// BMS_LOG_POINT++;
+	// log.byte.index = BMS_LOG_POINT;
+	// FLASH_ProgramWord(FLASH_ADDR_LOG_FLASH_PAGE0 + 4 * BMS_LOG_POINT, log.data);
+
+	// FLASH_ProgramWord(FLASH_ADDR_LOG_FLASH_PAGE0 + 4 * BMS_LOG_POINT, log.data);
 
 	FLASH_Lock();
 }
 
 void ReadEEPROM_EventRecord_Parameters(void)
 {
-	UINT8 i;
+	UINT8 i = 0;
 	UINT16 t_u16RdTemp;
 	union LOG_ITEM_T log;
+	UINT8 BMS_LOG_POINT_temp = 0;
+	uint16_t read = 0;
 
-	for (i = 0; i < EVENT_RECORD_LENGTH; ++i)
+	for (i = 0; i < EVENT_RECORD_LENGTH; i++)
 	{
-		log.data = FlashReadOneWord(FLASH_ADDR_LOG_FLASH_START + 4 * i);
-		if(log.byte.index >= EVENT_RECORD_LENGTH)
+		BMS_LOG_POINT_temp = FlashReadOneHalfWord(FLASH_ADDR_LOG_BMS_LOG_POINT + (i << 1));
+		if (BMS_LOG_POINT_temp <= 100)
 		{
-			break;
+			BMS_LOG_POINT = BMS_LOG_POINT_temp;
 		}
 		else
 		{
-			BMS_LOG_POINT = log.byte.index;
-			BMS_LOG_RECORD[i][0] = log.byte.event;
-			BMS_LOG_RECORD[i][1] = log.byte.time;
+			break;
 		}
 	}
-} 
+
+	if (BMS_LOG_POINT != 0)
+	{
+		for (i = 0; i < BMS_LOG_POINT; i++)
+		{
+			//???
+			// read = FlashReadOneHalfWord(FLASH_ADDR_LOG_FLASH_PAGE0 + i << 1);
+			read = FlashReadOneHalfWord(FLASH_ADDR_LOG_FLASH_PAGE0 + (i << 1));
+			BMS_LOG_RECORD[i][0] = read & 0x00FF;
+			BMS_LOG_RECORD[i][1] = read >> 8;
+		}
+
+		read = FlashReadOneHalfWord(FLASH_ADDR_LOG_FLASH_PAGE1);
+		if (read != 0xFFFF)
+		{
+			for (i = BMS_LOG_POINT; i < EVENT_RECORD_LENGTH; i++)
+			{
+				read = FlashReadOneHalfWord(FLASH_ADDR_LOG_FLASH_PAGE1 + (i << 1));
+				BMS_LOG_RECORD[i][0] = read & 0x00FF;
+				BMS_LOG_RECORD[i][1] = read >> 8;
+			}
+		}
+		// else
+		// {
+		// }
+	}
+}

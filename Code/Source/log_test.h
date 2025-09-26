@@ -1,7 +1,9 @@
 #ifndef LOG_RECORD_H
 #define LOG_RECORD_H
 
-/* 依赖项目内的基础类型（如 UINT8/UINT16/UINT32）等，应在 main.h 等处定义 */
+#include "main.h"
+
+/* 事件枚举 */
 typedef enum _LogEventArray {
     BMS_EVENT_NULL1 = 0,
     BMS_START_UP,
@@ -31,7 +33,7 @@ typedef enum _LogEventArray {
     EVENT_NUM
 } LogEventArray;
 
-
+/* 日志标志位 */
 typedef union __LOG_RECORD_FLAG {
     UINT8 all;
     struct _LOG_RECORD_FLAG {
@@ -39,24 +41,24 @@ typedef union __LOG_RECORD_FLAG {
         UINT8 Log_Sleep        :1;
         UINT8 BatOvp_Third     :1;
         UINT8 BatUvp_Third     :1;
-
         UINT8 Rcv              :4;
     } bits;
 } LOG_RECORD_FLAG;
 
-
 extern LOG_RECORD_FLAG LogRecord_Flag;
 extern UINT8 gu8_Reset_EventRecord;
+extern UINT8 BMS_LOG_RECORD[100][2];
+extern UINT8 BMS_LOG_POINT;
 
-/* API 保持与你原来一致（应用层调用不变） */
+/* 应用接口 */
 void App_LogRecord(void);
 void Sci_ACK_0x03_ReadRegs_EventRecord(UINT8 t_u8BuffTemp[]);
 void Sci_WrReg_0x06_Reset_EventRecord(struct RS485MSG *s);
 void EEPROM_ResetData_EventRecord_ToDefault(void);
 void ReadEEPROM_EventRecord_Parameters(void);
 
-// /* 底层 EEPROM 替代接口（实现已在 LogRecord.c 中） */
-// uint16_t ReadEEPROM_Word_NoZone_flash(uint32_t u32ByteAddr);
-// void WriteEEPROM_Word_NoZone_flash(uint32_t u32ByteAddr, uint16_t u16Data);
+/* EEPROM 仿真接口 */
+uint16_t ReadEEPROM_Word_NoZone_flash(uint32_t u32ByteAddr);
+void WriteEEPROM_Word_NoZone_flash(uint32_t u32ByteAddr, uint16_t u16Data);
 
 #endif /* LOG_RECORD_H */

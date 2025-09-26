@@ -55,7 +55,7 @@ int main(void)
 		// App_E2promDeal();
 		App_SleepDeal(); // 放在App_MOS_Relay_Control()后面
 		App_SOC();
-		// App_CellBalance();
+		App_CellBalance();
 		App_WarnCtrl();
 		App_MOS_Relay_Ctrl();
 
@@ -65,7 +65,7 @@ int main(void)
 		// App_Heat_Cool_Ctrl();
 
 		App_FlashUpdateDet();
-		// App_LogRecord();
+		App_LogRecord();
 		// App_ProID_Deal();
 
 #ifdef wdog_enable

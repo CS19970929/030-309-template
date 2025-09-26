@@ -30,7 +30,7 @@
 	//#define PARAM_ADDR	 ADDR_FLASH_SECTOR_11		/* 0x080E0000 Flash���128K����������Ų��� */
 #endif
 
-#define PARAM_VER			0x0002					/* �����汾 */
+#define PARAM_VER			0x1003					/* �����汾 */
 
 #if 0
 /* ȫ�ֲ��� */

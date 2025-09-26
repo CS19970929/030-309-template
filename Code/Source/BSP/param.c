@@ -52,7 +52,7 @@ void LoadParam(void)
 		}
 	}
 
-	// ReadEEPROM_EventRecord_Parameters();
+	ReadEEPROM_EventRecord_Parameters();
 
 #ifdef PARAM_SAVE_TO_EEPROM
 	/* 读取EEPROM中的参数 */
@@ -89,7 +89,7 @@ void LoadParam(void)
 			DataLoad_CurrentCali_startup();
 		}
 
-		// EEPROM_ResetData_EventRecord_ToDefault();
+		EEPROM_ResetData_EventRecord_ToDefault();
 
 		SaveParam(); /* 将新参数写入Flash */
 		MCU_RESET();
