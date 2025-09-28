@@ -117,7 +117,7 @@ void InitDevice(void)
 
 	sys_time.sample_voltage = (float)g_stCellInfoReport.u16VCellTotle / 100;
 	SOC_LED_Init(sys_time.sample_voltage);
-	// Board_PowerOn(); // 上电动画
+	Board_PowerOn(); // 上电动画
 	// FlashEEPROM_Init();
 
 #ifdef wdog_enable

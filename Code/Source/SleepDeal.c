@@ -917,7 +917,7 @@ bool WakeUp(void)
 	uint16_t key_press_cnt = 0;
 	uint16_t key_nopress_cnt = 0;
 
-	return true;
+	// return true;
 	
 	InitDelay();
 	InitIO();
