@@ -339,7 +339,8 @@ void App_IchgOcp_SecondCheck(void)
 		t_sPubOPUPChk.u16OPValB = PRT_E2ROMParas.u16IchgOcp_Second; // 过流判断
 		t_sPubOPUPChk.u16OPValS = PRT_E2ROMParas.u16IchgOcp_First;	// 没有恢复判断
 		t_sPubOPUPChk.i16ChkCnt = &s_i16TimeCnt;
-		t_sPubOPUPChk.u16TimeCntB = PRT_E2ROMParas.u16IchgOcp_Filter;					  // 故障判断时间500ms
+		// t_sPubOPUPChk.u16TimeCntB = PRT_E2ROMParas.u16IchgOcp_Filter;					  // 故障判断时间500ms
+		t_sPubOPUPChk.u16TimeCntB = (100 * 5);					  // 故障判断时间500ms
 		t_sPubOPUPChk.u16TimeCntS = PRT_E2ROMParas.u16IchgOcp_Filter + CurOverFaultDelay; // 没有恢复判断-->有恢复判断
 		t_sPubOPUPChk.u8FlagLogic = 1;													  // 正逻辑
 		t_sPubOPUPChk.u8FlagBit = g_stCellInfoReport.unMdlFault_Second.bits.b1IchgOcp;	  // 故障标志赋旧值
@@ -437,7 +438,8 @@ void App_IdischgOcp_SecondCheck(void)
 		t_sPubOPUPChk.u16OPValB = PRT_E2ROMParas.u16IdsgOcp_Second; // 过流判断
 		t_sPubOPUPChk.u16OPValS = PRT_E2ROMParas.u16IdsgOcp_First;	// 没有恢复判断
 		t_sPubOPUPChk.i16ChkCnt = &s_i16TimeCnt;
-		t_sPubOPUPChk.u16TimeCntB = PRT_E2ROMParas.u16IdsgOcp_Filter;					  // 故障判断时间500ms
+		// t_sPubOPUPChk.u16TimeCntB = PRT_E2ROMParas.u16IdsgOcp_Filter;					  // 故障判断时间500ms
+		t_sPubOPUPChk.u16TimeCntB = (100 * 5);					  // 故障判断时间500ms
 		t_sPubOPUPChk.u16TimeCntS = PRT_E2ROMParas.u16IdsgOcp_Filter + CurOverFaultDelay; // 没有恢复判断-->有恢复判断
 		t_sPubOPUPChk.u8FlagLogic = 1;													  // 正逻辑
 		t_sPubOPUPChk.u8FlagBit = g_stCellInfoReport.unMdlFault_Second.bits.b1IdischgOcp; // 故障标志赋旧值

@@ -76,6 +76,11 @@ void __delay_ms(UINT16 ms)
 	SysTick->VAL = 0X00;					   // 清空计数器
 }
 
+/*
+void GPIO_SetBits(GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin);
+void GPIO_ResetBits(GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin);
+void GPIO_WriteBit(GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin, BitAction BitVal);
+*/
 void InitIO(void)
 {
 	GPIO_InitTypeDef GPIO_InitStructure;
@@ -88,20 +93,71 @@ void InitIO(void)
 	// RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOE, ENABLE); // 开启GPIOB的外设时钟
 	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOF, ENABLE); // 开启GPIOF的外设时钟
 
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_13; // 选择要用的GPIO引脚
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
-	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL; // 设置引脚模式为上拉输入模式
-	GPIO_Init(GPIOC, &GPIO_InitStructure);
-
 	{
-		GPIO_InitStructure.GPIO_Pin = PIN_DO1_EN;
+		GPIO_WriteBit(GPIO_M_STB, PIN_M_STB, 1);
+		GPIO_WriteBit(GPIO_AD_EN, PIN_AD_EN, 0);
+		GPIO_WriteBit(GPIO_CMNT_EN, PIN_CMNT_EN, 1);
+
+		GPIO_InitStructure.GPIO_Pin = PIN_M_STB;
 		GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
 		GPIO_InitStructure.GPIO_Speed = GPIO_Speed_Level_1;
 		GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-		GPIO_Init(PORT_DO1_EN, &GPIO_InitStructure);
+		GPIO_Init(GPIO_M_STB, &GPIO_InitStructure);
 
-		MCUO_DO1_EN = 0;
+		GPIO_InitStructure.GPIO_Pin = PIN_AD_EN;
+		GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
+		GPIO_InitStructure.GPIO_Speed = GPIO_Speed_Level_1;
+		GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+		GPIO_Init(GPIO_AD_EN, &GPIO_InitStructure);
+
+		GPIO_InitStructure.GPIO_Pin = PIN_CMNT_EN;
+		GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
+		GPIO_InitStructure.GPIO_Speed = GPIO_Speed_Level_1;
+		GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+		GPIO_Init(GPIO_CMNT_EN, &GPIO_InitStructure);
 	}
+
+	// GPIO_WriteBit(GPIO_M_STB, PIN_M_STB, 1);
+	GPIO_InitStructure.GPIO_Pin = PIN_RES_EN;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_Level_1;
+	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+	GPIO_Init(GPIO_RES_EN, &GPIO_InitStructure);
+
+	RECV_EN_485();
+	GPIO_InitStructure.GPIO_Pin = PIN_485_EN;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_Level_1;
+	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+	GPIO_Init(GPIO_485_EN, &GPIO_InitStructure);
+
+	GPIO_InitStructure.GPIO_Pin = PIN_AFE1_CTL;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_Level_1;
+	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+	GPIO_Init(GPIO_AFE1_CTL, &GPIO_InitStructure);
+
+	GPIO_InitStructure.GPIO_Pin = PIN_AFE1_PRO_EN;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_Level_1;
+	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+	GPIO_Init(GPIO_AFE1_PRO_EN, &GPIO_InitStructure);
+
+	GPIO_InitStructure.GPIO_Pin = PIN_KEY2; // 选择要用的GPIO引脚
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
+	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL; // 设置引脚模式为上拉输入模式
+	GPIO_Init(GPIO_KEY2, &GPIO_InitStructure);
+
+	GPIO_InitStructure.GPIO_Pin = PIN_DBG_LED1;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_Level_1;
+	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+	GPIO_Init(GPIO_DBG_LED1, &GPIO_InitStructure);
+
+	GPIO_InitStructure.GPIO_Pin = PIN_KEY1; // 选择要用的GPIO引脚
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
+	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL; // 设置引脚模式为上拉输入模式
+	GPIO_Init(GPIO_KEY1, &GPIO_InitStructure);
 }
 
 void InitTimer(void)

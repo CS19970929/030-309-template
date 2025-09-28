@@ -27,6 +27,7 @@ void AllSeriesDeal_Charger_ON(void)
 
 		case 2:
 			// 作出操作，使能驱动功能
+			//todo
 			System_OnOFF_Func.bits.b1OnOFF_MOS_Relay = 1;
 			ChargerLoad_Func.bits.b1OFFDriver_Uvp = 0;
 			ChargerLoad_Func.bits.b1OFFDriver_DsgOcp = 0;
@@ -224,6 +225,11 @@ void Init_Charger_AllSeries(void)
 	NVIC_InitStructure.NVIC_IRQChannelPriority = 0x00; // 抢占优先级0
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;	   // 使能外部中断通道
 	NVIC_Init(&NVIC_InitStructure);
+
+	GPIO_InitStructure.GPIO_Pin = PIN_LOAD_OL; // 选择要用的GPIO引脚
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
+	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL; // 设置引脚模式为上拉输入模式
+	GPIO_Init(GPIO_LOAD_OL, &GPIO_InitStructure);
 }
 
 // 第一个，第二个不一定有没有时屏蔽

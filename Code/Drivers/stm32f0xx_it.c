@@ -140,23 +140,29 @@ void EXTI0_1_IRQHandler(void)
   }
 }
 
+void EXTI2_3_IRQHandler(void)
+{
+  if (EXTI_GetITStatus(EXTI_Line3) != RESET)
+  {
+    EXTI_ClearITPendingBit(EXTI_Line3);
+  }
+}
+
 void EXTI4_15_IRQHandler(void)
 {
-  if (EXTI_GetITStatus(EXTI_Line12) != RESET)
-  {
-    // MCUO_MOS_DSG = CLOSE;
-    // MCUO_RELAY_DSG = CLOSE;
-    // MCUO_RELAY_PRE = CLOSE;
-    // MCUO_RELAY_MAIN = CLOSE;
-    // CBC_Element.u8CBC_DSG_ErrFlag = 1;
-    // // App_MOS_Relay_Ctrl();
-    // System_ERROR_UserCallback(ERROR_CBC_DSG);
-    EXTI_ClearITPendingBit(EXTI_Line12);
-  }
+  
 
   if (EXTI_GetITStatus(EXTI_Line7) != RESET)
   {
     EXTI_ClearITPendingBit(EXTI_Line7);
+  }
+  if (EXTI_GetITStatus(EXTI_Line8) != RESET)
+  {
+    EXTI_ClearITPendingBit(EXTI_Line8);
+  }
+  if (EXTI_GetITStatus(EXTI_Line9) != RESET)
+  {
+    EXTI_ClearITPendingBit(EXTI_Line9);
   }
 
   if (EXTI_GetITStatus(EXTI_Line10) != RESET)
@@ -178,7 +184,6 @@ void EXTI4_15_IRQHandler(void)
   {
     EXTI_ClearITPendingBit(EXTI_Line5);
   }
-  
 }
 
 void USART1_IRQHandler(void)

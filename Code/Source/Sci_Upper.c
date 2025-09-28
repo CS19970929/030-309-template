@@ -202,10 +202,10 @@ void Sci_Deal_WrRegs_0x10(struct RS485MSG *s)
 	UINT16 u16SciRegStartAddr;
 	u16SciRegStartAddr = s->u16Buffer[3] + (s->u16Buffer[2] << 8);
 
-	if (Sci_WrRegs_0x10_AFE_Parameters(u16SciRegStartAddr, s))
-	{
-		return;
-	}
+	// if (Sci_WrRegs_0x10_AFE_Parameters(u16SciRegStartAddr, s))
+	// {
+	// 	return;
+	// }
 
 	switch (u16SciRegStartAddr)
 	{
@@ -958,8 +958,6 @@ void Sci1_CommonUpper_Rx_Deal(struct RS485MSG *s)
 
 void Sci1_CommonUpper_Tx_Deal(struct RS485MSG *s)
 {
-	static int delayFlag = 0;
-
 	if (0 == gu8_TxEnable_SCI1)
 	{
 		return;
@@ -975,39 +973,27 @@ void Sci1_CommonUpper_Tx_Deal(struct RS485MSG *s)
 		return;
 	}
 
-	if (delayFlag)
+	TRANS_EN_485();
+	while (gu8_TxEnable_SCI1)
 	{
-		if (g_st_SysTimeFlag.bits.b1Sys10msFlag1)
+		if (s->ptr_no < s->AckLenth)
 		{
-			if (++delayFlag == 6)
-			{
-				delayFlag = 0;
-			}
+			TRANS_485_WAIT_COMPLETE();
+			// while (!((USART1->ISR) & (1 << 7)))
+			// 	;
+			USART1->TDR = s->u16Buffer[s->ptr_no]; // load data
+			// USART_Tx(USART1, g_tModS.TxBuf[j]);
+			s->ptr_no++;
 		}
-		return;
-	}
-
-	while (!((USART1->ISR) & (1 << 7)))
-		; // 1<<6 р╡©ирт
-	if (s->ptr_no < s->AckLenth)
-	{
-		USART1->TDR = s->u16Buffer[s->ptr_no]; // load data
-		s->ptr_no++;
-		if ((s->ptr_no == 19) || (s->ptr_no == 39) || (s->ptr_no == 59))
+		else
 		{
-			delayFlag = 1;
-		}
-	}
-	else
-	{
-		s->ptr_no = 0;
-		s->csr = RS485_STA_TX_COMPLETE;
-		gu8_TxFinishFlag_SCI1 = 1;
-		gu8_TxEnable_SCI1 = 0;
-		if (u8FlashUpdateE2PROM)
-		{
-			u8FlashUpdateE2PROM = 0;
-			u8FlashUpdateFlag = 1;
+			TRANS_485_WAIT_COMPLETE();
+			__delay_ms(1);
+			RECV_EN_485();
+			s->ptr_no = 0;
+			s->csr = RS485_STA_TX_COMPLETE;
+			gu8_TxFinishFlag_SCI1 = 1;
+			gu8_TxEnable_SCI1 = 0;
 		}
 	}
 }
@@ -1531,8 +1517,10 @@ void Sci_WrRegs_0x10_Protect(UINT16 u16Channel, struct RS485MSG *s)
 		else
 		{
 			u32E2P_Pro_VolCur_WriteFlag = (EE_FLAG_VCELL_OVP_FIRST | EE_FLAG_VCELL_OVP_SECOND | EE_FLAG_VCELL_OVP_THIRD | EE_FLAG_VCELL_OVP_RCV | EE_FLAG_VCELL_OVP_FILTER) << (t_u16Temp);
-			InitData_SOC();
+			// InitData_SOC();
 		}
+
+		AFE_PARAM_WRITE_Flag = 1;
 	}
 	else
 	{
@@ -1649,7 +1637,7 @@ void Sci_WrRegs_0x10_SysOther(struct RS485MSG *s)
 		// u32E2P_OtherElement1_WriteFlag |= EE_FLAG_OTHER1_COOL_CHG_L;
 		AFE_PARAM_WRITE_Flag = 1;
 
-		//todo
+		// todo
 		if (SH367309_SC_DelayT_Set())
 		{
 			s->AckType = RS485_ACK_NEG;
@@ -1959,7 +1947,8 @@ void Sci_WrReg_0x06_Reset_ProtectElement(struct RS485MSG *s)
 		u32E2P_Pro_VolCur_WriteFlag = E2P_PARA_ALL_VOLCUR_PROTECT;
 		u32E2P_Pro_Temp_WriteFlag = E2P_PARA_ALL_TEM_PROTECT;
 		u32E2P_Pro_Other_WriteFlag = E2P_PARA_ALL_OTHER_PROTECT;
-		InitData_SOC();
+		// InitData_SOC();
+		AFE_PARAM_WRITE_Flag = 1;
 	}
 	else
 	{

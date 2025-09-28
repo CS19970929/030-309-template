@@ -2,8 +2,8 @@
 #include "SH367309_DataDeal.h"
 #include "string.h"
 
-int AFE_PARAM_WRITE_Flag = 1;
 int AFE_ResetFlag = 0;
+int AFE_PARAM_WRITE_Flag = 1;
 
 const UINT16 AFE_OCD1V_OCCV[16] = {20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 160, 180, 200};					   // 一级放电过流和充电过流，单位mv
 const UINT16 AFE_SCV[16] = {50, 80, 110, 140, 170, 200, 230, 260, 290, 320, 350, 400, 500, 600, 800, 1000};					   // 短路保护电压，单位mv

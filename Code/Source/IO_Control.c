@@ -147,7 +147,7 @@ void App_DI1_Switch(void)
 #ifdef _DI_SWITCH_longKEY_ONOFF
 	static UINT16 su16_AntiShake_Cnt2 = 0;
 
-	if (0 == MCUI_ENI_DI1)
+	if (0 == MCUI_ENI_DI1 || 0 == MCUI_ENI_DI2)
 	{
 		if (++su16_AntiShake_Cnt2 >= 100)
 		{
@@ -307,34 +307,7 @@ void InitMosRelay_DOx(void)
 	InitData_Drivers();
 }
 
-void App_MOS_Relay_Ctrl(void)
-{
-	if (0 == g_st_SysTimeFlag.bits.b1Sys10msFlag1)
-	{
-		return;
-	}
-	App_DI1_Switch();
-	RefreshData_Drivers();
-	GetData_Drivers();
 
-#if (defined _RELAY_SAME_DOOR_NO_PRECHG)
-	Drivers_Ctrl(g_st_SysTimeFlag.bits.b1Sys10msFlag1, System_OnOFF_Func.bits.b1OnOFF_MOS_Relay, DRIVER_RELAY_SAME_DOOR_NO_PRECHG);
-#elif (defined _RELAY_SAME_DOOR_HAVE_PRECHG)
-	Drivers_Ctrl(g_st_SysTimeFlag.bits.b1Sys10msFlag1, System_OnOFF_Func.bits.b1OnOFF_MOS_Relay, DRIVER_RELAY_SAME_DOOR_HAVE_PRECHG);
-#elif (defined _RELAY_DIFF_DOOR_NO_PRECHG)
-	Drivers_Ctrl(g_st_SysTimeFlag.bits.b1Sys10msFlag1, System_OnOFF_Func.bits.b1OnOFF_MOS_Relay, DRIVER_RELAY_DIFF_DOOR_NO_PRECHG);
-#elif (defined _RELAY_DIFF_DOOR_HAVE_PRECHG)
-	Drivers_Ctrl(g_st_SysTimeFlag.bits.b1Sys10msFlag1, System_OnOFF_Func.bits.b1OnOFF_MOS_Relay, DRIVER_RELAY_DIFF_DOOR_HAVE_PRECHG);
-#elif (defined _MOS_SAME_DOOR_NO_PRECHG)
-	Drivers_Ctrl(g_st_SysTimeFlag.bits.b1Sys10msFlag1, System_OnOFF_Func.bits.b1OnOFF_MOS_Relay, DRIVER_MOS_SAME_DOOR_NO_PRECHG);
-#elif (defined _MOS_SAME_DOOR_HAVE_PRECHG)
-	Drivers_Ctrl(g_st_SysTimeFlag.bits.b1Sys10msFlag1, System_OnOFF_Func.bits.b1OnOFF_MOS_Relay, DRIVER_MOS_SAME_DOOR_HAVE_PRECHG);
-#elif (defined _MOS_BOOTSTRAP_CIR)
-	Drivers_Ctrl(g_st_SysTimeFlag.bits.b1Sys10msFlag1, System_OnOFF_Func.bits.b1OnOFF_MOS_Relay, DRIVER_MOS_BOOTSTRAP_CIR);
-#endif
-
-	Drivers_External_Ctrl();
-}
 
 bool isforceClose(void)
 {
@@ -392,4 +365,32 @@ bool isforceClose(void)
 	{
 		return false;
 	}
+}
+void App_MOS_Relay_Ctrl(void)
+{
+	if (0 == g_st_SysTimeFlag.bits.b1Sys10msFlag1)
+	{
+		return;
+	}
+	App_DI1_Switch();
+	RefreshData_Drivers();
+	GetData_Drivers();
+
+#if (defined _RELAY_SAME_DOOR_NO_PRECHG)
+	Drivers_Ctrl(g_st_SysTimeFlag.bits.b1Sys10msFlag1, System_OnOFF_Func.bits.b1OnOFF_MOS_Relay, DRIVER_RELAY_SAME_DOOR_NO_PRECHG);
+#elif (defined _RELAY_SAME_DOOR_HAVE_PRECHG)
+	Drivers_Ctrl(g_st_SysTimeFlag.bits.b1Sys10msFlag1, System_OnOFF_Func.bits.b1OnOFF_MOS_Relay, DRIVER_RELAY_SAME_DOOR_HAVE_PRECHG);
+#elif (defined _RELAY_DIFF_DOOR_NO_PRECHG)
+	Drivers_Ctrl(g_st_SysTimeFlag.bits.b1Sys10msFlag1, System_OnOFF_Func.bits.b1OnOFF_MOS_Relay, DRIVER_RELAY_DIFF_DOOR_NO_PRECHG);
+#elif (defined _RELAY_DIFF_DOOR_HAVE_PRECHG)
+	Drivers_Ctrl(g_st_SysTimeFlag.bits.b1Sys10msFlag1, System_OnOFF_Func.bits.b1OnOFF_MOS_Relay, DRIVER_RELAY_DIFF_DOOR_HAVE_PRECHG);
+#elif (defined _MOS_SAME_DOOR_NO_PRECHG)
+	Drivers_Ctrl(g_st_SysTimeFlag.bits.b1Sys10msFlag1, System_OnOFF_Func.bits.b1OnOFF_MOS_Relay, DRIVER_MOS_SAME_DOOR_NO_PRECHG);
+#elif (defined _MOS_SAME_DOOR_HAVE_PRECHG)
+	Drivers_Ctrl(g_st_SysTimeFlag.bits.b1Sys10msFlag1, System_OnOFF_Func.bits.b1OnOFF_MOS_Relay, DRIVER_MOS_SAME_DOOR_HAVE_PRECHG);
+#elif (defined _MOS_BOOTSTRAP_CIR)
+	Drivers_Ctrl(g_st_SysTimeFlag.bits.b1Sys10msFlag1, System_OnOFF_Func.bits.b1OnOFF_MOS_Relay, DRIVER_MOS_BOOTSTRAP_CIR);
+#endif
+
+	Drivers_External_Ctrl();
 }

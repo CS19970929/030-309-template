@@ -25,7 +25,7 @@ void InitWakeUp_Base(void)
 	// 配置PA0_WKUP外部上升沿中断
 	EXTI_InitStruct.EXTI_Line = EXTI_Line0;
 	EXTI_InitStruct.EXTI_Mode = EXTI_Mode_Interrupt;
-	EXTI_InitStruct.EXTI_Trigger = EXTI_Trigger_Falling; // 上升沿中断
+	EXTI_InitStruct.EXTI_Trigger = EXTI_Trigger_Rising; // 上升沿中断
 	EXTI_InitStruct.EXTI_LineCmd = ENABLE;
 	EXTI_Init(&EXTI_InitStruct);
 	// 中断嵌套设计
@@ -57,15 +57,15 @@ void InitWakeUp_Base(void)
 	}
 	// SOC KEY
 	{
-		GPIO_InitStructure.GPIO_Pin = PIN_SOC_KEY; // 选择要用的GPIO引脚
+		GPIO_InitStructure.GPIO_Pin = PIN_KEY2; // 选择要用的GPIO引脚
 		GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
 		GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL; // 设置引脚模式为上拉输入模式
-		GPIO_Init(PORT_SOC_KEY, &GPIO_InitStructure);
+		GPIO_Init(GPIO_KEY2, &GPIO_InitStructure);
 
 		// 设置中断线0，EXTI0和PA0挂钩
-		SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOB, EXTI_PinSource5);
+		SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOB, EXTI_PinSource9);
 		// 配置PA0_WKUP外部上升沿中断
-		EXTI_InitStruct.EXTI_Line = EXTI_Line5;
+		EXTI_InitStruct.EXTI_Line = EXTI_Line9;
 		EXTI_InitStruct.EXTI_Mode = EXTI_Mode_Interrupt;
 		EXTI_InitStruct.EXTI_Trigger = EXTI_Trigger_Falling; // 上升沿中断
 		EXTI_InitStruct.EXTI_LineCmd = ENABLE;
@@ -92,16 +92,16 @@ void InitWakeUp_NormalMode(void)
 	{
 		// fixme 485????
 		//  PB7_INT_WK_CMNT
-		GPIO_InitStructure.GPIO_Pin = GPIO_Pin_7; // 选择要用的GPIO引脚
+		GPIO_InitStructure.GPIO_Pin = PIN_INT_WK_CMNT; // 选择要用的GPIO引脚
 		GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
 		GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL; // 设置引脚模式为上拉输入模式
-		GPIO_Init(GPIOB, &GPIO_InitStructure);
+		GPIO_Init(GPIO_INT_WK_CMNT, &GPIO_InitStructure);
 
-		SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOB, EXTI_PinSource7);
+		SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOB, EXTI_PinSource8);
 		// 配置PA1_WKUP外部上升沿中断
-		EXTI_InitStruct.EXTI_Line = EXTI_Line7;
+		EXTI_InitStruct.EXTI_Line = EXTI_Line8;
 		EXTI_InitStruct.EXTI_Mode = EXTI_Mode_Interrupt;
-		EXTI_InitStruct.EXTI_Trigger = EXTI_Trigger_Falling; // 上升沿中断
+		EXTI_InitStruct.EXTI_Trigger = EXTI_Trigger_Rising; // 上升沿中断
 		EXTI_InitStruct.EXTI_LineCmd = ENABLE;
 		EXTI_Init(&EXTI_InitStruct);
 		// 中断嵌套设计
@@ -111,49 +111,23 @@ void InitWakeUp_NormalMode(void)
 		NVIC_Init(&NVIC_InitStructure);
 	}
 
-	{
-		// AFE1-ALM
-		//  PA12_INT_WK_CUR
-		// GPIO_InitStructure.GPIO_Pin = GPIO_Pin_12; // 选择要用的GPIO引脚
-		// GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
-		// GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL; // 设置引脚模式为上拉输入模式
-		// GPIO_Init(GPIOA, &GPIO_InitStructure);
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_3; // 选择要用的GPIO引脚
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
+	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL; // 设置引脚模式为上拉输入模式
+	GPIO_Init(GPIOA, &GPIO_InitStructure);
 
-		// SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOA, EXTI_PinSource12);
-		// // 配置PA1_WKUP外部上升沿中断
-		// EXTI_InitStruct.EXTI_Line = EXTI_Line12;
-		// EXTI_InitStruct.EXTI_Mode = EXTI_Mode_Interrupt;
-		// EXTI_InitStruct.EXTI_Trigger = EXTI_Trigger_Falling; // 上升沿中断
-		// EXTI_InitStruct.EXTI_LineCmd = ENABLE;
-		// EXTI_Init(&EXTI_InitStruct);
-		// // 中断嵌套设计
-		// NVIC_InitStructure.NVIC_IRQChannel = EXTI4_15_IRQn; // 使能按键WK_UP所在的外部中断通道
-		// NVIC_InitStructure.NVIC_IRQChannelPriority = 0x00;	// 抢占优先级0
-		// NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;		// 使能外部中断通道
-		// NVIC_Init(&NVIC_InitStructure);
-	}
-
-	{
-		// BLE WAKUP
-		// GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10; // 选择要用的GPIO引脚
-		// GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
-		// GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL; // 设置引脚模式为上拉输入模式
-		// GPIO_Init(GPIOA, &GPIO_InitStructure);
-
-		// // 设置中断线1，EXTI1和PA1挂钩
-		// SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOA, EXTI_PinSource10);
-		// // 配置PA1_WKUP外部上升沿中断
-		// EXTI_InitStruct.EXTI_Line = EXTI_Line10;
-		// EXTI_InitStruct.EXTI_Mode = EXTI_Mode_Interrupt;
-		// EXTI_InitStruct.EXTI_Trigger = EXTI_Trigger_Rising; // 上升沿中断
-		// EXTI_InitStruct.EXTI_LineCmd = ENABLE;
-		// EXTI_Init(&EXTI_InitStruct);
-		// // 中断嵌套设计
-		// NVIC_InitStructure.NVIC_IRQChannel = EXTI4_15_IRQn; // 使能按键WK_UP所在的外部中断通道
-		// NVIC_InitStructure.NVIC_IRQChannelPriority = 0x00;	// 抢占优先级0
-		// NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;		// 使能外部中断通道
-		// NVIC_Init(&NVIC_InitStructure);
-	}
+	SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOA, EXTI_PinSource3);
+	// 配置PA1_WKUP外部上升沿中断
+	EXTI_InitStruct.EXTI_Line = EXTI_Line3;
+	EXTI_InitStruct.EXTI_Mode = EXTI_Mode_Interrupt;
+	EXTI_InitStruct.EXTI_Trigger = EXTI_Trigger_Rising; // 上升沿中断
+	EXTI_InitStruct.EXTI_LineCmd = ENABLE;
+	EXTI_Init(&EXTI_InitStruct);
+	// 中断嵌套设计
+	NVIC_InitStructure.NVIC_IRQChannel = EXTI2_3_IRQn; // 使能按键WK_UP所在的外部中断通道
+	NVIC_InitStructure.NVIC_IRQChannelPriority = 0x00;	// 抢占优先级0
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;		// 使能外部中断通道
+	NVIC_Init(&NVIC_InitStructure);
 }
 
 // 在RTC的基础上加上normal的唤醒模式
@@ -199,6 +173,28 @@ void IOstatus_Base(void)
 	GPIOC->MODER = 0XFFFFFFFF;
 	GPIOF->PUPDR = 0;
 	GPIOF->MODER = 0XFFFFFFFF;
+
+	// GPIO_WriteBit(GPIO_M_STB, PIN_M_STB, 0);
+	// GPIO_WriteBit(GPIO_AD_EN, PIN_AD_EN, 1);
+	// GPIO_WriteBit(GPIO_CMNT_EN, PIN_CMNT_EN, 0);
+
+	// GPIO_InitStructure.GPIO_Pin = PIN_M_STB;
+	// GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
+	// GPIO_InitStructure.GPIO_Speed = GPIO_Speed_Level_1;
+	// GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+	// GPIO_Init(GPIO_M_STB, &GPIO_InitStructure);
+
+	// GPIO_InitStructure.GPIO_Pin = PIN_AD_EN;
+	// GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
+	// GPIO_InitStructure.GPIO_Speed = GPIO_Speed_Level_1;
+	// GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+	// GPIO_Init(GPIO_AD_EN, &GPIO_InitStructure);
+
+	// GPIO_InitStructure.GPIO_Pin = PIN_CMNT_EN;
+	// GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
+	// GPIO_InitStructure.GPIO_Speed = GPIO_Speed_Level_1;
+	// GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+	// GPIO_Init(GPIO_CMNT_EN, &GPIO_InitStructure);
 
 	/*
 	//没用，还是要把CLTL的影响去掉。不然各种休眠断一下，开机断一下。
@@ -707,6 +703,7 @@ void SleepDeal_Normal_L2(void)
 			// if(++s_u32SleepFirstCnt >= 3) {			//这个，第一次个后面都是一样
 			s_u32SleepFirstCnt = 0;
 			s_u8SleepStatus = HICCUP;
+			Sleep_Mode.bits.b1NormalSleep_L2 = 1;
 			Sleep_Status = SLEEP_HICCUP_CONTINUE;
 		}
 		break;
@@ -733,7 +730,7 @@ void SleepDeal_Normal_L2(void)
 			s_u32SleepHiccupCnt = 0;
 	}
 
-	if (g_stCellInfoReport.u16VCellMin < OtherElement.u16Sleep_Vlow || g_stCellInfoReport.u16VCellMin > OtherElement.u16Sleep_VNormal)
+	if (g_stCellInfoReport.u16VCellMin < OtherElement.u16Sleep_Vlow)
 	{ // 触发条件才跳转，别的时间不跳转
 		Sleep_Mode.bits.b1NormalSleep_L2 = 0;
 		Sleep_Status = SLEEP_HICCUP_SHIFT;
@@ -781,6 +778,7 @@ void SleepDeal_Normal_L3(void)
 			// if(++s_u32SleepFirstCnt >= 1) {			//这个，第一次个后面都是一样
 			s_u32SleepFirstCnt = 0;
 			s_u8SleepStatus = HICCUP;
+			Sleep_Mode.bits.b1NormalSleep_L3 = 1;
 			Sleep_Status = SLEEP_HICCUP_CONTINUE;
 		}
 		break;
@@ -799,7 +797,7 @@ void SleepDeal_Normal_L3(void)
 		break;
 	}
 
-	if (g_stCellInfoReport.u16Ichg > OtherElement.u16Sleep_VirCur_Chg || g_stCellInfoReport.u16IDischg > OtherElement.u16Sleep_VirCur_Dsg)
+	if (g_stCellInfoReport.u16Ichg > OtherElement.u16Sleep_VirCur_Chg)
 	{
 		if (s_u32SleepFirstCnt)
 			s_u32SleepFirstCnt = 0;
@@ -837,17 +835,17 @@ void SleepDeal_Normal_Select(void)
 	{
 		if (g_stCellInfoReport.u16VCellMin < OtherElement.u16Sleep_Vlow)
 		{
-			Sleep_Mode.bits.b1NormalSleep_L3 = 1;
+			Sleep_Mode.bits.b1NormalSleep_L3 = 0;
 			Sleep_Status = SLEEP_HICCUP_NORMAL_L3;
 		}
-		else if (g_stCellInfoReport.u16VCellMin > OtherElement.u16Sleep_VNormal)
-		{
-			Sleep_Mode.bits.b1NormalSleep_L1 = 1;
-			Sleep_Status = SLEEP_HICCUP_NORMAL_L1;
-		}
+		// else if (g_stCellInfoReport.u16VCellMin > OtherElement.u16Sleep_VNormal)
+		// {
+		// 	Sleep_Mode.bits.b1NormalSleep_L1 = 1;
+		// 	Sleep_Status = SLEEP_HICCUP_NORMAL_L1;
+		// }
 		else
 		{ // 等号均纳入L2
-			Sleep_Mode.bits.b1NormalSleep_L2 = 1;
+			Sleep_Mode.bits.b1NormalSleep_L2 = 0;
 			Sleep_Status = SLEEP_HICCUP_NORMAL_L2;
 		}
 	}
@@ -1028,11 +1026,11 @@ void App_SleepDeal(void)
 	}
 
 	if ((Sleep_Mode.all & 0x00ff))
-    {
-        LogRecord_Flag.bits.Log_Sleep = 1;
-        // LogEvent_Record(LogRecord_Flag.bits.Log_Sleep, BMS_SLEEP, &su32_Interval_S_Tcnt);
-        SleepDeal_Continue();
-    }
+	{
+		LogRecord_Flag.bits.Log_Sleep = 1;
+		// LogEvent_Record(LogRecord_Flag.bits.Log_Sleep, BMS_SLEEP, &su32_Interval_S_Tcnt);
+		SleepDeal_Continue();
+	}
 }
 
 void IOstatus_TestMode(void)
