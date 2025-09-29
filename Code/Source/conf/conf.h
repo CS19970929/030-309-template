@@ -8,7 +8,7 @@
 #include "stm32f0xx.h"
 #include "conf_gpio.h"
 
-// #define  wdog_enable
+#define  wdog_enable
 
 #define log_i(...)       ((void)0);
 #define log_w(...)       ((void)0);
@@ -25,7 +25,7 @@
 
 #define VERSION         (5)
 
-#define __VIRTURE_CURRENT__
+// #define __VIRTURE_CURRENT__
 
 #define   CURR_80A      0
 #define   CURR_100A     1

@@ -148,10 +148,10 @@ void App_DI1_Switch(void)
 {
 #ifdef _DI_SWITCH_longKEY_ONOFF
 	// if (bms_status != S_CHG)
-	if (bms_status == S_CHG)
-	{
-		key_func_enable = false;
-	}
+	// if (bms_status == S_CHG)
+	// {
+	// 	key_func_enable = false;
+	// }
 	// else
 
 	{
@@ -159,7 +159,7 @@ void App_DI1_Switch(void)
 
 		if (0 == MCUI_SOC_KEY)
 		{
-			if (key_func_enable)
+			// if (key_func_enable)
 			{
 				if (++su16_AntiShake_Cnt2 >= 500)
 				{
@@ -380,7 +380,7 @@ void Drivers_External_Ctrl(void)
 		{
 			bms_status = S_DSG;
 		}
-		if (GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_0))
+		if (isCHGsig())
 		{
 			bms_status = S_CHG;
 		}
