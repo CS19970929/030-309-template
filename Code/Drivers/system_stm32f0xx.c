@@ -158,6 +158,7 @@ static void SetSysClock(void);
   * @param  None
   * @retval None
   */
+#if 1
 void SystemInit (void)
 {    
   /* Set HSION bit */
@@ -195,6 +196,8 @@ void SystemInit (void)
   /* Configure the System clock frequency, AHB/APBx prescalers and Flash settings */
   SetSysClock();
 }
+#endif
+
 
 /**
   * @brief  Update SystemCoreClock according to Clock Register Values
@@ -283,6 +286,7 @@ void SystemCoreClockUpdate (void)
   * @param  None
   * @retval None
   */
+ #if 1
 static void SetSysClock(void)
 {
   __IO uint32_t StartUpCounter = 0, HSEStatus = 0;
@@ -356,6 +360,27 @@ static void SetSysClock(void)
   		SystemCoreClock = 8000000;
   }  
 }
+#else
+
+static void SetSysClock(void)
+{
+    /* ?????? 8MHz HSI */
+    RCC->CR |= RCC_CR_HSION;
+    while ((RCC->CR & RCC_CR_HSIRDY) == 0);
+
+    /* HCLK = SYSCLK */
+    RCC->CFGR |= RCC_CFGR_HPRE_DIV1;
+    /* PCLK = HCLK */
+    RCC->CFGR |= RCC_CFGR_PPRE_DIV1;
+
+    /* ?? HSI ?????? */
+    RCC->CFGR &= ~RCC_CFGR_SW;
+    RCC->CFGR |= RCC_CFGR_SW_HSI;
+    while ((RCC->CFGR & RCC_CFGR_SWS) != RCC_CFGR_SWS_HSI);
+
+    SystemCoreClock = 8000000;
+}
+#endif
 
 /**
   * @}

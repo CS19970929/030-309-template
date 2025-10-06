@@ -247,18 +247,18 @@ struct PRT_E2ROM_PARAS {
 #define OCC_1       (1400) 
 #define OCC_2       (1450) 
 #define OCC_3       (1500) 
-#define OCC_recover (1450) 
+#define OCC_recover (10) 
 #define OCC_filter1  300 
 #define OCC_filter2  300 
 #define OCC_filter3  300 
 
-#define ODC_1       (7900) 
-#define ODC_2       (7950) 
-#define ODC_3       (8000) 
-#define ODC_recover (7950) 
+#define ODC_1       (1500) 
+#define ODC_2       (2000) 
+#define ODC_3       (3000) 
+#define ODC_recover (10) 
 #define ODC_filter1  30 
 #define ODC_filter2  30 
-#define ODC_filter3  30 
+#define ODC_filter3  10 
 
 #elif (LEVEL_CURR == CURR_200A)
 

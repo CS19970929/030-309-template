@@ -80,6 +80,7 @@ int main(void)
 void InitDevice(void)
 {
 	SystemInit();
+	//SystemCoreClockUpdate();
 	Init_IAPAPP();
 
 #if (defined _DEBUG_CODE)
@@ -142,9 +143,9 @@ UINT8 App_AFEshutdown(void)
 
 void InitSystemWakeUp(void)
 {
-	MCUO_PWSV_STB = 1;
-	MCUO_PWSV_CTR = 1;
-	MCUO_AFE_SHIP = 0;
-	MCUO_AFE_MODE = 0;
-	__delay_ms(10);
+	// MCUO_PWSV_STB = 1;
+	// MCUO_PWSV_CTR = 1;
+	// MCUO_AFE_SHIP = 0;
+	// MCUO_AFE_MODE = 0;
+	// __delay_ms(10);
 }

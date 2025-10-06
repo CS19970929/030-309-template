@@ -94,6 +94,7 @@ UINT8 System_ERROR_UserCallback(enum SYSTEM_ERROR_COMMAND errorCode)
 
 	switch (errorCode)
 	{
+		
 	case ERROR_AFE1:
 		System_ErrFlag.u8ErrFlag_Com_AFE1++;
 		break;
