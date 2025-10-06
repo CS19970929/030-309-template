@@ -47,16 +47,15 @@ int main(void)
 #else
 		App_SysTime();
 		App_CommonUpper();
+
 		App_AFEGet();
-		App_SH367309();
+		App_WarnCtrl();
 		App_AnlogCal();
 
 		App_E2promDeal();
 		App_SleepDeal(); // 放在App_MOS_Relay_Control()后面
 		App_SOC();
 		App_CellBalance();
-		App_WarnCtrl();
-		App_MOS_Relay_Ctrl();
 
 		// APP_LedBar();
 

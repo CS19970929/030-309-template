@@ -486,4 +486,8 @@ void App_AFEGet(void)
 	DataLoad_Temperature();
 	DataLoad_TemperatureMaxMinFind();
 	DataLoad_Current();
+
+	App_SH367309();
+
+	App_MOS_Relay_Ctrl();
 }

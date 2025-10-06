@@ -272,42 +272,28 @@ void App_DI1_Switch(void)
 
 void Drivers_External_Ctrl(void)
 {
-#if 1
-	static UINT8 su8_Ctrl_Tcnt = 0;
-
 	if (Driver_Element.u8_DriverCtrl_Right)
 	{
-		// 100ms控制一次
-		if (++su8_Ctrl_Tcnt >= 10)
+		//todo 冗余设计、异常处理、测试ctlc 强制关来测试时序是否有问题
+		if (SystemStatus.bits.b1Status_MOS_CHG != Driver_Element.MosRelay_Status.bits.b1Status_MOS_CHG)
 		{
-			su8_Ctrl_Tcnt = 0;
+			log_w();
+			sys_time.cnt_enter_chg_open++;
 			SH367309_DriverMos_Ctrl(GPIO_CHG, Driver_Element.MosRelay_Status.bits.b1Status_MOS_CHG);
+		}
+		if (SystemStatus.bits.b1Status_MOS_DSG != Driver_Element.MosRelay_Status.bits.b1Status_MOS_DSG)
+		{
+			log_w();
+			sys_time.cnt_enter_dsg_open++;
 			SH367309_DriverMos_Ctrl(GPIO_DSG, Driver_Element.MosRelay_Status.bits.b1Status_MOS_DSG);
 		}
 	}
-#else
-
-	if (Driver_Element_last.MosRelay_Status.bits.b1Status_MOS_CHG != Driver_Element.MosRelay_Status.bits.b1Status_MOS_CHG)
-	{
-		Driver_Element_last.MosRelay_Status.bits.b1Status_MOS_CHG = Driver_Element.MosRelay_Status.bits.b1Status_MOS_CHG;
-		SH367309_DriverMos_Ctrl(GPIO_CHG, Driver_Element.MosRelay_Status.bits.b1Status_MOS_CHG);
-	}
-
-	if (Driver_Element_last.MosRelay_Status.bits.b1Status_MOS_DSG != Driver_Element.MosRelay_Status.bits.b1Status_MOS_DSG)
-	{
-		Driver_Element_last.MosRelay_Status.bits.b1Status_MOS_DSG = Driver_Element.MosRelay_Status.bits.b1Status_MOS_DSG;
-		SH367309_DriverMos_Ctrl(GPIO_DSG, Driver_Element.MosRelay_Status.bits.b1Status_MOS_DSG);
-	}
-
-#endif
 }
 
 void InitMosRelay_DOx(void)
 {
 	InitData_Drivers();
 }
-
-
 
 bool isforceClose(void)
 {
@@ -368,10 +354,6 @@ bool isforceClose(void)
 }
 void App_MOS_Relay_Ctrl(void)
 {
-	if (0 == g_st_SysTimeFlag.bits.b1Sys10msFlag1)
-	{
-		return;
-	}
 	App_DI1_Switch();
 	RefreshData_Drivers();
 	GetData_Drivers();

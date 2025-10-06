@@ -19,7 +19,7 @@
 #define log_i(...)       ((void)0);
 #define log_w(...)       ((void)0);
 
-#define EEPROM_VALUE_BEGIN_FLAG				0x5111		//Ĭ��0x1133������Լ���Ҫˢһ�飬���Լ������ٸĻ�0x1133
+#define EEPROM_VALUE_BEGIN_FLAG				0x2111		//Ĭ��0x1133������Լ���Ҫˢһ�飬���Լ������ٸĻ�0x1133
 
 //#define _DI_SWITCH_SYS_ONOFF	//DI������������
 //#define _DI_SWITCH_DSG_ONOFF	//DI�����������Ʒŵ�Ӵ�������MOS
@@ -119,6 +119,10 @@ typedef struct
   uint8_t isdebugenable;
 	uint16_t CHG;
 	uint16_t DSG;
+
+  uint16_t  cnt_enter_chg_open;
+  uint16_t  cnt_enter_dsg_open;
+
 
 }Time_T;
 
