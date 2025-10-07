@@ -34,7 +34,6 @@ void InitWakeUp_Base(void)
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;	   // 使能外部中断通道
 	NVIC_Init(&NVIC_InitStructure);
 
-	// DI
 	{
 		GPIO_InitStructure.GPIO_Pin = GPIO_Pin_13; // 选择要用的GPIO引脚
 		GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
@@ -55,27 +54,27 @@ void InitWakeUp_Base(void)
 		NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;		// 使能外部中断通道
 		NVIC_Init(&NVIC_InitStructure);
 	}
-	// SOC KEY
-	// {
-	// 	GPIO_InitStructure.GPIO_Pin = PIN_KEY2; // 选择要用的GPIO引脚
-	// 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
-	// 	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL; // 设置引脚模式为上拉输入模式
-	// 	GPIO_Init(GPIO_KEY2, &GPIO_InitStructure);
+	{
+		GPIO_InitStructure.GPIO_Pin = PIN_KEY2; // 选择要用的GPIO引脚
+		GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
+		GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL; // 设置引脚模式为上拉输入模式
+		GPIO_Init(GPIO_KEY2, &GPIO_InitStructure);
 
-	// 	// 设置中断线0，EXTI0和PA0挂钩
-	// 	SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOB, EXTI_PinSource9);
-	// 	// 配置PA0_WKUP外部上升沿中断
-	// 	EXTI_InitStruct.EXTI_Line = EXTI_Line9;
-	// 	EXTI_InitStruct.EXTI_Mode = EXTI_Mode_Interrupt;
-	// 	EXTI_InitStruct.EXTI_Trigger = EXTI_Trigger_Falling; // 上升沿中断
-	// 	EXTI_InitStruct.EXTI_LineCmd = ENABLE;
-	// 	EXTI_Init(&EXTI_InitStruct);
-	// 	// 中断嵌套设计
-	// 	NVIC_InitStructure.NVIC_IRQChannel = EXTI4_15_IRQn; // 使能按键WK_UP所在的外部中断通道
-	// 	NVIC_InitStructure.NVIC_IRQChannelPriority = 0x00;	// 抢占优先级0
-	// 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;		// 使能外部中断通道
-	// 	NVIC_Init(&NVIC_InitStructure);
-	// }
+		// 设置中断线0，EXTI0和PA0挂钩
+		SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOB, EXTI_PinSource9);
+		// 配置PA0_WKUP外部上升沿中断
+		EXTI_InitStruct.EXTI_Line = EXTI_Line9;
+		EXTI_InitStruct.EXTI_Mode = EXTI_Mode_Interrupt;
+		EXTI_InitStruct.EXTI_Trigger = EXTI_Trigger_Falling; // 上升沿中断
+		EXTI_InitStruct.EXTI_LineCmd = ENABLE;
+		EXTI_Init(&EXTI_InitStruct);
+		// 中断嵌套设计
+		NVIC_InitStructure.NVIC_IRQChannel = EXTI4_15_IRQn; // 使能按键WK_UP所在的外部中断通道
+		NVIC_InitStructure.NVIC_IRQChannelPriority = 0x00;	// 抢占优先级0
+		NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;		// 使能外部中断通道
+		NVIC_Init(&NVIC_InitStructure);
+	}
+	
 }
 
 void InitWakeUp_NormalMode(void)

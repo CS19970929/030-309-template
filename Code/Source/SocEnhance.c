@@ -2,17 +2,10 @@
 #include "PubFunc.h"
 #include "conf.h"
 
-#define SOC_OCV_UPDATE  					3000     	//暂定200*6000 = 1200s = 20min
-														//暂定200*3000 = 600s = 10min
-
 #define SOC_VIRTUAL_CURRENT_CHG (UINT16)	2		//A*10，1和2都认为是0，带=号，0.2就开始算了
 #define SOC_VIRTUAL_CURRENT_DSG (UINT16)	2		//A*10，1和2都认为是0，这个不能为0的同时，把=号判断上去，不然就会卡在DSG那里计算出不来。
 
-#define DELAYB1000MS_5MIN					300		//默认通讯周期为1s一次
-#define DELAYB1000MS_10MIN					600		//默认通讯周期为1s一次
-
 //#define CHG_CUR_1C							2100	//A*10恒流充电为1C，恒压充电为1C-0.1C(SOC=95%)，涓流充电也为0.1C
-
 #define EEPROM_VALUE_SLEEP_FLAG			((UINT16)0x1234)
 #define EEPROM_VALUE_POWEROFF_FLAG		((UINT16)0x5678)
 #define EEPROM_VALUE_DATA_UPDATE_FLAG 	((UINT16)0x9ABC)
@@ -27,16 +20,6 @@ CurCHG = 0, CurDSG
 }_Cur;
 
 
-enum CHG_CURVE_STATUS {
-	CHG_CURVE_STARTUP = 0,
-	CHG_CURVE_BEGIN,
-	CHG_CURVE_CONSTANT_CUR,
-	CHG_CURVE_CONSTANT_VOR,
-	CHG_CURVE_TRICKLE_CUR,
-	CHG_CURVE_OVER,
-	CHG_CURVE_ERROR_DEAL
-};
-
 enum SOC_CALI_STATE {
 	SOC_CALI_DATA_INIT = 0,
 	SOC_CALI_STARTUP,
@@ -44,15 +27,6 @@ enum SOC_CALI_STATE {
 	SOC_CALI_CONT_CHG,
 	SOC_CALI_CONT_DSG,
 };
-
-enum CAP_FULL_STATE {
-	CAP_FULL_INIT = 0,
-	CAP_FULL_STARTUP,
-	CAP_FULL_CALCU,
-	CAP_FULL_SUCCESS,
-	CAP_FULL_FAIL,
-};
-
 
 enum EEPROM_COMMAND {
 	EEPROM_DATA_REFRESH = 0,
@@ -115,8 +89,6 @@ struct SOC_ENHANCE_E2PROM_PAR SOC_E2prom_Par;				//EEPROM保存关键数据结构体
 struct SOC_ENHANCE_E2PROM_PAR SOC_E2prom_Adress;			//EEPROM地址结构体
 
 enum SOC_CALI_STATE SOC_Cali_Flag = SOC_CALI_DATA_INIT;		//妈的，忘了这个？		SOC计算状态机，记得初始化
-enum CAP_FULL_STATE CapFull_Cali_Flag = CAP_FULL_INIT;		//容量更新计算状态机。
-
 //古瑞瓦特
 const UINT16 SOC_Table_LiFePO[SOC_Size_LiFePO] = {
     3336	,	100	,

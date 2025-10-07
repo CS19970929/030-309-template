@@ -23,45 +23,6 @@ extern UINT16 iSheldTemp_10K_NTC[141];
 #define OFF 0
 #define ON 1
 
-/* 一级过流保护标志 */
-void Ocp_MosJudge(UINT16 Current, UINT16 Ocp_First, UINT16 Ocp_Filter, UINT8 *flag, UINT8 Type)
-{
-	static UINT8 Ocp_MosCtrl_flag[2] = {0};
-	static UINT16 ocpFitleCount[2] = {0};
-	static UINT32 ocpRecoverCount[2] = {0};
-
-	switch (Ocp_MosCtrl_flag[Type])
-	{
-	case 0:
-		if (Current > Ocp_First)
-		{
-			if (Ocp_Filter <= ocpFitleCount[Type]++)
-			{
-				ocpFitleCount[Type] = 0;
-				*flag = 1;
-				Ocp_MosCtrl_flag[Type] = 1;
-			}
-		}
-		else
-		{
-			if (ocpFitleCount[Type])
-			{
-				ocpFitleCount[Type]--;
-			}
-		}
-		break;
-	case 1:
-		/* 延时30s控制权交给AFE */
-		if (DSG_CHG_OCP_DELAY_TIME <= ocpRecoverCount[Type]++)
-		{
-			ocpRecoverCount[Type] = 0;
-			*flag = 0;
-			Ocp_MosCtrl_flag[Type] = 0;
-		}
-		break;
-	}
-}
-
 /* 找出要写入AFE寄存器的值：参数1：当前要写的值，参数2：AFE参数列表的地址 */
 int Choose_Right_Value(UINT16 cur_Value, const UINT16 *AFE_list)
 {

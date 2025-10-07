@@ -362,30 +362,6 @@ void CellBalance_StateOFF(UINT8 OnOFF_Ctrl)
 	}
 }
 
-void App_CellBalance(void)
-{
-	switch (g_enBalanceState)
-	{
-	case BALANCE_ST_INIT:
-		CellBalance_DataInit();
-		break;
-	case BALANCE_ST_MONITOR:
-		CellBalance_Monitor(System_OnOFF_Func.bits.b1OnOFF_Balance);
-		break;
-	case BALANCE_ST_ODD_ON:
-		CellBalance_StateOddOn(System_OnOFF_Func.bits.b1OnOFF_Balance);
-		break;
-	case BALANCE_ST_EVEN_ON:
-		CellBalance_StateEvenOn(System_OnOFF_Func.bits.b1OnOFF_Balance);
-		break;
-	case BALANCE_ST_OFF:
-		CellBalance_StateOFF(System_OnOFF_Func.bits.b1OnOFF_Balance);
-		break;
-	default:
-		g_enBalanceState = BALANCE_ST_INIT;
-		break;
-	}
-}
 
 void CellBalanceTest(void)
 {
@@ -441,4 +417,29 @@ void CellBalanceTest(void)
 	MTPRead(MTP_BALANCEH, 0x01, (UINT8 *)&u16_hold);
 	g_stCellInfoReport.u16VCell[31] = u16_hold;
 #endif
+}
+
+void App_CellBalance(void)
+{
+	switch (g_enBalanceState)
+	{
+	case BALANCE_ST_INIT:
+		CellBalance_DataInit();
+		break;
+	case BALANCE_ST_MONITOR:
+		CellBalance_Monitor(System_OnOFF_Func.bits.b1OnOFF_Balance);
+		break;
+	case BALANCE_ST_ODD_ON:
+		CellBalance_StateOddOn(System_OnOFF_Func.bits.b1OnOFF_Balance);
+		break;
+	case BALANCE_ST_EVEN_ON:
+		CellBalance_StateEvenOn(System_OnOFF_Func.bits.b1OnOFF_Balance);
+		break;
+	case BALANCE_ST_OFF:
+		CellBalance_StateOFF(System_OnOFF_Func.bits.b1OnOFF_Balance);
+		break;
+	default:
+		g_enBalanceState = BALANCE_ST_INIT;
+		break;
+	}
 }

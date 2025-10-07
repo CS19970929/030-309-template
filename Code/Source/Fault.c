@@ -1324,50 +1324,11 @@ void App_WarnCtrl(void)
 	App_CellChgOtp_ThirdCheck();
 	App_CellChgUtp_SecondCheck();
 	App_CellChgUtp_ThirdCheck();
-
-	// PwrMag_Protect_Record_StartUp();
 }
 
-// 记录是按顺序记录下去，上传则是最新的在顶部
 void FaultWarnRecord(enum FaultFlag num)
 {
-#if 0
-	if (num >= 1 && num <= 13)
-	{
-		if (FaultPoint_First >= Record_len)
-		{
-			FaultPoint_First = 0;
-		}
-		Fault_record_First[FaultPoint_First++] = num;
-	}
-	else if (num >= 14 && num <= 26)
-	{
-		if (FaultPoint_Second >= Record_len)
-		{
-			FaultPoint_Second = 0;
-		}
-		Fault_record_Second[FaultPoint_Second++] = num;
-	}
-	else
-	{
-		if (FaultPoint_Third >= Record_len)
-		{
-			FaultPoint_Third = 0;
-		}
-		/*
-		RTC_Fault_record_Third[FaultPoint_Third][0] = RTC_time.RTC_Time_Year;
-		RTC_Fault_record_Third[FaultPoint_Third][1] = RTC_time.RTC_Time_Month;
-		RTC_Fault_record_Third[FaultPoint_Third][2] = RTC_time.RTC_Time_Day;
-		RTC_Fault_record_Third[FaultPoint_Third][3] = RTC_time.RTC_Time_Hour;
-		RTC_Fault_record_Third[FaultPoint_Third][4] = RTC_time.RTC_Time_Minute;
-		RTC_Fault_record_Third[FaultPoint_Third][5] = RTC_time.RTC_Time_Second;
-		*/
-		Fault_record_Third[FaultPoint_Third++] = num;
-	}
-#ifdef _FAULT_RECORD
-	PwrMag_Protect_Record(num);
-#endif
-#endif
+
 }
 
 void FaultWarnRecord2(enum FaultFlag num)

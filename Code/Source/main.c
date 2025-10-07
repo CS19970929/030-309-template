@@ -41,16 +41,9 @@ int main(void)
 		App_CommonUpper();
 
 		App_E2promDeal();
-		// APP_LedBar();
-#ifdef __FUNC__HEAT__
-		App_Heat_Cool_Ctrl();
-#endif // DEBUG
-
 		App_FlashUpdateDet();
 		App_ProID_Deal();
-
-		//bsp_DelayMS(3000);
-
+		// bsp_DelayMS(3000);
 #ifdef wdog_enable
 		Feed_IWatchDog;
 #endif
@@ -102,6 +95,9 @@ int main(void)
 
 void InitDevice(void)
 {
+	// RCC_SYSCLKConfig(RCC_SYSCLKSource_HSI);
+	// RCC_HCLKConfig(RCC_SYSCLK_Div8); // 8/8 = 1MHz
+
 	// SystemInit();
 	// SystemCoreClockUpdate();
 	Init_IAPAPP();

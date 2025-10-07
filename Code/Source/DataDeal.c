@@ -317,11 +317,11 @@ void DataLoad_Current(void)
 	g_stCellInfoReport.u16Ichg = (UINT16)((u32_ChgCur_mA >> 10) / 100);
 	g_stCellInfoReport.u16IDischg = (UINT16)((u32_DsgCur_mA >> 10) / 100);
 
-	if (g_stCellInfoReport.u16Ichg <= 2)
+	if (g_stCellInfoReport.u16Ichg <= 5)
 	{
 		g_stCellInfoReport.u16Ichg = 0;
 	}
-	if (g_stCellInfoReport.u16IDischg <= 2)
+	if (g_stCellInfoReport.u16IDischg <= 5)
 	{
 		g_stCellInfoReport.u16IDischg = 0;
 	}
@@ -417,7 +417,7 @@ void MonitorAFE(UINT8 num, UINT8 Result)
 		{ // 等待5min后进入休眠
 			su16_Sleep_DelayT1 = 0;
 			// ChargerLoad_Func.bits.b1OFFDriver_AFE_ERR = 1;
-			Sleep_Mode.bits.b1ForceToSleep_L2 = 1;
+			entersleep(NORMAL_MODE);
 		}
 	}
 	else
@@ -431,7 +431,7 @@ void MonitorAFE(UINT8 num, UINT8 Result)
 		{ // 等待5min后进入休眠
 			su16_Sleep_DelayT2 = 0;
 			// ChargerLoad_Func.bits.b1OFFDriver_AFE_ERR = 1;
-			Sleep_Mode.bits.b1ForceToSleep_L2 = 1;
+			entersleep(NORMAL_MODE);
 		}
 	}
 	else
@@ -446,7 +446,7 @@ void MonitorAFE(UINT8 num, UINT8 Result)
 		{ // 等待5min后进入休眠
 			su16_Sleep_DelayT3 = 0;
 			// ChargerLoad_Func.bits.b1OFFDriver_EEPROM_ERR = 1;
-			Sleep_Mode.bits.b1ForceToSleep_L2 = 1;
+			entersleep(NORMAL_MODE);
 		}
 	}
 	else

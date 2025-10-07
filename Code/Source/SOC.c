@@ -51,7 +51,6 @@ const UINT16 SOC_Table_Default[42] = {
 void RefreshData_SOC(void)
 {
 	SOC_Enhance_Element.u16_VCellMax = g_stCellInfoReport.u16VCellMax;
-	// SOC_Enhance_Element.u16_VCellMin = g_stCellInfoReport.u16VCellMin;	//扩散出去，不用这个值，去掉6和16串
 	SOC_Enhance_Element.u16_VCellMin = g_stCellInfoReport.u16VCellMin; // 公版决定不扩散出去，包含6和16串，客户使用体验问题，低压保护SOC一定要降下来
 	SOC_Enhance_Element.u16_Ichg = g_stCellInfoReport.u16Ichg;
 	SOC_Enhance_Element.u16_Idsg = g_stCellInfoReport.u16IDischg;
@@ -77,8 +76,6 @@ void GetData_SOC(void)
 	{
 		g_stCellInfoReport.SocElement.u16Soc = 0;
 	}
-
-	// g_stCellInfoReport.u16VCell[30] = SOC_Enhance_Element.u8_SOC_OCV_Cali;
 }
 
 // 一次性赋值

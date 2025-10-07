@@ -149,7 +149,7 @@ void App_DI1_Switch(void)
 
 	if (0 == MCUI_ENI_DI1 || 0 == MCUI_ENI_DI2)
 	{
-		if (++su16_AntiShake_Cnt2 >= 300)
+		if (++su16_AntiShake_Cnt2 >= (5 * 3))
 		{
 			su16_AntiShake_Cnt2 = 0;
 			entersleep(DEEP_MODE);
