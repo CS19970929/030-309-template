@@ -1050,6 +1050,7 @@ void IORecover_TestMode(void)
 
 void App_NormalSleepTest(void)
 {
+#if 0
 	static UINT16 s_u16HaltTestCnt = 0;
 
 	if (0 == g_st_SysTimeFlag.bits.b1Sys1000msFlag1)
@@ -1067,6 +1068,7 @@ void App_NormalSleepTest(void)
 		// Sys_StandbyMode();
 		IORecover_TestMode();
 	}
+#endif
 }
 
 void Sys_SleepOnExitMode(void)
@@ -1078,6 +1080,7 @@ void Sys_SleepOnExitMode(void)
 
 void App_RTCSleepTest(void)
 {
+#if 0
 	static UINT16 s_u16HaltTestCnt = 0;
 
 	if (0 == g_st_SysTimeFlag.bits.b1Sys1000msFlag1)
@@ -1106,6 +1109,7 @@ void App_RTCSleepTest(void)
 		IORecover_RTCMode();
 		*/
 	}
+#endif
 }
 
 void entersleep(enum _SLEEP_MODE mode)

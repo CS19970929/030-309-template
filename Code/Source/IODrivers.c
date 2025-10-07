@@ -2782,7 +2782,7 @@ void InitDrivers_GPIO(GPIO_TypeDef *GPIOx, UINT16 GPIO_Pin_x, GPIO_Type GpioType
 同口类型驱动，其对于保护点的判断是并列的，只能选其中一个，因为任何一个保护点都是关一个管子。
 但是自举电路低压的问题，把其归为同口类型并列驱动。
 */
-void Drivers_Ctrl(UINT8 TimeBase_10ms, UINT8 OnOFF_Ctrl, Driver_Select DriverSelect)
+void Drivers_Ctrl(UINT8 OnOFF_Ctrl, Driver_Select DriverSelect)
 {
 	switch (DriverSelect)
 	{

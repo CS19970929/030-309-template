@@ -130,7 +130,7 @@ extern DriverElement Driver_Element_last;
 
 //GPIO��Ϊ���������2MHz��GPIO_Type��4����ʽ
 void InitDrivers_GPIO(GPIO_TypeDef* GPIOx, UINT16 GPIO_Pin_x, GPIO_Type GpioType);
-void Drivers_Ctrl(UINT8 TimeBase_10ms, UINT8 OnOFF_Ctrl, Driver_Select DriverSelect);
+void Drivers_Ctrl(UINT8 OnOFF_Ctrl, Driver_Select DriverSelect);
 
 #endif	/* IODRIVERS_H */
 

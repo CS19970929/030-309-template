@@ -130,7 +130,8 @@
 /** @addtogroup STM32F0xx_System_Private_Variables
   * @{
   */
-uint32_t SystemCoreClock    = 48000000;
+// uint32_t SystemCoreClock    = 48000000;
+uint32_t SystemCoreClock    = 8000000;
 __I uint8_t AHBPrescTable[16] = {0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 6, 7, 8, 9};
 
 /**
@@ -286,7 +287,7 @@ void SystemCoreClockUpdate (void)
   * @param  None
   * @retval None
   */
- #if 1
+ #if 0
 static void SetSysClock(void)
 {
   __IO uint32_t StartUpCounter = 0, HSEStatus = 0;

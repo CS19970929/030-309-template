@@ -1274,18 +1274,6 @@ void Sci2_CommonUpper_Tx_Deal(struct RS485MSG *s)
 		return;
 	}
 
-	if (delayFlag)
-	{
-		if (g_st_SysTimeFlag.bits.b1Sys10msFlag1)
-		{
-			if (++delayFlag == 6)
-			{
-				delayFlag = 0;
-			}
-		}
-		return;
-	}
-
 	while (!((USART2->ISR) & (1 << 7)))
 		; // 1<<6 р╡©ирт
 	if (s->ptr_no < s->AckLenth)

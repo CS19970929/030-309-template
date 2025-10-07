@@ -974,13 +974,8 @@ void InitSOC_IntEnhance(void)
    这样的话，当前容量虽然减少了，但是乘以100%，也差距不会太大。
 3，结合1和2，容量最好不要显示，只显示SOC，SOH和出厂容量为妙。
 */
-void SOC_IntEnhance_Ctrl(UINT8 TimeBase_200ms)
+void SOC_IntEnhance_Ctrl(void)
 {
-	// if (0 == TimeBase_200ms)
-	// {
-	// 	return;
-	// }
-	// SOC_Data_Filter();
 	switch (SOC_Cali_Flag)
 	{
 	case SOC_CALI_DATA_INIT:

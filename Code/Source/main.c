@@ -41,9 +41,6 @@ int main(void)
 		App_CommonUpper();
 
 		App_E2promDeal();
-
-		// App_SleepDeal(); // 放在App_MOS_Relay_Control()后面
-
 		// APP_LedBar();
 #ifdef __FUNC__HEAT__
 		App_Heat_Cool_Ctrl();
@@ -51,6 +48,12 @@ int main(void)
 
 		App_FlashUpdateDet();
 		App_ProID_Deal();
+
+		//bsp_DelayMS(3000);
+
+#ifdef wdog_enable
+		Feed_IWatchDog;
+#endif
 	}
 
 	while (1)
@@ -99,7 +102,7 @@ int main(void)
 
 void InitDevice(void)
 {
-	SystemInit();
+	// SystemInit();
 	// SystemCoreClockUpdate();
 	Init_IAPAPP();
 	InitDelay();
@@ -134,7 +137,6 @@ void InitDevice(void)
 #endif
 	InitMosRelay_DOx();
 
-	// SCH_Add_Task(App_MOS_Relay_Ctrl, 1, 10);
 	SCH_Add_Task(App_AFEGet, 0, 200);
 	SCH_Add_Task(App_WarnCtrl, 8, 10);
 	SCH_Add_Task(App_AnlogCal, 2, 10);
@@ -142,6 +144,12 @@ void InitDevice(void)
 	SCH_Add_Task(App_SOC, 5, 200);
 	SCH_Add_Task(App_LogRecord, 6, 1000);
 	SCH_Add_Task(App_SleepDeal, 7, 1000);
+	SCH_Add_Task(App_CellBalance, 8, 1000);
+#ifdef __FUNC__HEAT__
+	SCH_Add_Task(App_Heat_Cool_Ctrl, 9, 1000);
+#endif // DEBUG
+	SCH_Add_Task(App_ChargerLoad_Det, 9, 1000);
+	// SCH_Add_Task(APP_LedBar, 9, 100);
 
 #ifdef wdog_enable
 	Init_IWDG();

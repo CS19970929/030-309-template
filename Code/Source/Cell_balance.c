@@ -364,11 +364,6 @@ void CellBalance_StateOFF(UINT8 OnOFF_Ctrl)
 
 void App_CellBalance(void)
 {
-	if (0 == g_st_SysTimeFlag.bits.b1Sys1000msFlag2)
-	{
-		return;
-	}
-
 	switch (g_enBalanceState)
 	{
 	case BALANCE_ST_INIT:
@@ -394,6 +389,7 @@ void App_CellBalance(void)
 
 void CellBalanceTest(void)
 {
+#if 0
 #if 0
 	static UINT16 su16_BalanceFlag = 0;
 	UINT16 u16_hold = 0;
@@ -444,4 +440,5 @@ void CellBalanceTest(void)
 	MTPWrite(MTP_BALANCEH, 0x01, (UINT8 *)&su16_BalanceFlag);
 	MTPRead(MTP_BALANCEH, 0x01, (UINT8 *)&u16_hold);
 	g_stCellInfoReport.u16VCell[31] = u16_hold;
+#endif
 }

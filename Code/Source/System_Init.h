@@ -88,40 +88,12 @@ typedef enum NVIC_ONOFF {
 }NVIC_OnOFF;
 
 
-union SYS_TIME {			//TODO
-    UINT16 all;
-    struct StatusSysTimeFlagBit {
-        UINT8 b1Sys10msFlag1        :1;
-        UINT8 b1Sys10msFlag2        :1;
-        UINT8 b1Sys10msFlag3        :1;
-        UINT8 b1Sys10msFlag4        :1;
-		
-        UINT8 b1Sys10msFlag5        :1;
-		//UINT8 b1Sys20msFlag        	:1;
-		UINT8 b1Sys1msFlag        	:1;	
-		UINT8 b1Sys50msFlag        	:1;
-		UINT8 b1Sys100msFlag       	:1;
-
-		UINT8 b1Sys200msFlag1       :1;
-		UINT8 b1Sys200msFlag2       :1;
-		UINT8 b1Sys200msFlag3       :1;
-		UINT8 b1Sys200msFlag4       :1;
-		
-		UINT8 b1Sys200msFlag5       :1;
-		UINT8 b1Sys1000msFlag1      :1;
-		UINT8 b1Sys1000msFlag2      :1;
-		UINT8 b1Sys1000msFlag3      :1;
-     }bits;
-};
-
-
 struct CBC_ELEMENT {
 	UINT8 u8CBC_CHG_ErrFlag;	//����CBC������־λ
 	UINT8 u8CBC_CHG_Cnt;		//���ֳ��CBC�Ĵ���
 	UINT8 u8CBC_DSG_ErrFlag;	//����CBC������־λ
 	UINT8 u8CBC_DSG_Cnt;		//���ַŵ�CBC�Ĵ���
 };
-
 
 // #define _DEBUG_
 
@@ -132,10 +104,7 @@ struct CBC_ELEMENT {
 #endif // _DEBUG_
 
 
-extern UINT8 gu8_200msAccClock_Flag;
-
 extern struct CBC_ELEMENT CBC_Element;
-extern volatile union SYS_TIME g_st_SysTimeFlag;
 
 void InitClock(void);
 void InitTimer(void);

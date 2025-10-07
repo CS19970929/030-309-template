@@ -503,7 +503,6 @@ void test_Autocurrent_cycle(void)
 
 void App_AFEGet(void)
 {
-	static UINT8 ts_u8TempSel = 0;
 
 	if (u32E2P_Pro_VolCur_WriteFlag != 0 || u32E2P_Pro_Temp_WriteFlag != 0 || u32E2P_Pro_Other_WriteFlag != 0 || u32E2P_OtherElement1_WriteFlag != 0 || u32E2P_RTC_Element_WriteFlag != 0 || u8E2P_SocTable_WriteFlag != 0 || u8E2P_CopperLoss_WriteFlag != 0 || u8E2P_KB_WriteFlag != 0)
 	{
@@ -516,9 +515,6 @@ void App_AFEGet(void)
 	}
 
 	MonitorAFE(0, UpdateVoltageFromBqMaximo());
-	// MonitorAFE(0, UpdateVoltageFromBqMaximo_Partition(ts_u8TempSel++));
-	// if (ts_u8TempSel >= 4)
-	// 	ts_u8TempSel = 0;
 
 	DataLoad_CellVolt();
 	// DataLoad_CellVolt_Test();

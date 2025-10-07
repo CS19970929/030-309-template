@@ -367,7 +367,7 @@ void App_MOS_Relay_Ctrl(void)
 #elif (defined _RELAY_DIFF_DOOR_HAVE_PRECHG)
 	Drivers_Ctrl(g_st_SysTimeFlag.bits.b1Sys10msFlag1, System_OnOFF_Func.bits.b1OnOFF_MOS_Relay, DRIVER_RELAY_DIFF_DOOR_HAVE_PRECHG);
 #elif (defined _MOS_SAME_DOOR_NO_PRECHG)
-	Drivers_Ctrl(g_st_SysTimeFlag.bits.b1Sys10msFlag1, System_OnOFF_Func.bits.b1OnOFF_MOS_Relay, DRIVER_MOS_SAME_DOOR_NO_PRECHG);
+	Drivers_Ctrl(System_OnOFF_Func.bits.b1OnOFF_MOS_Relay, DRIVER_MOS_SAME_DOOR_NO_PRECHG);
 #elif (defined _MOS_SAME_DOOR_HAVE_PRECHG)
 	Drivers_Ctrl(g_st_SysTimeFlag.bits.b1Sys10msFlag1, System_OnOFF_Func.bits.b1OnOFF_MOS_Relay, DRIVER_MOS_SAME_DOOR_HAVE_PRECHG);
 #elif (defined _MOS_BOOTSTRAP_CIR)

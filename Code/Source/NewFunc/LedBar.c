@@ -203,29 +203,10 @@ void LedBar_Show_Sleep(void)
 
 void APP_LedBar(void)
 {
-    if (0 == g_st_SysTimeFlag.bits.b1Sys100msFlag)
-    {
-        return;
-    }
-
     if (SystemStatus.bits.b1StartUpBMS)
     {
         return;
     }
-
-    // {
-    //     SuspendFlag1 = SuspendFlag2;
-    //     SuspendFlag2 = RTC_ExtComCnt1;
-    //     // А¶СА
-    //     if (SuspendFlag1 != SuspendFlag2)
-    //     {
-    //         BlueToothFlag = 1;
-    //     }
-    //     else
-    //     {
-    //         BlueToothFlag = 0;
-    //     }
-    // }
 
     switch (LedBar_Command)
     {
