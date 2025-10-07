@@ -972,30 +972,30 @@ void IsSleepStartUp(void)
 // Sleep_Mode标志-->SleepDeal_Normal(正常循环)-->SleepDeal_NormalQuit(跳转)-->唤醒进入相关循环函数-->SleepDeal_Continue(休眠)
 void App_SleepDeal(void)
 {
-	if (!System_OnOFF_Func.bits.b1OnOFF_Sleep)
-	{			// 有个疑问，是不是立刻关了，不需要复原呢，均衡是需要关掉复原。
-		return; // Sleep的话，如果直接不进去，后续打开会接着上次的步伐
-	} // 暂且先这么做，后续如果要全盘复原，计时清零再说，目前是接着上次的步伐
+	// if (!System_OnOFF_Func.bits.b1OnOFF_Sleep)
+	// {			// 有个疑问，是不是立刻关了，不需要复原呢，均衡是需要关掉复原。
+	// 	return; // Sleep的话，如果直接不进去，后续打开会接着上次的步伐
+	// } // 暂且先这么做，后续如果要全盘复原，计时清零再说，目前是接着上次的步伐
 
-	if (SystemStatus.bits.b1StartUpBMS)
-	{ // 开机完毕再进入
-		return;
-	}
-	else
-	{
-		SystemStatus.bits.b1Status_ToSleep = 1;
-	}
+	// if (SystemStatus.bits.b1StartUpBMS)
+	// { // 开机完毕再进入
+	// 	return;
+	// }
+	// else
+	// {
+	// 	SystemStatus.bits.b1Status_ToSleep = 1;
+	// }
 
-	if (Sleep_Mode.bits.b1_ToSleepFlag)
-	{
-		LogRecord_Flag.bits.Log_Sleep = 1;
-		return;
-	}
+	// if (Sleep_Mode.bits.b1_ToSleepFlag)
+	// {
+	// 	LogRecord_Flag.bits.Log_Sleep = 1;
+	// 	return;
+	// }
 
-	if (0 == g_st_SysTimeFlag.bits.b1Sys1000msFlag1 && !Sleep_Mode.bits.b1ForceToSleep_L1 && !Sleep_Mode.bits.b1ForceToSleep_L2 && !Sleep_Mode.bits.b1ForceToSleep_L3)
-	{
-		return; // 如果是强制进入休眠的则必须快点进入休眠，不能拖
-	}
+	// if (0 == g_st_SysTimeFlag.bits.b1Sys1000msFlag1 && !Sleep_Mode.bits.b1ForceToSleep_L1 && !Sleep_Mode.bits.b1ForceToSleep_L2 && !Sleep_Mode.bits.b1ForceToSleep_L3)
+	// {
+	// 	return; // 如果是强制进入休眠的则必须快点进入休眠，不能拖
+	// }
 
 	switch (Sleep_Status)
 	{

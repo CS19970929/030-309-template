@@ -455,14 +455,55 @@ void MonitorAFE(UINT8 num, UINT8 Result)
 	}
 }
 
+void test_Autocurrent_cycle(void)
+{
+	static uint8_t step = 0;
+#if 1
+	static uint16_t CHG_current = 100;
+	static uint16_t DSG_current = 200;
+#else
+	static uint16_t CHG_current = 200;
+	static uint16_t DSG_current = 400;
+#endif
+
+	switch (step)
+	{
+	case 0:
+		if (g_stCellInfoReport.SocElement.u16Soc < 99)
+		{
+			step = 1;
+			g_stCellInfoReport.u16Ichg = CHG_current;
+			g_stCellInfoReport.u16IDischg = 0;
+		}
+		else
+		{
+			step = 1;
+		}
+		break;
+	case 1:
+	{
+		if (g_stCellInfoReport.SocElement.u16Soc >= 99)
+		{
+			step = 2;
+			g_stCellInfoReport.u16Ichg = 0;
+			g_stCellInfoReport.u16IDischg = DSG_current;
+		}
+		break;
+	}
+	case 2:
+		if (g_stCellInfoReport.SocElement.u16Soc <= 1)
+		{
+			step = 0;
+		}
+		break;
+	default:
+		break;
+	}
+}
+
 void App_AFEGet(void)
 {
 	static UINT8 ts_u8TempSel = 0;
-
-	if (0 == g_st_SysTimeFlag.bits.b1Sys200msFlag3)
-	{
-		return;
-	}
 
 	if (u32E2P_Pro_VolCur_WriteFlag != 0 || u32E2P_Pro_Temp_WriteFlag != 0 || u32E2P_Pro_Other_WriteFlag != 0 || u32E2P_OtherElement1_WriteFlag != 0 || u32E2P_RTC_Element_WriteFlag != 0 || u8E2P_SocTable_WriteFlag != 0 || u8E2P_CopperLoss_WriteFlag != 0 || u8E2P_KB_WriteFlag != 0)
 	{
@@ -474,11 +515,10 @@ void App_AFEGet(void)
 		return;
 	}
 
-	// MCUO_DEBUG_LED1 = 0;
-	// MonitorAFE(0, UpdateVoltageFromBqMaximo());
-	MonitorAFE(0, UpdateVoltageFromBqMaximo_Partition(ts_u8TempSel++));
-	if (ts_u8TempSel >= 4)
-		ts_u8TempSel = 0;
+	MonitorAFE(0, UpdateVoltageFromBqMaximo());
+	// MonitorAFE(0, UpdateVoltageFromBqMaximo_Partition(ts_u8TempSel++));
+	// if (ts_u8TempSel >= 4)
+	// 	ts_u8TempSel = 0;
 
 	DataLoad_CellVolt();
 	// DataLoad_CellVolt_Test();
@@ -486,6 +526,7 @@ void App_AFEGet(void)
 	DataLoad_Temperature();
 	DataLoad_TemperatureMaxMinFind();
 	DataLoad_Current();
+	// test_Autocurrent_cycle();
 
 	App_SH367309();
 

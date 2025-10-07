@@ -976,10 +976,10 @@ void InitSOC_IntEnhance(void)
 */
 void SOC_IntEnhance_Ctrl(UINT8 TimeBase_200ms)
 {
-	if (0 == TimeBase_200ms)
-	{
-		return;
-	}
+	// if (0 == TimeBase_200ms)
+	// {
+	// 	return;
+	// }
 	// SOC_Data_Filter();
 	switch (SOC_Cali_Flag)
 	{

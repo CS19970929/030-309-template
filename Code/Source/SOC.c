@@ -113,10 +113,7 @@ void InitData_SOC(void)
 
 void App_SOC(void)
 {
-	if (0 == gu8_200msAccClock_Flag)
-	{
-		return;
-	}
+	MCUO_DEBUG_LED1 = !MCUO_DEBUG_LED1;
 
 	RefreshData_SOC();
 	GetData_SOC();

@@ -43,7 +43,7 @@ void App_CellOvp_SecondCheck(void)
 	static UINT16 s_i16TimeCnt = 0;
 	SPUBOPUPCHK t_sPubOPUPChk;
 
-	if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag1)
+	// if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag1)
 	{
 		t_sPubOPUPChk.u16ChkVal = g_stCellInfoReport.u16VCellMax;
 		t_sPubOPUPChk.u16OPValB = PRT_E2ROMParas.u16VcellOvp_Second;
@@ -79,7 +79,7 @@ void App_CellOvp_ThirdCheck(void)
 	static UINT16 s_i16TimeCnt = 0;
 	SPUBOPUPCHK t_sPubOPUPChk;
 
-	if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag1)
+	// if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag1)
 	{
 		t_sPubOPUPChk.u16ChkVal = g_stCellInfoReport.u16VCellMax;
 		t_sPubOPUPChk.u16OPValB = PRT_E2ROMParas.u16VcellOvp_Third;
@@ -115,7 +115,7 @@ void App_CellUvp_SecondCheck(void)
 	static UINT16 s_i16TimeCnt = 0;
 	SPUBOPUPCHK t_sPubOPUPChk;
 
-	if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag1)
+	// if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag1)
 	{
 		t_sPubOPUPChk.u16ChkVal = g_stCellInfoReport.u16VCellMin;
 		t_sPubOPUPChk.u16OPValB = PRT_E2ROMParas.u16VcellUvp_First;
@@ -151,7 +151,7 @@ void App_CellUvp_ThirdCheck(void)
 	static UINT16 s_i16TimeCnt = 0;
 	SPUBOPUPCHK t_sPubOPUPChk;
 
-	if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag1)
+	// if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag1)
 	{
 		t_sPubOPUPChk.u16ChkVal = g_stCellInfoReport.u16VCellMin;
 		t_sPubOPUPChk.u16OPValB = PRT_E2ROMParas.u16VcellUvp_Rcv;
@@ -187,7 +187,7 @@ void App_BatOvp_SecondCheck(void)
 	static UINT16 s_i16TimeCnt = 0;
 	SPUBOPUPCHK t_sPubOPUPChk;
 
-	if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag2)
+	// if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag2)
 	{
 		t_sPubOPUPChk.u16ChkVal = g_stCellInfoReport.u16VCellTotle;
 		t_sPubOPUPChk.u16OPValB = PRT_E2ROMParas.u16VbusOvp_Second;
@@ -223,7 +223,7 @@ void App_BatOvp_ThirdCheck(void)
 	static UINT16 s_i16TimeCnt = 0;
 	SPUBOPUPCHK t_sPubOPUPChk;
 
-	if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag2)
+	// if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag2)
 	{
 		t_sPubOPUPChk.u16ChkVal = g_stCellInfoReport.u16VCellTotle;
 		t_sPubOPUPChk.u16OPValB = PRT_E2ROMParas.u16VbusOvp_Third;
@@ -259,7 +259,7 @@ void App_BatUvp_SecondCheck(void)
 	static UINT16 s_i16TimeCnt = 0;
 	SPUBOPUPCHK t_sPubOPUPChk;
 
-	if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag2)
+	// if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag2)
 	{
 		t_sPubOPUPChk.u16ChkVal = g_stCellInfoReport.u16VCellTotle;
 		t_sPubOPUPChk.u16OPValB = PRT_E2ROMParas.u16VbusUvp_First;
@@ -295,7 +295,7 @@ void App_BatUvp_ThirdCheck(void)
 	static UINT16 s_i16TimeCnt = 0;
 	SPUBOPUPCHK t_sPubOPUPChk;
 
-	if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag2)
+	// if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag2)
 	{
 		t_sPubOPUPChk.u16ChkVal = g_stCellInfoReport.u16VCellTotle;
 		t_sPubOPUPChk.u16OPValB = PRT_E2ROMParas.u16VbusUvp_Rcv;
@@ -332,15 +332,17 @@ void App_IchgOcp_SecondCheck(void)
 	// static UINT16 s_i16TimeCntClr = 0;
 	SPUBOPUPCHK t_sPubOPUPChk;
 
-	if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag3)
+	// if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag3)
 	{
 		// if(0 == g_stCellInfoReport.unMdlFault_Second.bits.b1IchgOcp) {
 		t_sPubOPUPChk.u16ChkVal = g_stCellInfoReport.u16Ichg;
 		t_sPubOPUPChk.u16OPValB = PRT_E2ROMParas.u16IchgOcp_Second; // π˝¡˜≈–∂œ
 		t_sPubOPUPChk.u16OPValS = PRT_E2ROMParas.u16IchgOcp_First;	// √ª”–ª÷∏¥≈–∂œ
-		t_sPubOPUPChk.i16ChkCnt = &s_i16TimeCnt;
+		// t_sPubOPUPChk.i16ChkCnt = &s_i16TimeCnt;
+		t_sPubOPUPChk.i16ChkCnt = &sys_time.occ2_cnt;
 		// t_sPubOPUPChk.u16TimeCntB = PRT_E2ROMParas.u16IchgOcp_Filter;					  // π ’œ≈–∂œ ±º‰500ms
 		t_sPubOPUPChk.u16TimeCntB = (100 * 5);					  // π ’œ≈–∂œ ±º‰500ms
+		// t_sPubOPUPChk.u16TimeCntB = (100 * 60);					  // π ’œ≈–∂œ ±º‰500ms
 		t_sPubOPUPChk.u16TimeCntS = PRT_E2ROMParas.u16IchgOcp_Filter + CurOverFaultDelay; // √ª”–ª÷∏¥≈–∂œ-->”–ª÷∏¥≈–∂œ
 		t_sPubOPUPChk.u8FlagLogic = 1;													  // ’˝¬ﬂº≠
 		t_sPubOPUPChk.u8FlagBit = g_stCellInfoReport.unMdlFault_Second.bits.b1IchgOcp;	  // π ’œ±Í÷æ∏≥æ…÷µ
@@ -382,7 +384,7 @@ void App_IchgOcp_ThirdCheck(void)
 	// static UINT16 s_i16TimeCntClr = 0;
 	SPUBOPUPCHK t_sPubOPUPChk;
 
-	if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag3)
+	// if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag3)
 	{
 		// if(0 == g_stCellInfoReport.unMdlFault_Third.bits.b1IchgOcp) {
 		t_sPubOPUPChk.u16ChkVal = g_stCellInfoReport.u16Ichg;
@@ -431,15 +433,17 @@ void App_IdischgOcp_SecondCheck(void)
 	// static UINT16 s_i16TimeCntClr = 0;
 	SPUBOPUPCHK t_sPubOPUPChk;
 
-	if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag3)
+	// if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag3)
 	{
 		// if(0 == g_stCellInfoReport.unMdlFault_Second.bits.b1IdischgOcp) {
 		t_sPubOPUPChk.u16ChkVal = g_stCellInfoReport.u16IDischg;
 		t_sPubOPUPChk.u16OPValB = PRT_E2ROMParas.u16IdsgOcp_Second; // π˝¡˜≈–∂œ
 		t_sPubOPUPChk.u16OPValS = PRT_E2ROMParas.u16IdsgOcp_First;	// √ª”–ª÷∏¥≈–∂œ
-		t_sPubOPUPChk.i16ChkCnt = &s_i16TimeCnt;
+		// t_sPubOPUPChk.i16ChkCnt = &s_i16TimeCnt;
+		t_sPubOPUPChk.i16ChkCnt = &sys_time.odc2_cnt;
 		// t_sPubOPUPChk.u16TimeCntB = PRT_E2ROMParas.u16IdsgOcp_Filter;					  // π ’œ≈–∂œ ±º‰500ms
 		t_sPubOPUPChk.u16TimeCntB = (100 * 5);					  // π ’œ≈–∂œ ±º‰500ms
+		// t_sPubOPUPChk.u16TimeCntB = (100 * 15);					  // π ’œ≈–∂œ ±º‰500ms
 		t_sPubOPUPChk.u16TimeCntS = PRT_E2ROMParas.u16IdsgOcp_Filter + CurOverFaultDelay; // √ª”–ª÷∏¥≈–∂œ-->”–ª÷∏¥≈–∂œ
 		t_sPubOPUPChk.u8FlagLogic = 1;													  // ’˝¬ﬂº≠
 		t_sPubOPUPChk.u8FlagBit = g_stCellInfoReport.unMdlFault_Second.bits.b1IdischgOcp; // π ’œ±Í÷æ∏≥æ…÷µ
@@ -481,7 +485,7 @@ void App_IdischgOcp_ThirdCheck(void)
 	// static UINT16 s_i16TimeCntClr = 0;
 	SPUBOPUPCHK t_sPubOPUPChk;
 
-	if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag3)
+	// if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag3)
 	{
 		// if(0 == g_stCellInfoReport.unMdlFault_Third.bits.b1IdischgOcp) {
 		t_sPubOPUPChk.u16ChkVal = g_stCellInfoReport.u16IDischg;
@@ -529,7 +533,7 @@ void App_CellChgOtp_SecondCheck(void)
 	static UINT16 s_i16TimeCnt = 0;
 	SPUBOPUPCHK t_sPubOPUPChk;
 
-	if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag4)
+	// if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag4)
 	{
 		t_sPubOPUPChk.u16ChkVal = g_stCellInfoReport.u16TempMax;
 		t_sPubOPUPChk.u16OPValB = PRT_E2ROMParas.u16TChgOTp_Second;
@@ -596,7 +600,7 @@ void App_CellChgOtp_ThirdCheck(void)
 	static UINT16 s_i16TimeCnt = 0;
 	SPUBOPUPCHK t_sPubOPUPChk;
 
-	if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag4)
+	// if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag4)
 	{
 		t_sPubOPUPChk.u16ChkVal = g_stCellInfoReport.u16TempMax;
 		t_sPubOPUPChk.u16OPValB = PRT_E2ROMParas.u16TChgOTp_Third;
@@ -663,7 +667,7 @@ void App_CellDisChgOtp_SecondCheck(void)
 	static UINT16 s_i16TimeCnt = 0;
 	SPUBOPUPCHK t_sPubOPUPChk;
 
-	if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag4)
+	// if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag4)
 	{
 		t_sPubOPUPChk.u16ChkVal = g_stCellInfoReport.u16TempMax;
 		t_sPubOPUPChk.u16OPValB = PRT_E2ROMParas.u16TdischgOTp_Second;
@@ -730,7 +734,7 @@ void App_CellDisChgOtp_ThirdCheck(void)
 	static UINT16 s_i16TimeCnt = 0;
 	SPUBOPUPCHK t_sPubOPUPChk;
 
-	if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag4)
+	// if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag4)
 	{
 		t_sPubOPUPChk.u16ChkVal = g_stCellInfoReport.u16TempMax;
 		t_sPubOPUPChk.u16OPValB = PRT_E2ROMParas.u16TdischgOTp_Third;
@@ -797,7 +801,7 @@ void App_MosOtp_SecondCheck(void)
 	static UINT16 s_i16TimeCnt = 0;
 	SPUBOPUPCHK t_sPubOPUPChk;
 
-	if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag5)
+	// if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag5)
 	{
 		t_sPubOPUPChk.u16ChkVal = g_stCellInfoReport.u16Temperature[MOS_TEMP1];
 		t_sPubOPUPChk.u16OPValB = PRT_E2ROMParas.u16TmosOTp_Second;
@@ -833,7 +837,7 @@ void App_MosOtp_ThirdCheck(void)
 	static UINT16 s_i16TimeCnt = 0;
 	SPUBOPUPCHK t_sPubOPUPChk;
 
-	if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag5)
+	// if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag5)
 	{
 		t_sPubOPUPChk.u16ChkVal = g_stCellInfoReport.u16Temperature[MOS_TEMP1];
 		t_sPubOPUPChk.u16OPValB = PRT_E2ROMParas.u16TmosOTp_Third;
@@ -869,7 +873,7 @@ void App_CellChgUtp_SecondCheck(void)
 	static UINT16 s_i16TimeCnt = 0;
 	SPUBOPUPCHK t_sPubOPUPChk;
 
-	if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag5)
+	// if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag5)
 	{
 		t_sPubOPUPChk.u16ChkVal = g_stCellInfoReport.u16TempMin;
 		t_sPubOPUPChk.u16OPValB = PRT_E2ROMParas.u16TchgUTp_First;
@@ -936,7 +940,7 @@ void App_CellChgUtp_ThirdCheck(void)
 	static UINT16 s_i16TimeCnt = 0;
 	SPUBOPUPCHK t_sPubOPUPChk;
 
-	if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag5)
+	// if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag5)
 	{
 		t_sPubOPUPChk.u16ChkVal = g_stCellInfoReport.u16TempMin;
 		t_sPubOPUPChk.u16OPValB = PRT_E2ROMParas.u16TchgUTp_Rcv;
@@ -1003,7 +1007,7 @@ void App_CellDischgUtp_SecondCheck(void)
 	static UINT16 s_i16TimeCnt = 0;
 	SPUBOPUPCHK t_sPubOPUPChk;
 
-	if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag5)
+	// if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag5)
 	{
 		t_sPubOPUPChk.u16ChkVal = g_stCellInfoReport.u16TempMin;
 		t_sPubOPUPChk.u16OPValB = PRT_E2ROMParas.u16TdischgUTp_First;
@@ -1070,7 +1074,7 @@ void App_CellDischgUtp_ThirdCheck(void)
 	static UINT16 s_i16TimeCnt = 0;
 	SPUBOPUPCHK t_sPubOPUPChk;
 
-	if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag5)
+	// if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag5)
 	{
 		t_sPubOPUPChk.u16ChkVal = g_stCellInfoReport.u16TempMin;
 		t_sPubOPUPChk.u16OPValB = PRT_E2ROMParas.u16TdischgUTp_Rcv;
@@ -1137,7 +1141,7 @@ void App_CellSocUp_SecondCheck(void)
 	static UINT16 s_i16TimeCnt = 0;
 	SPUBOPUPCHK t_sPubOPUPChk;
 
-	if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag4)
+	// if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag4)
 	{
 		t_sPubOPUPChk.u16ChkVal = g_stCellInfoReport.SocElement.u16Soc;
 		t_sPubOPUPChk.u16OPValB = PRT_E2ROMParas.u16SocUp_First;
@@ -1173,7 +1177,7 @@ void App_CellSocUp_ThirdCheck(void)
 	static UINT16 s_i16TimeCnt = 0;
 	SPUBOPUPCHK t_sPubOPUPChk;
 
-	if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag4)
+	// if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag4)
 	{
 		t_sPubOPUPChk.u16ChkVal = g_stCellInfoReport.SocElement.u16Soc;
 		t_sPubOPUPChk.u16OPValB = PRT_E2ROMParas.u16SocUp_Rcv;
@@ -1209,7 +1213,7 @@ void App_VdeltaOp_SecondCheck(void)
 	static UINT16 s_i16TimeCnt = 0;
 	SPUBOPUPCHK t_sPubOPUPChk;
 
-	if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag5)
+	// if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag5)
 	{
 		t_sPubOPUPChk.u16ChkVal = g_stCellInfoReport.u16VCellDelta;
 		t_sPubOPUPChk.u16OPValB = PRT_E2ROMParas.u16VdeltaOvp_Second;
@@ -1245,7 +1249,7 @@ void App_VdeltaOp_ThirdCheck(void)
 	static UINT16 s_i16TimeCnt = 0;
 	SPUBOPUPCHK t_sPubOPUPChk;
 
-	if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag5)
+	// if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag5)
 	{
 		t_sPubOPUPChk.u16ChkVal = g_stCellInfoReport.u16VCellDelta;
 		t_sPubOPUPChk.u16OPValB = PRT_E2ROMParas.u16VdeltaOvp_Third;

@@ -1,4 +1,6 @@
 #include "main.h"
+#include "bsp.h"
+#include "Time_Triggered.h"
 
 UINT8 SeriesNum = 16;
 
@@ -31,6 +33,25 @@ int main(void)
 {
 	InitDevice(); // 初始化外设，这两个函数的位置需要斟酌一下，现在换回去先
 	InitVar();	  // 初始化变量
+
+	while (1)
+	{
+		SCH_Dispatch_Tasks();
+
+		App_CommonUpper();
+
+		App_E2promDeal();
+
+		// App_SleepDeal(); // 放在App_MOS_Relay_Control()后面
+
+		// APP_LedBar();
+#ifdef __FUNC__HEAT__
+		App_Heat_Cool_Ctrl();
+#endif // DEBUG
+
+		App_FlashUpdateDet();
+		App_ProID_Deal();
+	}
 
 	while (1)
 	{
@@ -79,8 +100,10 @@ int main(void)
 void InitDevice(void)
 {
 	SystemInit();
-	//SystemCoreClockUpdate();
+	// SystemCoreClockUpdate();
 	Init_IAPAPP();
+	InitDelay();
+	bsp_Init();
 
 #if (defined _DEBUG_CODE)
 	IsSleepStartUp();
@@ -90,10 +113,9 @@ void InitDevice(void)
 	// InitSystemWakeUp();
 	InitUSART_CommonUpper();
 #else
-	InitDelay();
 	IsSleepStartUp();
 	InitIO();
-	InitTimer();
+	// InitTimer();
 	InitSystemWakeUp();
 	InitE2PROM(); // 内部EEPROM，不需要初始化
 	InitAFE1();
@@ -111,6 +133,15 @@ void InitDevice(void)
 	InitHeat_Cool();
 #endif
 	InitMosRelay_DOx();
+
+	// SCH_Add_Task(App_MOS_Relay_Ctrl, 1, 10);
+	SCH_Add_Task(App_AFEGet, 0, 200);
+	SCH_Add_Task(App_WarnCtrl, 8, 10);
+	SCH_Add_Task(App_AnlogCal, 2, 10);
+	// SCH_Add_Task(App_SH367309, 8, 200);
+	SCH_Add_Task(App_SOC, 5, 200);
+	SCH_Add_Task(App_LogRecord, 6, 1000);
+	SCH_Add_Task(App_SleepDeal, 7, 1000);
 
 #ifdef wdog_enable
 	Init_IWDG();

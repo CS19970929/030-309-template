@@ -140,7 +140,7 @@ struct OTHER_ELEMENT {
 
 #define SNum 			8
 
-//#define TERNARYLI		//��Ԫ﮵�أ���ѡһ
+// #define TERNARYLI		//��Ԫ﮵�أ���ѡһ
 #define LIFEPO			//������﮵�أ���ѡһ
 
 

@@ -511,7 +511,6 @@ void TemperatureCheck(void)
 	}
 }
 
-// mos控制汇总，历史保护记录加入体系
 void App_SH367309_Monitor(void)
 {
 	static UINT8 su8_SC_Flag = 0;
@@ -527,9 +526,7 @@ void App_SH367309_Monitor(void)
 		// SystemStatus.bits.b1Status_MOS_PRE = SH367309_Reg_Store.REG_BSTATUS3.bits.PCHG_FET;
 		SystemStatus.bits.b1Status_MOS_CHG = SH367309_Reg_Store.REG_BSTATUS3.bits.CHG_FET;
 		SystemStatus.bits.b1Status_MOS_DSG = SH367309_Reg_Store.REG_BSTATUS3.bits.DSG_FET;
-
 		// TemperatureCheck();
-		// 9个保护？
 		Fault_ChangeToMCU();
 
 		switch (su8_SC_Flag)

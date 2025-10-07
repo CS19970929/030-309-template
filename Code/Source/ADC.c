@@ -230,10 +230,10 @@ void InitADC(void)
 
 void App_AnlogCal(void)
 {
-	if (0 == g_st_SysTimeFlag.bits.b1Sys1msFlag)
-	{
-		return;
-	}
+	// if (0 == g_st_SysTimeFlag.bits.b1Sys1msFlag)
+	// {
+	// 	return;
+	// }
 
 	// ADC_Vbus();
 	ADC_TTC();

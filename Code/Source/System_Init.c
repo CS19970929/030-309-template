@@ -17,6 +17,10 @@ void IWDG_HaltConfig(void);
 
 void InitDelay(void)
 {
+	extern uint32_t us_ticks;
+
+	us_ticks = SystemCoreClock / 1000000U;   // 预计算 1us 对应的 ticks
+#if 0
 	SysTick->CTRL &= ~(1 << 2); // 使用外部时钟
 	// 这句话到底什么情况？？？？？害死我的系统时钟慢了十几倍
 	// fac_us = SystemCoreClock / 8000000;		//SysTick时钟是SYSCLK 8分频，即SysTick时钟频率=SYSCLK/8，1us要计的个数为还得/1MHz
@@ -41,10 +45,12 @@ void InitDelay(void)
 	default:
 		break;
 	}
+#endif
 }
 
 void __delay_us(UINT32 nus)
 {
+#if 0
 	UINT32 temp;
 	SysTick->LOAD = nus * fac_us;			  // 时间加载
 	SysTick->VAL = 0x00;					  // 清空计数器
@@ -55,11 +61,14 @@ void __delay_us(UINT32 nus)
 	} while ((temp & 0x01) && !(temp & (1 << 16))); // 等待时间到达
 	SysTick->CTRL &= ~SysTick_CTRL_ENABLE_Msk; // 关闭计数器
 	SysTick->VAL = 0X00;					   // 清空计数器
+#endif
+	bsp_DelayUS(nus);
 }
 
 // 这个是非中断方式的延时，倘若使用中断式延时，在中断中使用延时会出现中断嵌套问题，很容易出错
 void __delay_ms(UINT16 ms)
 {
+#if 0
 	UINT32 temp;
 	SysTick->LOAD = (UINT32)ms * fac_ms;	  // 时间加载(SysTick->LOAD为24bit)
 	SysTick->VAL = 0x00;					  // 清空计数器
@@ -74,6 +83,8 @@ void __delay_ms(UINT16 ms)
 
 	SysTick->CTRL &= ~SysTick_CTRL_ENABLE_Msk; // 关闭计数器
 	SysTick->VAL = 0X00;					   // 清空计数器
+#endif
+	bsp_DelayMS(ms);
 }
 
 /*
@@ -308,7 +319,6 @@ void App_SysTime(void)
 	{
 		s_u8Cnt200ms4 = 0;
 		g_st_SysTimeFlag.bits.b1Sys200msFlag4 = 1; // 200ms定时标志
-		MCUO_DEBUG_LED1 = !MCUO_DEBUG_LED1;
 	}
 	if (s_u8Cnt200ms5 >= 20)
 	{
