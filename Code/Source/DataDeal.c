@@ -459,8 +459,8 @@ void test_Autocurrent_cycle(void)
 {
 	static uint8_t step = 0;
 #if 1
-	static uint16_t CHG_current = 100;
-	static uint16_t DSG_current = 200;
+	static uint16_t CHG_current = 200;
+	static uint16_t DSG_current = 400;
 #else
 	static uint16_t CHG_current = 200;
 	static uint16_t DSG_current = 400;

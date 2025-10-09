@@ -97,7 +97,6 @@ void InitDevice(void)
 {
 	// RCC_SYSCLKConfig(RCC_SYSCLKSource_HSI);
 	// RCC_HCLKConfig(RCC_SYSCLK_Div8); // 8/8 = 1MHz
-
 	// SystemInit();
 	// SystemCoreClockUpdate();
 	Init_IAPAPP();
@@ -136,7 +135,6 @@ void InitDevice(void)
 	SCH_Add_Task(App_AFEGet, 0, 200);
 	SCH_Add_Task(App_WarnCtrl, 8, 10);
 	SCH_Add_Task(App_AnlogCal, 2, 10);
-	// SCH_Add_Task(App_SH367309, 8, 200);
 	SCH_Add_Task(App_SOC, 5, 200);
 	SCH_Add_Task(App_LogRecord, 6, 1000);
 	SCH_Add_Task(App_SleepDeal, 7, 1000);

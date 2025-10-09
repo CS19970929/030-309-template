@@ -994,6 +994,11 @@ void Sci1_CommonUpper_Tx_Deal(struct RS485MSG *s)
 			s->csr = RS485_STA_TX_COMPLETE;
 			gu8_TxFinishFlag_SCI1 = 1;
 			gu8_TxEnable_SCI1 = 0;
+			if (u8FlashUpdateE2PROM)
+			{
+				u8FlashUpdateE2PROM = 0;
+				u8FlashUpdateFlag = 1;
+			}
 		}
 	}
 }
