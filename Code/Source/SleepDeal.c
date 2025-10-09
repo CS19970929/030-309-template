@@ -226,6 +226,7 @@ void IOstatus_RTCMode(void)
 void IOstatus_DeepMode(void)
 {
 	IOstatus_Base();
+	__delay_ms(300);
 }
 
 void IORecover_RTCMode(void)
@@ -915,7 +916,6 @@ void SleepDeal_Test(void)
 		Sleep_Status = SLEEP_HICCUP_CONTINUE;
 	}
 }
-
 // 如果起来了，有保护，作别的操作类型还没写
 // 现在通过参数设置，高于1005为RTC休眠
 void IsSleepStartUp(void)

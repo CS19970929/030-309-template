@@ -112,6 +112,8 @@ void InitDevice(void)
 	InitUSART_CommonUpper();
 #else
 	IsSleepStartUp();
+	// InitDelay();
+	// bsp_Init();
 	InitIO();
 	// InitTimer();
 	InitSystemWakeUp();
@@ -146,7 +148,7 @@ void InitDevice(void)
 	// SCH_Add_Task(APP_LedBar, 9, 100);
 
 #ifdef wdog_enable
-	Init_IWDG();
+	// Init_IWDG();
 #endif // !1
 
 #endif
