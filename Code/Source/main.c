@@ -121,8 +121,9 @@ void InitDevice(void)
 	InitAFE1();
 	{
 		GPIO_WriteBit(GPIO_RES_EN, PIN_RES_EN, 1);
-		__delay_ms(100);
+		__delay_ms(99);
 		MCUO_AFE_CTLC = 1; // 刚上电，默认高阻态，所以不慌AFE刚开机瞬间打开MOS
+		__delay_ms(1);
 		GPIO_WriteBit(GPIO_RES_EN, PIN_RES_EN, 0);
 	}
 	InitUSART_CommonUpper();
