@@ -86,6 +86,7 @@ void InitShortCur(void)
 
     /* 短路延时 */
     temp = Choose_Right_Value(OtherElement.u16CBC_DelayT / 10, AFE_SCT);
+
     AFE_ROM_PARAMETERS_Struction.m0EH_0FH.SCT = temp;
     OtherElement.u16CBC_DelayT = AFE_SCT[temp] * 10; // 修改最终设置的值，接近的那个
 
