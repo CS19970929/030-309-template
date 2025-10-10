@@ -140,8 +140,8 @@ struct OTHER_ELEMENT {
 
 #define SNum 			16
 
-#define TERNARYLI		//��Ԫ﮵�أ���ѡһ
-// #define LIFEPO			//������﮵�أ���ѡһ
+// #define TERNARYLI		//��Ԫ﮵�أ���ѡһ
+#define LIFEPO			//������﮵�أ���ѡһ
 
 
 #define CS_Res			2
@@ -169,11 +169,11 @@ struct OTHER_ELEMENT {
 	                             2100,	3,		4200,	2900,\
 	                             SNum,CS_Res,CS_Res_Num,10}
 #elif (defined(LIFEPO))
-#define OtherElement_default 	{3000,	30,	20,	0,	0,	0,	0,	0,\
+#define OtherElement_default 	{3200,	30,	20,	0,	0,	0,	0,	0,\
 	                             CS_Cur_CHGmax,	CS_Cur_DSGmax,CBC_DelayT,CBC_Cur_DSG,\
 	                             SOC_TABLE_LIFEPO,0,1000,30,\
 	                             3200,	7200,	2800,	10,		10,	10,	240,0,\
-	                             100,	1,		3650,	2600,\
+	                             1000,	1,		3650,	2600,\
 	                             SNum,CS_Res,CS_Res_Num,10}
 #endif
 

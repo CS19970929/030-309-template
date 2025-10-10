@@ -33,6 +33,26 @@ void InitWakeUp_Base(void)
 	NVIC_InitStructure.NVIC_IRQChannelPriority = 0x00; // 抢占优先级0
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;	   // 使能外部中断通道
 	NVIC_Init(&NVIC_InitStructure);
+	{
+		GPIO_InitStructure.GPIO_Pin = PIN_LOAD_OL; // 选择要用的GPIO引脚
+		GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
+		GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL; // 设置引脚模式为上拉输入模式
+		GPIO_Init(GPIO_LOAD_OL, &GPIO_InitStructure);
+
+		// 设置中断线0，EXTI0和PA0挂钩
+		SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOB, EXTI_PinSource7);
+		// 配置PA0_WKUP外部上升沿中断
+		EXTI_InitStruct.EXTI_Line = EXTI_Line7;
+		EXTI_InitStruct.EXTI_Mode = EXTI_Mode_Interrupt;
+		EXTI_InitStruct.EXTI_Trigger = EXTI_Trigger_Falling; // 上升沿中断
+		EXTI_InitStruct.EXTI_LineCmd = ENABLE;
+		EXTI_Init(&EXTI_InitStruct);
+		// 中断嵌套设计
+		NVIC_InitStructure.NVIC_IRQChannel = EXTI4_15_IRQn; // 使能按键WK_UP所在的外部中断通道
+		NVIC_InitStructure.NVIC_IRQChannelPriority = 0x00;	// 抢占优先级0
+		NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;		// 使能外部中断通道
+		NVIC_Init(&NVIC_InitStructure);
+	}
 
 	{
 		GPIO_InitStructure.GPIO_Pin = GPIO_Pin_13; // 选择要用的GPIO引脚
@@ -74,7 +94,6 @@ void InitWakeUp_Base(void)
 		NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;		// 使能外部中断通道
 		NVIC_Init(&NVIC_InitStructure);
 	}
-	
 }
 
 void InitWakeUp_NormalMode(void)
@@ -124,8 +143,8 @@ void InitWakeUp_NormalMode(void)
 	EXTI_Init(&EXTI_InitStruct);
 	// 中断嵌套设计
 	NVIC_InitStructure.NVIC_IRQChannel = EXTI2_3_IRQn; // 使能按键WK_UP所在的外部中断通道
-	NVIC_InitStructure.NVIC_IRQChannelPriority = 0x00;	// 抢占优先级0
-	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;		// 使能外部中断通道
+	NVIC_InitStructure.NVIC_IRQChannelPriority = 0x00; // 抢占优先级0
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;	   // 使能外部中断通道
 	NVIC_Init(&NVIC_InitStructure);
 }
 
@@ -1026,8 +1045,10 @@ void App_SleepDeal(void)
 
 	if ((Sleep_Mode.all & 0x00ff))
 	{
+		extern UINT32 su32_Interval_S_Tcnt;
+		
 		LogRecord_Flag.bits.Log_Sleep = 1;
-		// LogEvent_Record(LogRecord_Flag.bits.Log_Sleep, BMS_SLEEP, &su32_Interval_S_Tcnt);
+		LogEvent_Record(LogRecord_Flag.bits.Log_Sleep, BMS_SLEEP, &su32_Interval_S_Tcnt);
 		SleepDeal_Continue();
 	}
 }

@@ -104,11 +104,10 @@ void LogEvent_Record(UINT8 temp, LogEventArray event, UINT32 *Time_S_Cnt)
 	}
 }
 
+UINT32 su32_Interval_S_Tcnt = 0;
 void App_LogRecord(void)
 {
 	UINT8 temp;
-	static UINT32 su32_Interval_S_Tcnt = 0;
-
 
 	if (gu8_Reset_EventRecord)
 	{

@@ -97,7 +97,7 @@ void InitDevice(void)
 {
 	// RCC_SYSCLKConfig(RCC_SYSCLKSource_HSI);
 	// RCC_HCLKConfig(RCC_SYSCLK_Div8); // 8/8 = 1MHz
-	// SystemInit();
+	SystemInit();
 	// SystemCoreClockUpdate();
 	Init_IAPAPP();
 	InitDelay();
@@ -148,7 +148,7 @@ void InitDevice(void)
 	// SCH_Add_Task(APP_LedBar, 9, 100);
 
 #ifdef wdog_enable
-	// Init_IWDG();
+	Init_IWDG();
 #endif // !1
 
 #endif

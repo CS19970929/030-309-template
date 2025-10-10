@@ -23,10 +23,6 @@ UINT8 FaultPoint_First2;
 UINT8 FaultPoint_Second2;
 UINT8 FaultPoint_Third2;
 
-UINT16 FaultCnt_StartUp_First = 0;
-UINT16 FaultCnt_StartUp_Second = 0;
-UINT16 FaultCnt_StartUp_Third = 0;
-
 // 原来是和休眠虚电路挂钩的，现在分开，OtherElement.u16Sleep_VirCur_Chg
 // 如果原来设置3A的话，就会出现，低温小电流，问题很大。
 // 现在默认虚电流大于0.1A，也即0.2A才生效

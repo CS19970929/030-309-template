@@ -14,12 +14,12 @@
 
 #define _SECOND_CURR_PROTECT_FUNC_
 
-#define __VIRTURE_CURRENT__
+// #define __VIRTURE_CURRENT__
 
 #define log_i(...)       ((void)0);
 #define log_w(...)       ((void)0);
 
-#define EEPROM_VALUE_BEGIN_FLAG				0x1555		//Ĭ��0x1133������Լ���Ҫˢһ�飬���Լ������ٸĻ�0x1133
+#define EEPROM_VALUE_BEGIN_FLAG				0x3555		//Ĭ��0x1133������Լ���Ҫˢһ�飬���Լ������ٸĻ�0x1133
 
 //#define _DI_SWITCH_SYS_ONOFF	//DI������������
 //#define _DI_SWITCH_DSG_ONOFF	//DI�����������Ʒŵ�Ӵ�������MOS
