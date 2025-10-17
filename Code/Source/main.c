@@ -100,20 +100,12 @@ void InitDevice(void)
 	SystemInit();
 	// SystemCoreClockUpdate();
 	Init_IAPAPP();
-	InitDelay();
-	bsp_Init();
 
 #if (defined _DEBUG_CODE)
-	IsSleepStartUp();
-	InitIO();
 	InitDelay();
-	InitTimer();
-	// InitSystemWakeUp();
-	InitUSART_CommonUpper();
 #else
+	InitDelay();
 	IsSleepStartUp();
-	// InitDelay();
-	// bsp_Init();
 	InitIO();
 	// InitTimer();
 	InitSystemWakeUp();
@@ -128,25 +120,14 @@ void InitDevice(void)
 	}
 	InitUSART_CommonUpper();
 	InitADC();
-	InitData_SOC();
 	Init_ChargerLoad_Det();
 #ifdef __FUNC__HEAT__
 	InitHeat_Cool();
 #endif
 	InitMosRelay_DOx();
+	InitData_SOC();
 
-	SCH_Add_Task(App_AFEGet, 0, 200);
-	SCH_Add_Task(App_WarnCtrl, 8, 10);
-	SCH_Add_Task(App_AnlogCal, 2, 10);
-	SCH_Add_Task(App_SOC, 5, 200);
-	SCH_Add_Task(App_LogRecord, 6, 1000);
-	SCH_Add_Task(App_SleepDeal, 7, 1000);
-	SCH_Add_Task(App_CellBalance, 8, 1000);
-#ifdef __FUNC__HEAT__
-	SCH_Add_Task(App_Heat_Cool_Ctrl, 9, 1000);
-#endif // DEBUG
-	SCH_Add_Task(App_ChargerLoad_Det, 9, 1000);
-	// SCH_Add_Task(APP_LedBar, 9, 100);
+	bsp_Init();
 
 #ifdef wdog_enable
 	Init_IWDG();
