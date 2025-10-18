@@ -152,7 +152,7 @@ struct OTHER_ELEMENT {
 // #define CBC_DelayT		0
 #define CBC_DelayT		(1280)
 // #define CBC_Cur_DSG		((CS_Cur_CHGmax<<2)/5)
-#define CBC_Cur_DSG		(1600)
+#define CBC_Cur_DSG		(1000)
 
 
 #define OtherElement_min		{1000,	1,		0,		0,		0,	0,	0,	0,\

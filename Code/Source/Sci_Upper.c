@@ -1650,11 +1650,13 @@ void Sci_WrRegs_0x10_SysOther(struct RS485MSG *s)
 
 		App_PWM(); // Ë¢ÐÂPWM
 
-		if (SH367309_SC_DelayT_Set())
-		{
-			s->AckType = RS485_ACK_NEG;
-			s->ErrorType = RS485_ERROR_CMD_INVALID;
-		}
+		AFE_PARAM_WRITE_Flag = 1;
+
+		// if (SH367309_SC_DelayT_Set())
+		// {
+		// 	s->AckType = RS485_ACK_NEG;
+		// 	s->ErrorType = RS485_ERROR_CMD_INVALID;
+		// }
 	}
 	else
 	{
