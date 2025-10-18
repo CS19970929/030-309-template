@@ -19,7 +19,7 @@
 #define log_i(...)       ((void)0);
 #define log_w(...)       ((void)0);
 
-#define EEPROM_VALUE_BEGIN_FLAG				0x9555		//Ĭ��0x1133������Լ���Ҫˢһ�飬���Լ������ٸĻ�0x1133
+#define EEPROM_VALUE_BEGIN_FLAG				0x1018		//Ĭ��0x1133������Լ���Ҫˢһ�飬���Լ������ٸĻ�0x1133
 
 //#define _DI_SWITCH_SYS_ONOFF	//DI������������
 //#define _DI_SWITCH_DSG_ONOFF	//DI�����������Ʒŵ�Ӵ�������MOS
@@ -35,12 +35,13 @@
 #define   CURR_150A     2
 #define   CURR_200A     3
 #define   CURR_250A     4
+#define   CURR_DEFAULT     5
 
 #define bq76xx_afe  0
 #define sh36xx      1
 
 
-#define   LEVEL_CURR     CURR_150A
+#define   LEVEL_CURR     CURR_DEFAULT
 #define   AFE_TYPE        sh36xx
 
 #ifdef __FUNC__HEAT__
@@ -122,6 +123,7 @@ typedef struct
 
   uint16_t  cnt_enter_chg_open;
   uint16_t  cnt_enter_dsg_open;
+  uint16_t  cnt_test_enter_afe_param;
 
 
 }Time_T;

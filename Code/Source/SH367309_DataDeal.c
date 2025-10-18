@@ -151,6 +151,8 @@ bool SH367309_UpdataAfeConfig(void)
 
 	if (AFE_PARAM_WRITE_Flag)
 	{
+		// sys_time.test_current_cnt++;
+		// sys_time.cnt_test_enter_afe_param++;
 		AFE_PARAM_WRITE_Flag = 0;
 		MCUO_AFE_VPRO = 1; // 进入烧写模式
 		Delay1ms(20);

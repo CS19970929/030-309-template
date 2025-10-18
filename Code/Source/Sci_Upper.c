@@ -1492,6 +1492,10 @@ void Sci_WrRegs_0x10_Protect(UINT16 u16Channel, struct RS485MSG *s)
 	if (u16WrRegNum == 5)
 	{
 		t_u16Temp = u16Channel - RS485_CMD_ADDR_VCELL_OVP_FIRST;
+		if (t_u16Temp == 20 || t_u16Temp == 25)
+		{
+			AFE_PARAM_WRITE_Flag = 1;
+		}
 		for (i = 0; i < 5; ++i)
 		{
 			*(&PRT_E2ROMParas.u16VcellOvp_First + i + t_u16Temp) = (UINT16)(s->u16Buffer[2 * i + 8] + (s->u16Buffer[2 * i + 7] << 8));
@@ -1511,8 +1515,6 @@ void Sci_WrRegs_0x10_Protect(UINT16 u16Channel, struct RS485MSG *s)
 		{
 			u32E2P_Pro_VolCur_WriteFlag = (EE_FLAG_VCELL_OVP_FIRST | EE_FLAG_VCELL_OVP_SECOND | EE_FLAG_VCELL_OVP_THIRD | EE_FLAG_VCELL_OVP_RCV | EE_FLAG_VCELL_OVP_FILTER) << (t_u16Temp);
 		}
-
-		AFE_PARAM_WRITE_Flag = 1;
 	}
 	else
 	{
@@ -1630,11 +1632,11 @@ void Sci_WrRegs_0x10_SysOther(struct RS485MSG *s)
 		AFE_PARAM_WRITE_Flag = 1;
 
 		// todo
-		if (SH367309_SC_DelayT_Set())
-		{
-			s->AckType = RS485_ACK_NEG;
-			s->ErrorType = RS485_ERROR_CMD_INVALID;
-		}
+		// if (SH367309_SC_DelayT_Set())
+		// {
+		// 	s->AckType = RS485_ACK_NEG;
+		// 	s->ErrorType = RS485_ERROR_CMD_INVALID;
+		// }
 	}
 	else
 	{
