@@ -36,14 +36,6 @@ int main(void)
 	{
 #if (defined _DEBUG_CODE)
 		App_SysTime();
-		App_AFEGet();
-		App_CommonUpper();
-		App_AnlogCal();
-		App_SOC();
-		App_WarnCtrl();
-		App_SleepDeal(); // 放在App_MOS_Relay_Control()后面
-		APP_LedBar();
-		Feed_IWatchDog;
 #else
 		App_SysTime();
 		App_CommonUpper();
@@ -83,26 +75,16 @@ void InitDevice(void)
 	Init_IAPAPP();
 
 #if (defined _DEBUG_CODE)
-	IsSleepStartUp();
-	InitIO();
 	InitDelay();
-	InitTimer();
-	// InitSystemWakeUp();
-	InitUSART_CommonUpper();
 #else
 	InitDelay();
 	IsSleepStartUp();
+	
 	InitIO();
 	InitTimer();
 	InitSystemWakeUp();
 	InitE2PROM(); // 内部EEPROM，不需要初始化
 	InitAFE1();
-	{
-		GPIO_WriteBit(GPIO_RES_EN, PIN_RES_EN, 1);
-		__delay_ms(100);
-		MCUO_AFE_CTLC = 1; // 刚上电，默认高阻态，所以不慌AFE刚开机瞬间打开MOS
-		GPIO_WriteBit(GPIO_RES_EN, PIN_RES_EN, 0);
-	}
 	InitUSART_CommonUpper();
 	InitADC();
 	InitData_SOC();
@@ -142,9 +124,4 @@ UINT8 App_AFEshutdown(void)
 
 void InitSystemWakeUp(void)
 {
-	// MCUO_PWSV_STB = 1;
-	// MCUO_PWSV_CTR = 1;
-	// MCUO_AFE_SHIP = 0;
-	// MCUO_AFE_MODE = 0;
-	// __delay_ms(10);
 }

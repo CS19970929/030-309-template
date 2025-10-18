@@ -677,30 +677,3 @@ void App_E2promDeal(void)
 		WriteEEPROM_ByteData_Circle();
 	}
 }
-
-// 问题找出来，就是BC区写不进去，返回0xFF
-void EEPROM_test(void)
-{
-#if 0
-	if(0 == g_st_SysTimeFlag.bits.b1Sys1000msFlag2) {
-		return;
-	}
-#endif
-
-#if 1
-	WriteEEPROM_Word_NoZone(0x20, EEPROM_VALUE_FLASHUPDATE);
-	g_stCellInfoReport.u16VCell[30] = ReadEEPROM_Word_NoZone(0x20);
-
-	WriteEEPROM_Word_NoZone(0x22, EEPROM_VALUE_FLASHUPDATE_RESET);
-	g_stCellInfoReport.u16VCell[31] = ReadEEPROM_Word_NoZone(0x22) & 0x000F;
-// g_stCellInfoReport.u16VCell[31] = 111;
-#endif
-
-#if 0
-	WriteEEPROM_Byte(0x20, 0x11);
-	g_stCellInfoReport.u16VCell[5] = ReadEEPROM_Byte(0x20);
-
-	WriteEEPROM_Byte(0x22, 0x12);
-	g_stCellInfoReport.u16VCell[6] = ReadEEPROM_Byte(0x22);
-#endif
-}

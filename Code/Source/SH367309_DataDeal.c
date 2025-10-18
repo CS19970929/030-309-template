@@ -220,7 +220,7 @@ bool SH367309_UpdataAfeConfig(void)
 
 UINT8 Sci_WrRegs_0x10_AFE_Parameters(UINT16 u16Channel, struct RS485MSG *s)
 {
-#if 0
+#if 1
 	UINT16 u16WrRegNum;
 	UINT16 u16SciRegStartAddr;
 
@@ -254,7 +254,7 @@ UINT8 Sci_WrRegs_0x10_AFE_Parameters(UINT16 u16Channel, struct RS485MSG *s)
 
 void Sci_WrReg_0x06_Reset_AFE_Parameters(struct RS485MSG *s)
 {
-#if 0
+#if 1
 	UINT16 u16SciRegData = s->u16Buffer[5] + (s->u16Buffer[4] << 8);
 	if (0x0001 == u16SciRegData)
 	{
@@ -271,7 +271,7 @@ void Sci_WrReg_0x06_Reset_AFE_Parameters(struct RS485MSG *s)
 
 void Sci_ACK_0x03_RW_AFE_Parameters(struct RS485MSG *s, UINT8 t_u8BuffTemp[])
 {
-#if 0
+#if 1
 	UINT16 u16SciTemp;
 	UINT16 i, j;
 	UINT16 *P = (UINT16 *)&AFE_Parameters_RS485_Struction;
@@ -289,7 +289,7 @@ void Sci_ACK_0x03_RW_AFE_Parameters(struct RS485MSG *s, UINT8 t_u8BuffTemp[])
 // AFE_Parameters  reset
 void EEPROM_ResetData_AFE_ParametersToDefault(void)
 {
-#if 0
+#if 1
 	UINT8 i;
 	UINT16 *P = (UINT16 *)&AFE_Parameters_RS485_Struction.u16VcellOvp.defaultValue;
 
@@ -305,7 +305,7 @@ void EEPROM_ResetData_AFE_ParametersToDefault(void)
 
 void ReadEEPROM_AFE_Parameters(void)
 {
-#if 0
+#if 1
 	UINT16 i;
 
 	AFE_Value_Typedef *P = &AFE_Parameters_RS485_Struction.u16VcellOvp;
