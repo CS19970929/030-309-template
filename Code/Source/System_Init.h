@@ -68,13 +68,6 @@ typedef struct _16_Bits_Struct {
 #define MCUI_ENI_DI2		(PORT_IN_GPIOB->bit9)		//
 
 
-//AFEģ��
-#define MCUO_AFE_SHIP 		(PORT_OUT_GPIOB->bit12)		//AFE_SHIP
-#define MCUO_AFE_MODE 		(PORT_OUT_GPIOB->bit13)		//AFE_MODE
-#define MCUO_AFE_VPRO 		(PORT_OUT_GPIOA->bit1)		//AFE_VPRO
-#define MCUO_AFE_CTLC 		(PORT_OUT_GPIOB->bit14)		//��������
-
-
 //����ģ��
 #define MCUO_E2PR_WP		(PORT_OUT_GPIOA->bit15)		//EEPROMд����
 #define MCUO_RELAY_HEAT 	(PORT_OUT_GPIOA->bit11)		//PA12�����ȼ̵���
@@ -126,9 +119,9 @@ struct CBC_ELEMENT {
 // #define _DEBUG_
 
 #ifdef _DEBUG_
-   #define Feed_IWatchDog 
+   #define Feed_WatchDog 
 #else
-    #define Feed_IWatchDog IWDG_ReloadCounter()
+    #define Feed_WatchDog IWDG_ReloadCounter()
 #endif // _DEBUG_
 
 

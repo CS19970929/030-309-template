@@ -68,7 +68,7 @@ void __delay_ms(UINT16 ms)
 	{
 		temp = SysTick->CTRL;
 #ifdef wdog_enable
-		Feed_IWatchDog;
+		Feed_WatchDog;
 #endif
 	} while (temp & 0x01 && !(temp & (1 << 16))); // 等待时间到达
 
@@ -95,8 +95,9 @@ void InitIO(void)
 
 	{
 		GPIO_WriteBit(GPIO_M_STB, PIN_M_STB, 1);
-		GPIO_WriteBit(GPIO_AD_EN, PIN_AD_EN, 0);
+		GPIO_WriteBit(GPIO_AD_SPS_EN, PIN_AD_SPS_EN, 1);
 		GPIO_WriteBit(GPIO_CMNT_EN, PIN_CMNT_EN, 1);
+		GPIO_WriteBit(GPIO_SEG_SPS, PIN_SEG_SPS, 1);
 
 		GPIO_InitStructure.GPIO_Pin = PIN_M_STB;
 		GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
@@ -104,25 +105,26 @@ void InitIO(void)
 		GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
 		GPIO_Init(GPIO_M_STB, &GPIO_InitStructure);
 
-		GPIO_InitStructure.GPIO_Pin = PIN_AD_EN;
+		GPIO_InitStructure.GPIO_Pin = PIN_AD_SPS_EN;
 		GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
 		GPIO_InitStructure.GPIO_Speed = GPIO_Speed_Level_1;
 		GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-		GPIO_Init(GPIO_AD_EN, &GPIO_InitStructure);
+		GPIO_Init(GPIO_AD_SPS_EN, &GPIO_InitStructure);
 
 		GPIO_InitStructure.GPIO_Pin = PIN_CMNT_EN;
 		GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
 		GPIO_InitStructure.GPIO_Speed = GPIO_Speed_Level_1;
 		GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
 		GPIO_Init(GPIO_CMNT_EN, &GPIO_InitStructure);
+
+		GPIO_InitStructure.GPIO_Pin = PIN_SEG_SPS;
+		GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
+		GPIO_InitStructure.GPIO_Speed = GPIO_Speed_Level_1;
+		GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+		GPIO_Init(GPIO_SEG_SPS, &GPIO_InitStructure);
 	}
 
-	// GPIO_WriteBit(GPIO_M_STB, PIN_M_STB, 1);
-	GPIO_InitStructure.GPIO_Pin = PIN_RES_EN;
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_Level_1;
-	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-	GPIO_Init(GPIO_RES_EN, &GPIO_InitStructure);
+	POWER_ON_4G_AND_INIT();
 
 	RECV_EN_485();
 	GPIO_InitStructure.GPIO_Pin = PIN_485_EN;
@@ -131,22 +133,11 @@ void InitIO(void)
 	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
 	GPIO_Init(GPIO_485_EN, &GPIO_InitStructure);
 
-	GPIO_InitStructure.GPIO_Pin = PIN_AFE1_CTL;
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_Level_1;
-	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-	GPIO_Init(GPIO_AFE1_CTL, &GPIO_InitStructure);
-
 	GPIO_InitStructure.GPIO_Pin = PIN_AFE1_PRO_EN;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_Level_1;
 	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
 	GPIO_Init(GPIO_AFE1_PRO_EN, &GPIO_InitStructure);
-
-	GPIO_InitStructure.GPIO_Pin = PIN_KEY2; // 选择要用的GPIO引脚
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
-	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL; // 设置引脚模式为上拉输入模式
-	GPIO_Init(GPIO_KEY2, &GPIO_InitStructure);
 
 	GPIO_InitStructure.GPIO_Pin = PIN_DBG_LED1;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;

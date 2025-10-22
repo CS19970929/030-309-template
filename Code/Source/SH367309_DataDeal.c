@@ -105,29 +105,24 @@ void Refresh_Parameters(void)
 	{
 		AFE_ROM_PARAMETERS_Struction.m02H_03H.OVH = ((4300 / 5) >> 8) & 0x3;
 		AFE_ROM_PARAMETERS_Struction.m02H_03H.OVL = (4300 / 5) & 0x00FF;
-	}
-	else
-	{
-		AFE_ROM_PARAMETERS_Struction.m02H_03H.OVH = ((3800 / 5) >> 8) & 0x3;
-		AFE_ROM_PARAMETERS_Struction.m02H_03H.OVL = (3800 / 5) & 0x00FF;
-	}
-	AFE_ROM_PARAMETERS_Struction.m02H_03H.OVT = 0;
-	if (PRT_E2ROMParas.u16VcellOvp_Third > 3800)
-	{
+
 		AFE_ROM_PARAMETERS_Struction.m04H_05H.OVRH = ((4200 / 5) >> 8) & 0x3;
 		AFE_ROM_PARAMETERS_Struction.m04H_05H.OVRL = (4200 / 5) & 0x00FF;
 	}
 	else
 	{
+		AFE_ROM_PARAMETERS_Struction.m02H_03H.OVH = ((3800 / 5) >> 8) & 0x3;
+		AFE_ROM_PARAMETERS_Struction.m02H_03H.OVL = (3800 / 5) & 0x00FF;
+
 		AFE_ROM_PARAMETERS_Struction.m04H_05H.OVRH = ((3600 / 5) >> 8) & 0x3;
 		AFE_ROM_PARAMETERS_Struction.m04H_05H.OVRL = (3600 / 5) & 0x00FF;
 	}
+	AFE_ROM_PARAMETERS_Struction.m02H_03H.OVT = 0;
 
 	AFE_ROM_PARAMETERS_Struction.m04H_05H.UVT = 0;
 	AFE_ROM_PARAMETERS_Struction.m06H_07H.UV = (2000 / 20) & 0x00FF;
 	AFE_ROM_PARAMETERS_Struction.m06H_07H.UVR = (2200 / 20) & 0x00FF;
 
-	//todo 测试,待确认二级过流
 	temp = PRT_E2ROMParas.u16IdsgOcp_Third * 100 / g_u32CS_Res_AFE; // 当前对应多少mv
 	AFE_ROM_PARAMETERS_Struction.m0CH_0DH.OCD1V = Choose_Right_Value(temp, AFE_OCD1V_OCCV);
 	temp = PRT_E2ROMParas.u16IdsgOcp_Filter * 10; // 当前对应多少ms
@@ -138,7 +133,6 @@ void Refresh_Parameters(void)
 	temp = PRT_E2ROMParas.u16IchgOcp_Filter * 10; // 当前对应多少ms
 	AFE_ROM_PARAMETERS_Struction.m0EH_0FH.OCCT = Choose_Right_Value(temp, AFE_OCCT_OCD2T);
 
-	//todo 待确认
 	InitShortCur();
 
 	AFE_TEMPERATURE[0] = (70 + 40);		 /* 充电高温保护 */
@@ -193,12 +187,12 @@ bool SH367309_UpdataAfeConfig(void)
 		AFE_PARAM_WRITE_Flag = 0;
 		MCUO_AFE_VPRO = 1; // 进入烧写模式
 		Delay1ms(20);
-		Feed_IWatchDog;
+		Feed_WatchDog;
 
 		Refresh_Parameters();
 		ret = Write_Parameters();
 
-		Feed_IWatchDog;
+		Feed_WatchDog;
 		MCUO_AFE_VPRO = 0; // 退出烧写模式
 		Delay1ms(1);
 
@@ -235,7 +229,7 @@ UINT8 Sci_WrRegs_0x10_AFE_Parameters(UINT16 u16Channel, struct RS485MSG *s)
 	{
 		offset = u16SciRegStartAddr - RS485_CMD_ADDR_AFE_ROM_PARAMETERS_START;
 
-		Feed_IWatchDog;
+		Feed_WatchDog;
 		for (i = 0; i < u16WrRegNum; i++)
 		{
 			*(P + (i + offset) * 4) = s->u16Buffer[8 + i * 2] + (s->u16Buffer[7 + i * 2] << 8);
@@ -243,7 +237,7 @@ UINT8 Sci_WrRegs_0x10_AFE_Parameters(UINT16 u16Channel, struct RS485MSG *s)
 			/* 直接写道EEPROM中 */
 			WriteEEPROM_Word_NoZone(E2P_ADDR_E2POS_AFE_Parameters + ((i + offset) << 1), *(P + (i + offset) * 4));
 		}
-		Feed_IWatchDog;
+		Feed_WatchDog;
 		AFE_PARAM_WRITE_Flag = 1;
 		return 1;
 	}
@@ -293,13 +287,13 @@ void EEPROM_ResetData_AFE_ParametersToDefault(void)
 	UINT8 i;
 	UINT16 *P = (UINT16 *)&AFE_Parameters_RS485_Struction.u16VcellOvp.defaultValue;
 
-	Feed_IWatchDog;
+	Feed_WatchDog;
 	for (i = 0; i < AFE_PARAMETES_TOTAL_LENGTH; ++i)
 	{
 		*(P + i * 4 - 1) = *(P + i * 4); // 当前值变为默认值
 		WriteEEPROM_Word_NoZone(E2P_ADDR_E2POS_AFE_Parameters + (i << 1), *(P + i * 4));
 	}
-	Feed_IWatchDog;
+	Feed_WatchDog;
 #endif
 }
 

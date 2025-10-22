@@ -44,8 +44,8 @@
 #define BSP_Printf		printf
 //#define BSP_Printf(...)
 
-//#include "stm32f0xx.h"
-#include "stm32f10x.h"
+
+#include "conf.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -60,8 +60,9 @@
 // #endif
 
 //#include "bsp_led.h"
-#include "bsp_timer.h"
-#include "bsp_key.h"
+// #include "bsp_timer.h"
+// #include "bsp_key.h"
+#include "bsp_74HC595D.h"
 
 /* 提供给其他C文件调用的函数 */
 void bsp_Init(void);

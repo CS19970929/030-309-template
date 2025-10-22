@@ -1,4 +1,5 @@
 #include "main.h"
+#include "mcu_api.h"
 
 UINT8 SeriesNum = 16;
 
@@ -38,6 +39,7 @@ int main(void)
 		App_SysTime();
 #else
 		App_SysTime();
+		cellular_uart_service();
 		App_CommonUpper();
 
 		App_AFEGet();
@@ -61,7 +63,7 @@ int main(void)
 		App_ProID_Deal();
 
 #ifdef wdog_enable
-		Feed_IWatchDog;
+		Feed_WatchDog;
 #endif
 
 #endif
@@ -93,6 +95,8 @@ void InitDevice(void)
 	InitHeat_Cool();
 #endif
 	InitMosRelay_DOx();
+	cellular_protocol_init();
+	// bsp_Init();
 
 #ifdef wdog_enable
 	Init_IWDG();

@@ -3,7 +3,147 @@
 
 #include "conf.h"
 
-#define CurOverFaultDelay 3000		//30s£¬10msÊ±»ù
+#define CurOverFaultDelay 3000		//30sï¿½ï¿½10msÊ±ï¿½ï¿½
+
+#if (FAC_CODE == CODE_A036)
+#elif (FAC_CODE == CODE_A002)
+#elif (FAC_CODE == CODE_DEFAULT)
+
+#ifdef TERNARYLI
+#define COV_1           4100
+#define COV_2           4200
+#define COV_3           4200
+#define COV_recover     4100
+#define COV_filter1      100
+#define COV_filter2     100
+#define COV_filter3     100
+
+#define CUV_1           3500
+#define CUV_2           3400
+#define CUV_3           3300
+#define CUV_recover     3500
+#define CUV_filter1      100
+#define CUV_filter2     100
+#define CUV_filter3     100
+
+#define BOV_1           (410 * SNum)
+#define BOV_2           (420 * SNum)
+#define BOV_3           (425 * SNum)
+#define BOV_recover     (410 * SNum)
+#define BOV_filter1      100 
+#define BOV_filter2     100 
+#define BOV_filter3     100 
+
+#define BUV_1           (310 * SNum)
+#define BUV_2           (300 * SNum)
+#define BUV_3           (300 * SNum)
+#define BUV_recover     (310 * SNum)
+#define BUV_filter1      100 
+#define BUV_filter2     100 
+#define BUV_filter3     100 
+
+#elif (defined(LIFEPO))
+#define COV_1           3500
+#define COV_2           3650
+#define COV_3           3750
+#define COV_recover     3450
+#define COV_filter1      100
+#define COV_filter2     100
+#define COV_filter3     100
+
+#define CUV_1           3000
+#define CUV_2           2800
+#define CUV_3           2500
+#define CUV_recover     2800
+#define CUV_filter1      100
+#define CUV_filter2     100
+#define CUV_filter3     100
+
+#define BOV_1           (350 * SNum)
+#define BOV_2           (365 * SNum)
+#define BOV_3           (375 * SNum)
+#define BOV_recover     (345 * SNum)
+#define BOV_filter1      100 
+#define BOV_filter2     100 
+#define BOV_filter3     100 
+
+#define BUV_1           (300 * SNum)
+#define BUV_2           (280 * SNum)
+#define BUV_3           (250 * SNum)
+#define BUV_recover     (280 * SNum)
+#define BUV_filter1      100 
+#define BUV_filter2     100 
+#define BUV_filter3     100 
+#endif
+
+
+#define OTC_1           ((45 + 40) * 10)
+#define OTC_2           ((47 + 40) * 10)
+#define OTC_3           ((49 + 40) * 10)
+#define OTC_recover     ((42 + 40) * 10)
+#define OTC_filter1       100
+#define OTC_filter2      100
+#define OTC_filter3      100
+
+#define UTC_1           ((5 + 40) * 10)
+#define UTC_2           ((3 + 40) * 10)
+#ifdef __FUNC__HEAT__
+#if (AFE_TYPE == sh36xx)
+#define UTC_3           ((-20 + 40) * 10)
+#elif (AFE_TYPE == bq76xx_afe)
+#define UTC_3           ((-28 + 40) * 10)
+#endif
+#else
+#define UTC_3           ((-2 + 40) * 10)
+#endif // DEBUG
+#define UTC_recover     ((5 + 40) * 10)
+#define UTC_filter1      100
+#define UTC_filter2      100
+#define UTC_filter3      100
+
+#define OTD_1           ((55 + 40) * 10)
+#define OTD_2           ((60 + 40) * 10)
+#define OTD_3           ((60 + 40) * 10)
+#define OTD_recover     ((55 + 40) * 10)
+#define OTD_filter1      100
+#define OTD_filter2      100
+#define OTD_filter3      100
+
+#define UTD_1           ((-10 + 40) * 10)
+#define UTD_2           ((-10 + 40) * 10)
+#define UTD_3           ((-10 + 40) * 10)
+#define UTD_recover     ((0 + 40) * 10)
+#define UTD_filter1      100
+#define UTD_filter2      100
+#define UTD_filter3      100
+
+#define mos_1           ((80 + 40) * 10)
+#define mos_2           ((85 + 40) * 10)
+#define mos_3           ((95 + 40) * 10)
+#define mos_recover     ((65 + 40) * 10)
+#define mos_filter1      100
+#define mos_filter2      100
+#define mos_filter3      100
+
+#define VDELTER_1       600
+#define VDELTER_2       800
+#define VDELTER_3       1000
+#define VDELTER_recover 600
+#define VDELTER_filter1  100
+#define VDELTER_filter2  100
+#define VDELTER_filter3  100
+
+#define socLow_1        12
+#define socLow_2        11
+#define socLow_3        10
+#define socLow_recover  11
+#define socLow_filter1   100
+#define socLow_filter2   100
+#define socLow_filter3   100
+
+
+
+#endif
 
 enum FaultFlag {
 	CellOvp_First = 1,
@@ -295,76 +435,70 @@ struct PRT_E2ROM_PARAS {
 #define ODC_filter1  30 
 #define ODC_filter2  30 
 #define ODC_filter3  30 
+#elif (LEVEL_CURR == CURR_DEFAULT)
+
+#define OCC_1       (180) 
+#define OCC_2       (200) 
+#define OCC_3       (220) 
+#define OCC_recover (10) 
+#define OCC_filter1  300 
+#define OCC_filter2  300 
+#define OCC_filter3  10 
+
+#define ODC_1       (8900) 
+#define ODC_2       (8950) 
+#define ODC_3       (9000) 
+#define ODC_recover (8950) 
+#define ODC_filter1  30 
+#define ODC_filter2  30 
+#define ODC_filter3  30 
 
 #endif				
 
-#define E2P_PROTECT_MIN_PRT		{/*µ¥½Ú¹ıÑ¹*/1000,	1000,	1000,	1000,	1,\
-								 /*µ¥½ÚµÍÑ¹*/1000,	1000,	1000,	1000,	1,\
-								 /*×ÜÑ¹¹ıÑ¹*/300,	300,	300,	300,	1,\
-								 /*×ÜÑ¹µÍÑ¹*/300,	300,	300,	300,	1,\
-		        				 /*³äµç¹ıÁ÷*/10,	10,		10,		10,		1,\
-		        				 /*·Åµç¹ıÁ÷*/10,	10,		10,		10,		1,\
-								 /*³äµç¸ßÎÂ*/400,	400,	400,	400,	1,\
-								 /*³äµçµÍÎÂ*/0,		0,		0,		0,		1,\
-								 /*·Åµç¸ßÎÂ*/400,	400,	400,	400,	1,\
-								 /*·ÅµçµÍÎÂ*/0,		0,		0,		0,		1,\
-		        				 /*Çı¶¯¸ßÎÂ*/400,	400,	400,	400,	1,\
-		        				 /*Ñ¹²î¹ı´ó*/10,	10,		10,		10,		1,\
-		        				 /*µçÁ¿¹ıµÍ*/0,		0,		0,		0,		1}
+#define E2P_PROTECT_MIN_PRT		{/*ï¿½ï¿½ï¿½Ú¹ï¿½Ñ¹*/1000,	1000,	1000,	1000,	1,\
+								 /*ï¿½ï¿½ï¿½Úµï¿½Ñ¹*/1000,	1000,	1000,	1000,	1,\
+								 /*ï¿½ï¿½Ñ¹ï¿½ï¿½Ñ¹*/300,	300,	300,	300,	1,\
+								 /*ï¿½ï¿½Ñ¹ï¿½ï¿½Ñ¹*/300,	300,	300,	300,	1,\
+		        				 /*ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½*/10,	10,		10,		10,		1,\
+		        				 /*ï¿½Åµï¿½ï¿½ï¿½ï¿½*/10,	10,		10,		10,		1,\
+								 /*ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½*/400,	400,	400,	400,	1,\
+								 /*ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½*/0,		0,		0,		0,		1,\
+								 /*ï¿½Åµï¿½ï¿½ï¿½ï¿½*/400,	400,	400,	400,	1,\
+								 /*ï¿½Åµï¿½ï¿½ï¿½ï¿½*/0,		0,		0,		0,		1,\
+		        				 /*ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½*/400,	400,	400,	400,	1,\
+		        				 /*Ñ¹ï¿½ï¿½ï¿½ï¿½ï¿½*/10,	10,		10,		10,		1,\
+		        				 /*ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½*/0,		0,		0,		0,		1}
 
-//ÈıÔªÀï
-#ifdef TERNARYLI
-#define E2P_PROTECT_DEFAULT_PRT	{/*µ¥½Ú¹ıÑ¹*/4200,	4200,	4200,	4000,	100,\
-								 /*µ¥½ÚµÍÑ¹*/2800,	2800,	2800,	2900,	100,\
-								 /*×ÜÑ¹¹ıÑ¹*/420*SNum, 420*SNum, 420*SNum, 400*SNum, 100,\
-								 /*×ÜÑ¹µÍÑ¹*/280*SNum, 280*SNum, 280*SNum, 290*SNum, 100,\
-		        				 /*³äµç¹ıÁ÷*/1200,	1200,	1200,	1000,	100,\
-		        				 /*·Åµç¹ıÁ÷*/1200,	1200,	1200,	1000,	100,\
-								 /*³äµç¸ßÎÂ*/1200,	1200,	1200,	1150,	100,\
-								 /*³äµçµÍÎÂ*/410,	410,	410,	450,	100,\
-								 /*·Åµç¸ßÎÂ*/1200,	1200,	1200,	1150,	100,\
-								 /*·ÅµçµÍÎÂ*/410,	410,	410,	450,	100,\
-		        				 /*Çı¶¯¸ßÎÂ*/1200,	1200,	1200,	1150,	100,\
-		        				 /*Ñ¹²î¹ı´ó*/1000,	1000,	1000,	900,	100,\
-		        				 /*µçÁ¿¹ıµÍ*/3,		2,		1,		2,		100}
 
-//Á×ËáÌúï®
-#elif (defined(LIFEPO))
-
-#define E2P_PROTECT_DEFAULT_PRT	{/*µ¥½Ú¹ıÑ¹*/3550,	3650,	3750,	3650,	100,\
-								 /*µ¥½ÚµÍÑ¹*/2700,	2600,	2500,	2600,	100,\
-								 /*×ÜÑ¹¹ıÑ¹*/355*SNum, 360*SNum,	365*SNum, 360*SNum, 100,\
-								 /*×ÜÑ¹µÍÑ¹*/270*SNum, 260*SNum,	250*SNum, 260*SNum, 100,\
-		        				 /*³äµç¹ıÁ÷*/OCC_1,	OCC_2,	OCC_3,	OCC_recover,	OCC_filter3,\
-		        				 /*·Åµç¹ıÁ÷*/ODC_1,	ODC_2,	ODC_3,	ODC_recover,	ODC_filter3,\
-								 /*³äµç¸ßÎÂ*/900,	950,	1050,	950,	100,\
-								 /*³äµçµÍÎÂ*/430,	400,	CHG_LOWTEMP_PARAM,	400,	100,\
-								 /*·Åµç¸ßÎÂ*/900,	950,	1050,	950,	100,\
-								 /*·ÅµçµÍÎÂ*/300,	250,	200,	300,	100,\
-		        				 /*Çı¶¯¸ßÎÂ*/1200,	1250,	1350,	1200,	100,\
-		        				 /*Ñ¹²î¹ı´ó*/1000,	1000,	1000,	900,	100,\
-		        				 /*µçÁ¿¹ıµÍ*/3,		2,		1,		2,		100}
-
-#endif
+#define E2P_PROTECT_DEFAULT_PRT	{/*å•èŠ‚è¿‡å‹*/COV_1,	COV_2,	COV_3,	COV_recover,	COV_filter3,\
+								 /*å•èŠ‚ä½å‹*/CUV_1,	CUV_2,	CUV_3,	CUV_recover,    CUV_filter3,\
+								 /*æ€»å‹è¿‡å‹*/BOV_1, BOV_2,	BOV_3,  BOV_recover, 	BOV_filter3,\
+								 /*æ€»å‹ä½å‹*/BUV_1, BUV_2,	BUV_3,  BUV_recover, 	BUV_filter3,\
+		        				 /*å……ç”µè¿‡æµ*/OCC_1,	OCC_2,	OCC_3,	OCC_recover,	OCC_filter3,\
+		        				 /*æ”¾ç”µè¿‡æµ*/ODC_1,	ODC_2,	ODC_3,	ODC_recover,	ODC_filter3,\
+								 /*å……ç”µé«˜æ¸©*/OTC_1,	OTC_2,	OTC_3,	OTC_recover,	OTC_filter3,\
+								 /*å……ç”µä½æ¸©*/UTC_1,	UTC_2,	UTC_3,	UTC_recover,	UTC_filter3,\
+								 /*æ”¾ç”µé«˜æ¸©*/OTD_1,	OTD_2,	OTD_3,	OTD_recover,	OTD_filter3,\
+								 /*æ”¾ç”µä½æ¸©*/UTD_1,	UTD_2,	UTD_3,	UTD_recover,	UTD_filter3,\
+		        				 /*é©±åŠ¨é«˜æ¸©*/mos_1,	mos_2,	mos_3,	mos_recover,	mos_filter3,\
+		        				 /*å‹å·®è¿‡å¤§*/VDELTER_1,VDELTER_2,VDELTER_3,VDELTER_recover,VDELTER_filter3,\
+		        				 /*ç”µé‡è¿‡ä½*/socLow_1,socLow_2,	socLow_3,socLow_recover,socLow_filter3}
 
 
 
-
-
-
-#define E2P_PROTECT_MAX_PRT		{/*µ¥½Ú¹ıÑ¹*/5000,	5000,	5000,	5000,	50000,\
-								 /*µ¥½ÚµÍÑ¹*/5000,	5000,	5000,	5000,	50000,\
-								 /*×ÜÑ¹¹ıÑ¹*/20000,	20000,	20000,	20000,	50000,\
-								 /*×ÜÑ¹µÍÑ¹*/20000,	20000,	20000,	20000,	50000,\
-		        				 /*³äµç¹ıÁ÷*/50000,	50000,	50000,	50000,	50000,\
-		        				 /*·Åµç¹ıÁ÷*/50000,	50000,	50000,	50000,	50000,\
-								 /*³äµç¸ßÎÂ*/2000,	2000,	2000,	2000,	50000,\
-								 /*³äµçµÍÎÂ*/800,	800,	800,	800,	50000,\
-								 /*·Åµç¸ßÎÂ*/2000,	2000,	2000,	2000,	50000,\
-								 /*·ÅµçµÍÎÂ*/800,	800,	800,	800,	50000,\
-		        				 /*Çı¶¯¸ßÎÂ*/2000,	2000,	2000,	2000,	50000,\
-		        				 /*Ñ¹²î¹ı´ó*/2000,	2000,	2000,	2000,	50000,\
-		        				 /*µçÁ¿¹ıµÍ*/50,	50,		50,		50,		50000}
+#define E2P_PROTECT_MAX_PRT		{/*ï¿½ï¿½ï¿½Ú¹ï¿½Ñ¹*/5000,	5000,	5000,	5000,	50000,\
+								 /*ï¿½ï¿½ï¿½Úµï¿½Ñ¹*/5000,	5000,	5000,	5000,	50000,\
+								 /*ï¿½ï¿½Ñ¹ï¿½ï¿½Ñ¹*/20000,	20000,	20000,	20000,	50000,\
+								 /*ï¿½ï¿½Ñ¹ï¿½ï¿½Ñ¹*/20000,	20000,	20000,	20000,	50000,\
+		        				 /*ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½*/50000,	50000,	50000,	50000,	50000,\
+		        				 /*ï¿½Åµï¿½ï¿½ï¿½ï¿½*/50000,	50000,	50000,	50000,	50000,\
+								 /*ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½*/2000,	2000,	2000,	2000,	50000,\
+								 /*ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½*/800,	800,	800,	800,	50000,\
+								 /*ï¿½Åµï¿½ï¿½ï¿½ï¿½*/2000,	2000,	2000,	2000,	50000,\
+								 /*ï¿½Åµï¿½ï¿½ï¿½ï¿½*/800,	800,	800,	800,	50000,\
+		        				 /*ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½*/2000,	2000,	2000,	2000,	50000,\
+		        				 /*Ñ¹ï¿½ï¿½ï¿½ï¿½ï¿½*/2000,	2000,	2000,	2000,	50000,\
+		        				 /*ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½*/50,	50,		50,		50,		50000}
 
 
 
@@ -396,6 +530,7 @@ extern UINT16 FaultCnt_StartUp_Second;
 extern UINT16 FaultCnt_StartUp_Third;
 
 void App_WarnCtrl(void);
+void FaultWarnRecord2(enum FaultFlag num);
 
 #endif	/* FAULT_H */
 

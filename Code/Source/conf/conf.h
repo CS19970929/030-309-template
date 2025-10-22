@@ -9,8 +9,8 @@
 #include "conf_gpio.h"
 
 // #define  wdog_enable
-// #define __FUNC__HEAT__
-#define __LOAD_REMOVE_SHORT_FUNC__
+#define __FUNC__HEAT__
+// #define __LOAD_REMOVE_SHORT_FUNC__
 
 #define _SECOND_CURR_PROTECT_FUNC_
 
@@ -35,13 +35,19 @@
 #define   CURR_150A     2
 #define   CURR_200A     3
 #define   CURR_250A     4
+#define   CURR_DEFAULT     5
 
 #define bq76xx_afe  0
 #define sh36xx      1
 
 
-#define   LEVEL_CURR     CURR_150A
+#define CODE_A002           0
+#define CODE_A036           1
+#define CODE_DEFAULT           2
+
+#define   LEVEL_CURR      CURR_DEFAULT
 #define   AFE_TYPE        sh36xx
+#define   FAC_CODE        CODE_DEFAULT    
 
 #ifdef __FUNC__HEAT__
 #define CHG_LOWTEMP_PARAM   120
@@ -87,29 +93,15 @@ typedef struct
   uint16_t    odc2_cnt;
   uint16_t    odc3_cnt;
 
-  uint32_t    test_driver_cnt;
-  uint64_t    test_main_cycle;
-  uint32_t    App_AFEGet_cnt;
-  uint32_t    App_SH367309_Monitor_cnt;
-  uint32_t    App_SleepDeal_cnt;
-  uint32_t    App_beep_cnt;
-
   uint32_t    sci1_irq_cnt;
   uint32_t    sci2_irq_cnt;
   uint32_t    sci3_irq_cnt;
-
-  uint16_t    test_afe_write_cnt;
-  uint16_t    test_compare_cnt;
-  uint16_t    test_compare_exceptioncnt;
 
   uint16_t    uart1_ore_err;
   uint16_t    uart2_ore_err;
   uint16_t    uart2_err2;
   uint16_t    uart2_err3;
   uint16_t    uart2_err4;
-
-  uint16_t    test_current_cnt;
-  uint16_t    test_sci2_err_cnt;
 
   uint16_t    cnt_PA0_irq;
   // uint16_t cnt_bms1_keyirq;
@@ -122,6 +114,8 @@ typedef struct
 
   uint16_t  cnt_enter_chg_open;
   uint16_t  cnt_enter_dsg_open;
+
+  bool     isCHG_wake;
 
 
 }Time_T;

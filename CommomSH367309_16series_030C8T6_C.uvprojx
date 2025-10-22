@@ -325,8 +325,8 @@
             <wLevel>2</wLevel>
             <uThumb>0</uThumb>
             <uSurpInc>0</uSurpInc>
-            <uC99>0</uC99>
-            <uGnu>0</uGnu>
+            <uC99>1</uC99>
+            <uGnu>1</uGnu>
             <useXO>0</useXO>
             <v6Lang>1</v6Lang>
             <v6LangP>1</v6LangP>
@@ -339,7 +339,7 @@
               <MiscControls>--C99</MiscControls>
               <Define>USE_STDPERIPH_DRIVER STM32F0XX</Define>
               <Undefine></Undefine>
-              <IncludePath>.\Code\Drivers;.\Code\STM32F0xx_StdPeriph_Driver\inc;.\Code\Source\NewFunc;.\Code\Source;.\Code\Source\conf</IncludePath>
+              <IncludePath>.\Code\Drivers;.\Code\STM32F0xx_StdPeriph_Driver\inc;.\Code\Source\NewFunc;.\Code\Source;.\Code\Source\conf;.\Code\Source\mcu_sdk;.\Code\Source\BSP</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -832,6 +832,41 @@
               <FileName>conf_gpio.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\Code\Source\conf\conf_gpio.h</FilePath>
+            </File>
+            <File>
+              <FileName>adapter_4G.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Code\Source\conf\adapter_4G.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>mcu sdk</GroupName>
+          <Files>
+            <File>
+              <FileName>mcu_api.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Code\Source\mcu_sdk\mcu_api.c</FilePath>
+            </File>
+            <File>
+              <FileName>protocol.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Code\Source\mcu_sdk\protocol.c</FilePath>
+            </File>
+            <File>
+              <FileName>system.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Code\Source\mcu_sdk\system.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>bsp</GroupName>
+          <Files>
+            <File>
+              <FileName>bsp_74HC595D.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Code\Source\BSP\bsp_74HC595D.c</FilePath>
             </File>
           </Files>
         </Group>

@@ -139,7 +139,7 @@ UINT8 IIC_Read_Byte_SEE(unsigned char ack)
 // 后续维护人员禁止使用这个函数
 UINT8 WriteEEPROM_Byte(UINT16 addr, UINT8 val)
 {
-	Feed_IWatchDog;
+	Feed_WatchDog;
 	MCUO_E2PR_WP = 0;
 
 	IIC_Start_SEE();
@@ -172,14 +172,14 @@ UINT8 WriteEEPROM_Byte(UINT16 addr, UINT8 val)
 	__delay_ms(5);	// EEPROM特性，需要5ms保证写完
 
 	MCUO_E2PR_WP = 1;
-	Feed_IWatchDog;
+	Feed_WatchDog;
 	return 0;
 }
 
 UINT8 ReadEEPROM_Byte(UINT16 addr)
 {
 	UINT8 temp = 0;
-	Feed_IWatchDog;
+	Feed_WatchDog;
 	IIC_Start_SEE();
 	IIC_Send_Byte_SEE(sEEAddress | I2C_RW_W); // 发送写命令
 	if (1 == IIC_Wait_Ack_SEE())
@@ -216,7 +216,7 @@ UINT8 ReadEEPROM_Byte(UINT16 addr)
 	temp = IIC_Read_Byte_SEE(0);
 	IIC_Stop_SEE(); // 产生一个停止条件
 
-	Feed_IWatchDog;
+	Feed_WatchDog;
 	return temp;
 }
 

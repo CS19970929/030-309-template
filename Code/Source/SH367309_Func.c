@@ -144,7 +144,7 @@ UINT8 AFE_IsReady(void)
 
 	while (1)
 	{
-		Feed_IWatchDog;
+		Feed_WatchDog;
 
 		TempVar = 0;
 		if (MTPRead(MTP_BFLAG2, 1, &TempVar))
@@ -258,6 +258,7 @@ UINT8 SH367309_SC_DelayT_Set(void)
 	return result;
 }
 
+#if 0
 void SH367309_DriverMos_Ctrl(GPIO_Type Type, UINT8 OnOFF)
 {
 	switch (Type)
@@ -280,6 +281,39 @@ void SH367309_DriverMos_Ctrl(GPIO_Type Type, UINT8 OnOFF)
 
 	MTPWrite(MTP_CONF, 1, &SH367309_Reg_Store.REG_MTP_CONF.all);
 }
+#else
+void SH367309_DriverMos_Ctrl(GPIO_Type Type, UINT8 OnOFF)
+{
+	switch (Type)
+	{
+	case GPIO_PreCHG:
+		SH367309_Reg_Store.REG_MTP_CONF.bits.PCHMOS = OnOFF;
+		break;
+
+	case GPIO_CHG:
+		// SH367309_Reg_Store.REG_MTP_CONF.bits.CHGMOS = OnOFF;
+		if(OnOFF == 1)
+		{
+			OPEN_CHG();
+		}
+		else
+		{
+			CLOSE_CHG();
+		}
+		break;
+
+	case GPIO_DSG:
+		SH367309_Reg_Store.REG_MTP_CONF.bits.DSGMOS = OnOFF;
+		break;
+
+	default:
+		break;
+	}
+
+	// MTPWrite(MTP_CONF, 1, &SH367309_Reg_Store.REG_MTP_CONF.all);
+}
+
+#endif
 
 void Fault_ChangeToMCU(void)
 {

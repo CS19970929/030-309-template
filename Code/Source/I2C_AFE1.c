@@ -181,7 +181,7 @@ UINT8 TwiChkClkRelease(void)
 
 	while (TimeoutCnt--)
 	{
-		Feed_IWatchDog;
+		Feed_WatchDog;
 		Delay4us();
 		if (TWI_RD_CLK)
 		{
@@ -652,7 +652,7 @@ UINT8 MTPWrite(UINT8 WrAddr, UINT8 Length, UINT8 *WrBuf)
 {
 	UINT8 result;
 	UINT8 i;
-	Feed_IWatchDog;
+	Feed_WatchDog;
 
 	/*
 	if(System_ErrFlag.u8ErrFlag_Com_AFE1) {
@@ -709,7 +709,7 @@ UINT8 MTPWriteROM(UINT8 WrAddr, UINT8 Length, UINT8 *WrBuf)
 
 	for (i = 0; i < Length; i++)
 	{
-		Feed_IWatchDog;
+		Feed_WatchDog;
 		result = TwiWrite(AFE_ID, WrAddr, 1, WrBuf);
 		if (!result)
 		{
@@ -739,7 +739,7 @@ UINT8 MTPRead(UINT8 RdAddr, UINT8 Length, UINT8 *RdBuf)
 {
 	UINT8 result = 1;
 
-	Feed_IWatchDog;
+	Feed_WatchDog;
 
 	/*
 	if(System_ErrFlag.u8ErrFlag_Com_AFE1) {
@@ -838,7 +838,7 @@ void InitAFE1(void)
 	AFE_IsReady();
 	SH367309_UpdataAfeConfig();
 	SH367309_Enable_AFE_Wdt_Cadc_Drivers();
-	MCUO_AFE_CTLC = 1; // 刚上电，默认高阻态，所以不慌AFE刚开机瞬间打开MOS
+	//MCUO_AFE_CTLC = 1; // 刚上电，默认高阻态，所以不慌AFE刚开机瞬间打开MOS
 }
 
 /*调试心得

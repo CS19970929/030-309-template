@@ -99,10 +99,10 @@ void InitADC_GPIO(void)
 	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOB, ENABLE); // 开启GPIOA的外设时钟
 
 	// PB0_TTC_MOS1
-	GPIO_InitStruct.GPIO_Pin = GPIO_Pin_0; // ADC_Channel_5对PA5
+	GPIO_InitStruct.GPIO_Pin = PIN_AD_TTC_MOS1; // ADC_Channel_5对PA5
 	GPIO_InitStruct.GPIO_Mode = GPIO_Mode_AN;
 	GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_NOPULL;
-	GPIO_Init(GPIOB, &GPIO_InitStruct); // PA5输入时不用设置速率
+	GPIO_Init(GPIO_AD_TTC_MOS1, &GPIO_InitStruct); // PA5输入时不用设置速率
 }
 
 void InitADC_TIMER(void)

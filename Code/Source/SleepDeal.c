@@ -369,6 +369,7 @@ void SleepDeal_Continue(void)
 	{
 		InitAFE1_Sleep(0);
 		AFE_Sleep();
+		POWER_OFF_4G_AND_INIT();
 		MCU_RESET();
 	}
 }
@@ -917,6 +918,41 @@ void SleepDeal_Test(void)
 	}
 }
 
+bool WakeUp(void)
+{
+	bool isWake = false;
+	uint16_t key_press_cnt = 0;
+	uint16_t key_nopress_cnt = 0;
+
+	// return true;
+	InitDelay();
+	InitIO();
+
+	if (sys_time.isCHG_wake)
+		return true;
+	else
+	{
+		while (1)
+		{
+			if (0 == MCUI_ENI_DI1 || 0 == MCUI_SOC_KEY)
+			{
+				if (++key_press_cnt >= (10 * 5))
+				{
+					return true;
+				}
+			}
+			else
+			{
+				if (++key_nopress_cnt >= 10)
+				{
+					return false;
+				}
+			}
+			__delay_ms(100);
+		}
+	}
+}
+
 // 如果起来了，有保护，作别的操作类型还没写
 // 现在通过参数设置，高于1005为RTC休眠
 void IsSleepStartUp(void)
@@ -938,20 +974,29 @@ void IsSleepStartUp(void)
 	case FLASH_NORMAL_SLEEP_VALUE:
 		if (FLASH_COMPLETE == FlashWriteOneHalfWord(FLASH_ADDR_SLEEP_FLAG, FLASH_SLEEP_RESET_VALUE))
 		{
+			_NORMALSLEEP:
 			IOstatus_NormalMode();
 			InitWakeUp_NormalMode();
 			Sys_StopMode();
-			IORecover_NormalMode();
+			if (WakeUp())
+				IORecover_DeepMode();
+			else
+				goto _NORMALSLEEP;
 		}
 		break;
 	case FLASH_DEEP_SLEEP_VALUE:
 		if (FLASH_COMPLETE == FlashWriteOneHalfWord(FLASH_ADDR_SLEEP_FLAG, FLASH_SLEEP_RESET_VALUE))
 		{
+			sys_time.isCHG_wake = false;
+		_DEEPSLEEP:
 			IOstatus_DeepMode();
 			InitWakeUp_DeepMode();
 			// Sys_StandbyMode();		//不能掌控外部IO，弃用
 			Sys_StopMode();
-			IORecover_DeepMode();
+			if (WakeUp())
+				IORecover_DeepMode();
+			else
+				goto _DEEPSLEEP;
 		}
 		break;
 	case FLASH_SLEEP_RESET_VALUE:
