@@ -274,6 +274,7 @@ void Drivers_External_Ctrl(void)
 {
 	if (Driver_Element.u8_DriverCtrl_Right)
 	{
+		SystemStatus.bits.b1Status_MOS_CHG = GPIO_ReadOutputDataBit(GPIO_DR_CHG, PIN_DR_CHG);
 		//todo 冗余设计、异常处理、测试ctlc 强制关来测试时序是否有问题
 		if (SystemStatus.bits.b1Status_MOS_CHG != Driver_Element.MosRelay_Status.bits.b1Status_MOS_CHG)
 		{

@@ -553,7 +553,6 @@ void Sci2_CommonUpper_Rx_Deal(struct RS485MSG *s);
 
 void InitUSART_CommonUpper(void);
 void App_CommonUpper(void);
-void CommonUpper_irq(struct RS485MSG *s);
 
 #endif	/* SCI_H */
 

@@ -82,18 +82,18 @@ void SendByte_4G(unsigned char data)
     //     ;
     // USART3->DR = data;
 
-    while (!((USART1->ISR) & (1 << 7)))
+    while (!((USART2->ISR) & (1 << 7)))
         ;               // 1<<6 也可以
-    USART1->TDR = data; // load data
+    USART2->TDR = data; // load data
 }
 
 void RecvByte_4G(void)
 {
     unsigned char Res = 0;
 
-    if ((USART1->ISR & USART_IT_RXNE) != 0)
+    if ((USART2->ISR & USART_IT_RXNE) != 0)
     {
-        Res = USART1->RDR;
+        Res = USART2->RDR;
         uart_receive_input(Res);
     }
 }

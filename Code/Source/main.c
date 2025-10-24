@@ -52,6 +52,8 @@ int main(void)
 		App_CellBalance();
 
 		// APP_LedBar();
+		Display_ScanTask();
+		test_main();
 
 		// App_ChargerLoad_Det();
 #ifdef __FUNC__HEAT__

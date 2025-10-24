@@ -1,5 +1,64 @@
 #include "main.h"
 
+/*
+     共阴数码管编码表：
+ 0x3f   0x06   0x5b   0x4f  0x66  0x6d
+   0      1     2      3     4     5
+ 0x7d  0x07   0x7f    0x6f  0x77  0x7c
+   6    7      8       9     A     B
+ 0x39  0x5e   0x79    0x71
+   C    D       E      F
+
+
+   共阳数码管编码表：
+ 0xc0  0xf9   0xa4    0xb0  0x99   0x92
+  0      1     2       3     4     5
+ 0x82  0xf8   0x80    0x90  0x88   0x83
+   6    7      8       9     A     B
+ 0xc6  0xa1   0x86    0x8e
+   C    D       E      F
+*/
+
+// 共阴数码管
+const uint8_t SEG_CODE[16] = {
+    0x3F, 0x06, 0x5B, 0x4F,
+    0x66, 0x6D, 0x7D, 0x07,
+    0x7F, 0x6F, 0x77, 0x7C,
+    0x39, 0x5E, 0x79, 0x71};
+
+typedef enum
+{
+    DISPLAY_SOC,
+    DISPLAY_FAULT
+} DisplayMode_t;
+
+typedef struct
+{
+    DisplayMode_t mode;
+    uint16_t soc;
+    uint16_t fault;
+    uint8_t current_digit; // 当前扫描位 (0~2)
+    uint32_t toggle_timer; // 用于故障闪烁
+    uint8_t toggle_state;  // 切换SOC/故障显示
+} Display_t;
+
+Display_t gDisplay;
+
+// 假设使用 PB0-2 控制 74HC595，PB3-5 控制位选
+#define SER_HIGH() GPIO_SetBits(GPIO_MOSI, PIN_MOSI)
+#define SER_LOW() GPIO_ResetBits(GPIO_MOSI, PIN_MOSI)
+#define SRCLK_HIGH() GPIO_SetBits(GPIO_SCK, PIN_SCK)
+#define SRCLK_LOW() GPIO_ResetBits(GPIO_SCK, PIN_SCK)
+#define RCLK_HIGH() GPIO_SetBits(GPIO_NSS, PIN_NSS)
+#define RCLK_LOW() GPIO_ResetBits(GPIO_NSS, PIN_NSS)
+
+#define MCUO_SEG_DIG1 (PORT_OUT_GPIOB->bit9) // AFE_SHIP
+#define MCUO_SEG_DIG2 (PORT_OUT_GPIOF->bit6) // AFE_SHIP
+#define MCUO_SEG_DIG3 (PORT_OUT_GPIOF->bit7) // AFE_SHIP
+
+// #define DIGIT1_PIN GPIO_Pin_3
+// #define DIGIT2_PIN GPIO_Pin_4
+// #define DIGIT3_PIN GPIO_Pin_5
 void bsp_74HC595D_init(void)
 {
     GPIO_InitTypeDef GPIO_InitStructure;
@@ -39,44 +98,6 @@ void bsp_74HC595D_init(void)
     GPIO_Init(GPIO_MCU_DIG3, &GPIO_InitStructure);
 }
 
-#include "stm32f10x.h"
-
-// 假设使用 PB0-2 控制 74HC595，PB3-5 控制位选
-#define SER_HIGH() GPIO_SetBits(GPIOB, GPIO_Pin_0)
-#define SER_LOW() GPIO_ResetBits(GPIOB, GPIO_Pin_0)
-#define SRCLK_HIGH() GPIO_SetBits(GPIOB, GPIO_Pin_1)
-#define SRCLK_LOW() GPIO_ResetBits(GPIOB, GPIO_Pin_1)
-#define RCLK_HIGH() GPIO_SetBits(GPIOB, GPIO_Pin_2)
-#define RCLK_LOW() GPIO_ResetBits(GPIOB, GPIO_Pin_2)
-
-#define DIGIT1_PIN GPIO_Pin_3
-#define DIGIT2_PIN GPIO_Pin_4
-#define DIGIT3_PIN GPIO_Pin_5
-
-const uint8_t SEG_CODE[16] = {
-    0x3F, 0x06, 0x5B, 0x4F,
-    0x66, 0x6D, 0x7D, 0x07,
-    0x7F, 0x6F, 0x77, 0x7C,
-    0x39, 0x5E, 0x79, 0x71};
-
-typedef enum
-{
-    DISPLAY_SOC,
-    DISPLAY_FAULT
-} DisplayMode_t;
-
-typedef struct
-{
-    DisplayMode_t mode;
-    uint16_t soc;
-    uint16_t fault;
-    uint8_t current_digit; // 当前扫描位 (0~2)
-    uint32_t toggle_timer; // 用于故障闪烁
-    uint8_t toggle_state;  // 切换SOC/故障显示
-} Display_t;
-
-Display_t gDisplay;
-
 //--------------------------------------
 // 发送一字节给74HC595
 //--------------------------------------
@@ -106,6 +127,7 @@ void Display_UpdateData(DisplayMode_t mode, uint16_t soc, uint16_t fault)
     gDisplay.fault = fault;
 }
 
+#if 0
 //--------------------------------------
 // 定时任务：1ms 调用一次
 //--------------------------------------
@@ -133,7 +155,10 @@ void Display_ScanTask(uint32_t now_ms)
     digits[2] = (value / 100) % 10;
 
     // 关闭所有位选
-    GPIO_ResetBits(GPIOB, DIGIT1_PIN | DIGIT2_PIN | DIGIT3_PIN);
+    // GPIO_ResetBits(GPIOB, DIGIT1_PIN | DIGIT2_PIN | DIGIT3_PIN);
+    MCUO_SEG_DIG1 = 0;
+    MCUO_SEG_DIG2 = 0;
+    MCUO_SEG_DIG3 = 0;
 
     // 输出段码
     HC595_SendByte(SEG_CODE[digits[gDisplay.current_digit]]);
@@ -142,13 +167,13 @@ void Display_ScanTask(uint32_t now_ms)
     switch (gDisplay.current_digit)
     {
     case 0:
-        GPIO_SetBits(GPIOB, DIGIT1_PIN);
+        GPIO_SetBits(GPIO_MCU_DIG1, PIN_MCU_DIG1);
         break;
     case 1:
-        GPIO_SetBits(GPIOB, DIGIT2_PIN);
+        GPIO_SetBits(GPIO_MCU_DIG2, PIN_MCU_DIG2);
         break;
     case 2:
-        GPIO_SetBits(GPIOB, DIGIT3_PIN);
+        GPIO_SetBits(GPIO_MCU_DIG3, PIN_MCU_DIG3);
         break;
     }
 
@@ -157,15 +182,125 @@ void Display_ScanTask(uint32_t now_ms)
     if (gDisplay.current_digit >= 3)
         gDisplay.current_digit = 0;
 }
+#endif
 
-void SysTick_Handler(void)
+void Display_ScanTask(uint32_t now_ms)
 {
-    static uint32_t tick = 0;
-    tick++;
-    Display_ScanTask(tick);
+    uint16_t value;
+    uint8_t digits[3];
+    uint8_t seg_data;
+
+    if (0 == g_st_SysTimeFlag.bits.b1Sys1msFlag)
+    {
+        return;
+    }
+
+    if (gDisplay.mode == DISPLAY_FAULT)
+    {
+        // 每 1000ms 切换显示 SOC / 故障码
+        // if (now_ms - gDisplay.toggle_timer >= 1000)
+        {
+            // gDisplay.toggle_timer = now_ms;
+            gDisplay.toggle_state ^= 1;
+        }
+
+        if (gDisplay.toggle_state == 0)
+        { // 显示故障
+            uint8_t fault = gDisplay.fault;
+            digits[0] = fault % 10;
+            digits[1] = (fault / 10) % 10;
+            digits[2] = 0xEE; // E 的标志（我们用特殊码表示）
+        }
+        else
+        { // 显示SOC
+            value = gDisplay.soc;
+            digits[0] = value % 10;
+            digits[1] = (value / 10) % 10;
+            digits[2] = (value / 100) % 10;
+        }
+    }
+    else
+    {
+        value = gDisplay.soc;
+        digits[0] = value % 10;
+        digits[1] = (value / 10) % 10;
+        digits[2] = (value / 100) % 10;
+    }
+
+    // 关闭所有位选
+    // GPIO_ResetBits(GPIOB, DIGIT1_PIN | DIGIT2_PIN | DIGIT3_PIN);
+    MCUO_SEG_DIG1 = 0;
+    MCUO_SEG_DIG2 = 0;
+    MCUO_SEG_DIG3 = 0;
+
+    // // 确定当前位段码
+    // if (digits[gDisplay.current_digit] == 0xEE)
+    //     seg_data = SEG_E;
+    // else
+    //     seg_data = SEG_CODE[digits[gDisplay.current_digit]];
+
+    // ????输出段码
+    // HC595_SendByte(seg_data);
+    HC595_SendByte(SEG_CODE[digits[gDisplay.current_digit]]);
+
+    // 打开对应位
+    switch (gDisplay.current_digit)
+    {
+    case 0:
+        GPIO_SetBits(GPIO_MCU_DIG1, PIN_MCU_DIG1);
+        break;
+    case 1:
+        GPIO_SetBits(GPIO_MCU_DIG2, PIN_MCU_DIG2);
+        break;
+    case 2:
+        GPIO_SetBits(GPIO_MCU_DIG3, PIN_MCU_DIG3);
+        break;
+    }
+
+    gDisplay.current_digit++;
+    if (gDisplay.current_digit >= 3)
+        gDisplay.current_digit = 0;
 }
+
+// void SysTick_Handler(void)
+// {
+//     static uint32_t tick = 0;
+//     tick++;
+//     Display_ScanTask(tick);
+// }
 
 void test_main(void)
 {
-    Display_UpdateData(DISPLAY_SOC, 78, 5);
+    static uint8_t soc = 0;
+    static uint8_t fault = 0;
+    if (0 == g_st_SysTimeFlag.bits.b1Sys1000msFlag3)
+    {
+        return;
+    }
+
+    // 1、test1
+#if 1
+    if (soc < 100)
+    {
+        soc++;
+        Display_UpdateData(DISPLAY_SOC, soc, fault);
+    }
+    else
+    {
+        soc = 0;
+    }
+#endif
+
+    // 2、 test2
+#if 0
+    if (fault < 99)
+    {
+        fault++;
+        Display_UpdateData(DISPLAY_FAULT, soc, fault);
+    }
+    else
+    {
+        fault = 0;
+    }
+#endif
 }
