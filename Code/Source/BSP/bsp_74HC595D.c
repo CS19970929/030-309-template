@@ -184,6 +184,40 @@ void Display_ScanTask(uint32_t now_ms)
 }
 #endif
 
+void display_fault(void)
+{
+    uint16_t fault_code = 0;
+
+    if (g_stCellInfoReport.unMdlFault_Third.bits.b1CellOvp)
+        fault_code = 1;
+    if (g_stCellInfoReport.unMdlFault_Third.bits.b1CellUvp)
+        fault_code = 2;
+    if (g_stCellInfoReport.unMdlFault_Third.bits.b1TmosOtp)
+        fault_code = 3;
+    // if(g_stCellInfoReport.unMdlFault_Third.bits.b1CellUvp)
+    //     fault_code = 1 << 2;
+    if (g_stCellInfoReport.unMdlFault_Third.bits.b1CellChgOtp)
+        fault_code = 5;
+    if (g_stCellInfoReport.unMdlFault_Third.bits.b1CellChgUtp)
+        fault_code = 6;
+    if (g_stCellInfoReport.unMdlFault_Third.bits.b1CellDischgOtp)
+        fault_code = 7;
+    if (g_stCellInfoReport.unMdlFault_Third.bits.b1CellDischgUtp)
+        fault_code = 8;
+    if (g_stCellInfoReport.unMdlFault_Third.bits.b1IchgOcp)
+        fault_code = 9;
+    if (g_stCellInfoReport.unMdlFault_Third.bits.b1IdischgOcp)
+        fault_code = 10;
+    if (System_ERROR_UserCallback(ERROR_STATUS_CBC_DSG))
+        fault_code = 11;
+    if (g_stCellInfoReport.SocElement.u16Soc == 100)
+        fault_code = 12;
+    if (System_ERROR_UserCallback(ERROR_AFE1))
+        fault_code = 13;
+
+    Display_UpdateData(DISPLAY_FAULT, 0, fault_code);
+}
+
 void Display_ScanTask(uint32_t now_ms)
 {
     uint16_t value;
@@ -193,6 +227,14 @@ void Display_ScanTask(uint32_t now_ms)
     if (0 == g_st_SysTimeFlag.bits.b1Sys1msFlag)
     {
         return;
+    }
+
+    if (g_stCellInfoReport.unMdlFault_Third.all)
+    {
+    }
+    else
+    {
+        Display_UpdateData(DISPLAY_SOC, 0, 1);
     }
 
     if (gDisplay.mode == DISPLAY_FAULT)

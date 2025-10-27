@@ -317,11 +317,11 @@ void DataLoad_Current(void)
 	g_stCellInfoReport.u16Ichg = (UINT16)((u32_ChgCur_mA >> 10) / 100);
 	g_stCellInfoReport.u16IDischg = (UINT16)((u32_DsgCur_mA >> 10) / 100);
 
-	if (g_stCellInfoReport.u16Ichg <= 2)
+	if (g_stCellInfoReport.u16Ichg <= 5)
 	{
 		g_stCellInfoReport.u16Ichg = 0;
 	}
-	if (g_stCellInfoReport.u16IDischg <= 2)
+	if (g_stCellInfoReport.u16IDischg <= 5)
 	{
 		g_stCellInfoReport.u16IDischg = 0;
 	}
@@ -474,11 +474,10 @@ void App_AFEGet(void)
 		return;
 	}
 
-	// MCUO_DEBUG_LED1 = 0;
-	// MonitorAFE(0, UpdateVoltageFromBqMaximo());
-	MonitorAFE(0, UpdateVoltageFromBqMaximo_Partition(ts_u8TempSel++));
-	if (ts_u8TempSel >= 4)
-		ts_u8TempSel = 0;
+	MonitorAFE(0, UpdateVoltageFromBqMaximo());
+	// MonitorAFE(0, UpdateVoltageFromBqMaximo_Partition(ts_u8TempSel++));
+	// if (ts_u8TempSel >= 4)
+	// 	ts_u8TempSel = 0;
 
 	DataLoad_CellVolt();
 	// DataLoad_CellVolt_Test();

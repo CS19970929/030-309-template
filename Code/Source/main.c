@@ -53,7 +53,7 @@ int main(void)
 
 		// APP_LedBar();
 		Display_ScanTask();
-		test_main();
+		// test_main();
 
 		// App_ChargerLoad_Det();
 #ifdef __FUNC__HEAT__
