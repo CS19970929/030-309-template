@@ -125,8 +125,8 @@ void InitWakeUp_NormalMode(void)
 	EXTI_Init(&EXTI_InitStruct);
 	// 中断嵌套设计
 	NVIC_InitStructure.NVIC_IRQChannel = EXTI2_3_IRQn; // 使能按键WK_UP所在的外部中断通道
-	NVIC_InitStructure.NVIC_IRQChannelPriority = 0x00;	// 抢占优先级0
-	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;		// 使能外部中断通道
+	NVIC_InitStructure.NVIC_IRQChannelPriority = 0x00; // 抢占优先级0
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;	   // 使能外部中断通道
 	NVIC_Init(&NVIC_InitStructure);
 }
 
@@ -920,13 +920,30 @@ void SleepDeal_Test(void)
 
 bool WakeUp(void)
 {
+	GPIO_InitTypeDef GPIO_InitStructure;
+
+	//
+	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA, ENABLE); // 开启GPIOA的外设时钟
+	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOB, ENABLE); // 开启GPIOB的外设时钟
+	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOC, ENABLE); // 开启GPIOC的外设时钟
+	// RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOD, ENABLE); // 开启GPIOB的外设时钟
+	// RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOE, ENABLE); // 开启GPIOB的外设时钟
+	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOF, ENABLE); // 开启GPIOF的外设时钟
+
+	GPIO_InitStructure.GPIO_Pin = PIN_KEY1; // 选择要用的GPIO引脚
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
+	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL; // 设置引脚模式为上拉输入模式
+	GPIO_Init(GPIO_KEY1, &GPIO_InitStructure);
+
 	bool isWake = false;
 	uint16_t key_press_cnt = 0;
 	uint16_t key_nopress_cnt = 0;
 
-	// return true;
+	return true;
 	InitDelay();
-	InitIO();
+	// InitIO();
+
+	// return true;
 
 	if (sys_time.isCHG_wake)
 		return true;
@@ -934,9 +951,9 @@ bool WakeUp(void)
 	{
 		while (1)
 		{
-			if (0 == MCUI_ENI_DI1 || 0 == MCUI_SOC_KEY)
+			if (0 == MCUI_ENI_DI1)
 			{
-				if (++key_press_cnt >= (10 * 5))
+				if (++key_press_cnt >= (10 * 3))
 				{
 					return true;
 				}
@@ -974,7 +991,7 @@ void IsSleepStartUp(void)
 	case FLASH_NORMAL_SLEEP_VALUE:
 		if (FLASH_COMPLETE == FlashWriteOneHalfWord(FLASH_ADDR_SLEEP_FLAG, FLASH_SLEEP_RESET_VALUE))
 		{
-			_NORMALSLEEP:
+		_NORMALSLEEP:
 			IOstatus_NormalMode();
 			InitWakeUp_NormalMode();
 			Sys_StopMode();

@@ -147,9 +147,9 @@ void App_DI1_Switch(void)
 #ifdef _DI_SWITCH_longKEY_ONOFF
 	static UINT16 su16_AntiShake_Cnt2 = 0;
 
-	if (0 == MCUI_ENI_DI1 || 0 == MCUI_ENI_DI2)
+	if (0 == MCUI_ENI_DI1)
 	{
-		if (++su16_AntiShake_Cnt2 >= 300)
+		if (++su16_AntiShake_Cnt2 >= (5 * 3))
 		{
 			su16_AntiShake_Cnt2 = 0;
 			entersleep(DEEP_MODE);

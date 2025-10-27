@@ -130,6 +130,7 @@ void EXTI0_1_IRQHandler(void)
 	// delay_ms(10);//Ïû¶¶
 	if (EXTI_GetITStatus(EXTI_Line0) != RESET)
 	{
+		sys_time.isCHG_wake = true;
 		// WKUP
 		EXTI_ClearITPendingBit(EXTI_Line0);
 		ChargerLoad_Func.bits.b1ON_Charger_AllSeries = 1;
@@ -203,7 +204,9 @@ void USART1_IRQHandler(void)
 
 void USART2_IRQHandler(void)
 {
+#if (defined _COMMOM_UPPER_SCI2)
 	Sci2_CommonUpper_FaultChk();
+#endif
 	// 	if (USART_GetITStatus(USART2, USART_IT_RXNE) != RESET)
 	// 	{
 	// 		RTC_ExtComCnt++;

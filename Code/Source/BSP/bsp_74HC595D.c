@@ -96,6 +96,8 @@ void bsp_74HC595D_init(void)
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_Level_1;
     GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
     GPIO_Init(GPIO_MCU_DIG3, &GPIO_InitStructure);
+
+    RCLK_LOW();
 }
 
 //--------------------------------------
@@ -105,12 +107,12 @@ static void HC595_SendByte(uint8_t data)
 {
     for (int i = 0; i < 8; i++)
     {
+        SRCLK_LOW();
         if (data & 0x80)
             SER_HIGH();
         else
             SER_LOW();
         SRCLK_HIGH();
-        SRCLK_LOW();
         data <<= 1;
     }
     RCLK_HIGH();
@@ -224,17 +226,18 @@ void Display_ScanTask(uint32_t now_ms)
     uint8_t digits[3];
     uint8_t seg_data;
 
-    if (0 == g_st_SysTimeFlag.bits.b1Sys1msFlag)
-    {
-        return;
-    }
+    // if (0 == g_st_SysTimeFlag.bits.b1Sys1msFlag)
+    // {
+    //     return;
+    // }
 
     if (g_stCellInfoReport.unMdlFault_Third.all)
     {
+        display_fault();
     }
     else
     {
-        Display_UpdateData(DISPLAY_SOC, 0, 1);
+        Display_UpdateData(DISPLAY_SOC, g_stCellInfoReport.SocElement.u16Soc, 1);
     }
 
     if (gDisplay.mode == DISPLAY_FAULT)
@@ -249,9 +252,9 @@ void Display_ScanTask(uint32_t now_ms)
         if (gDisplay.toggle_state == 0)
         { // 显示故障
             uint8_t fault = gDisplay.fault;
-            digits[0] = fault % 10;
-            digits[1] = (fault / 10) % 10;
-            digits[2] = 0xEE; // E 的标志（我们用特殊码表示）
+            digits[0] = 0xEE; // E 的标志（我们用特殊码表示）
+            digits[1] = fault % 10;
+            digits[2] = (fault / 10) % 10;
         }
         else
         { // 显示SOC
@@ -275,6 +278,11 @@ void Display_ScanTask(uint32_t now_ms)
     MCUO_SEG_DIG2 = 0;
     MCUO_SEG_DIG3 = 0;
 
+    uint8_t fault = gDisplay.fault;
+    digits[0] = 0xEE; // E 的标志（我们用特殊码表示）
+    digits[1] = fault % 10;
+    digits[2] = (fault / 10) % 10;
+
     // // 确定当前位段码
     // if (digits[gDisplay.current_digit] == 0xEE)
     //     seg_data = SEG_E;
@@ -289,13 +297,13 @@ void Display_ScanTask(uint32_t now_ms)
     switch (gDisplay.current_digit)
     {
     case 0:
-        GPIO_SetBits(GPIO_MCU_DIG1, PIN_MCU_DIG1);
+        GPIO_SetBits(GPIO_MCU_DIG3, PIN_MCU_DIG3);
         break;
     case 1:
         GPIO_SetBits(GPIO_MCU_DIG2, PIN_MCU_DIG2);
         break;
     case 2:
-        GPIO_SetBits(GPIO_MCU_DIG3, PIN_MCU_DIG3);
+        GPIO_SetBits(GPIO_MCU_DIG1, PIN_MCU_DIG1);
         break;
     }
 
@@ -311,17 +319,65 @@ void Display_ScanTask(uint32_t now_ms)
 //     Display_ScanTask(tick);
 // }
 
+uint16_t test_segcode = 0;
 void test_main(void)
 {
     static uint8_t soc = 0;
     static uint8_t fault = 0;
-    if (0 == g_st_SysTimeFlag.bits.b1Sys1000msFlag3)
+    // if (0 == g_st_SysTimeFlag.bits.b1Sys1000msFlag3)
+    if (0 == g_st_SysTimeFlag.bits.b1Sys200msFlag1)
     {
         return;
     }
 
+    // Display_UpdateData(DISPLAY_SOC, soc, fault);
+    // Display_UpdateData(DISPLAY_SOC, g_stCellInfoReport.SocElement.u16Soc, fault);
+
+    MCUO_SEG_DIG1 = 1;
+    MCUO_SEG_DIG2 = 1;
+    MCUO_SEG_DIG3 = 1;
+
+    // HC595_SendByte(0x79);
+    // HC595_SendByte(sys_time.occ1_cnt);
+    // HC595_SendByte(soc);
+    HC595_SendByte(SEG_CODE[soc]);
+    if (soc < 16)
+    {
+        soc++;
+    }
+    else
+    {
+        soc = 0;
+    }
+
+    // MCUO_SEG_DIG3 = 0;
+    // MCUO_SEG_DIG2 = 0;
+    // MCUO_SEG_DIG1 = 0;
+    // HC595_SendByte(SEG_CODE[0]);
+    // HC595_SendByte(SEG_CODE[1]);
+    // HC595_SendByte(SEG_CODE[2]);
+    // HC595_SendByte(SEG_CODE[3]);
+    // HC595_SendByte(SEG_CODE[4]);
+    // HC595_SendByte(0x3f);
+    // HC595_SendByte(0x06);
+
+    // // 确定当前位段码
+    // if (digits[gDisplay.current_digit] == 0xEE)
+    //     seg_data = SEG_E;
+    // else
+    //     seg_data = SEG_CODE[digits[gDisplay.current_digit]];
+
+    // ????输出段码
+    // HC595_SendByte(seg_data);
+    // HC595_SendByte(SEG_CODE[test_segcode]);
+    // for (size_t i = 0; i < 10; i++)
+    // {
+    //     HC595_SendByte(SEG_CODE[i]);
+    //     __delay_ms(1000);
+    // }
+
     // 1、test1
-#if 1
+#if 0
     if (soc < 100)
     {
         soc++;

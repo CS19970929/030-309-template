@@ -75,7 +75,7 @@
 //#define _CLIENT_SCI1
 //#define _LCD_SCI1
 
-#define _COMMOM_UPPER_SCI2
+// #define _COMMOM_UPPER_SCI2
 //#define _CLIENT_SCI2
 //#define _LCD_SCI2
 /*============Sci===========*/

@@ -290,7 +290,7 @@ void DataLoad_Current(void)
 		u32_ChgCur_mA = 0;
 	}
 
-	DataLoad_CurrentCali();
+	// DataLoad_CurrentCali();
 
 	if (u32_DsgCur_mA > 2000)
 	{
@@ -317,11 +317,11 @@ void DataLoad_Current(void)
 	g_stCellInfoReport.u16Ichg = (UINT16)((u32_ChgCur_mA >> 10) / 100);
 	g_stCellInfoReport.u16IDischg = (UINT16)((u32_DsgCur_mA >> 10) / 100);
 
-	if (g_stCellInfoReport.u16Ichg <= 5)
+	if (g_stCellInfoReport.u16Ichg <= 2)
 	{
 		g_stCellInfoReport.u16Ichg = 0;
 	}
-	if (g_stCellInfoReport.u16IDischg <= 5)
+	if (g_stCellInfoReport.u16IDischg <= 2)
 	{
 		g_stCellInfoReport.u16IDischg = 0;
 	}

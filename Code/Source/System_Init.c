@@ -334,6 +334,8 @@ void TIM17_IRQHandler(void)
 		TIM_ClearITPendingBit(TIM17, TIM_IT_Update); // 清除TIMx更新中断标志
 		if ((++g_u81msCnt) >= 2)
 		{ // 1ms
+			// Display_ScanTask();
+
 			g_u81msCnt = 0;
 			g_u81msClockCnt++;
 			gu8_200msCnt++;

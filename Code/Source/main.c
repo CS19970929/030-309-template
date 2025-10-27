@@ -39,6 +39,10 @@ int main(void)
 		App_SysTime();
 #else
 		App_SysTime();
+		// test_main();
+		// App_SOC();
+	
+	#if 1
 		cellular_uart_service();
 		App_CommonUpper();
 
@@ -52,8 +56,8 @@ int main(void)
 		App_CellBalance();
 
 		// APP_LedBar();
-		Display_ScanTask();
-		// test_main();
+		// Display_ScanTask();
+		test_main();
 
 		// App_ChargerLoad_Det();
 #ifdef __FUNC__HEAT__
@@ -63,6 +67,7 @@ int main(void)
 		App_FlashUpdateDet();
 		App_LogRecord();
 		App_ProID_Deal();
+	#endif
 
 #ifdef wdog_enable
 		Feed_WatchDog;
