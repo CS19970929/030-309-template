@@ -189,7 +189,7 @@ void EXTI4_15_IRQHandler(void)
 #if 1
 void USART1_IRQHandler(void)
 {
-	Sci1_CommonUpper_FaultChk();
+	// Sci1_CommonUpper_FaultChk();
 
 	if (USART_GetITStatus(USART1, USART_IT_RXNE) != RESET)
 	{
@@ -202,20 +202,54 @@ void USART1_IRQHandler(void)
 	}
 }
 
+// void USART2_IRQHandler(void)
+// {
+// #if (defined _COMMOM_UPPER_SCI2)
+// 	Sci2_CommonUpper_FaultChk();
+// #endif
+// 	// 	if (USART_GetITStatus(USART2, USART_IT_RXNE) != RESET)
+// 	// 	{
+// 	// 		RTC_ExtComCnt++;
+
+// 	// #ifdef _COMMOM_UPPER_SCI2
+// 	// 		Sci2_CommonUpper_Rx_Deal(&g_stCurrentMsgPtr_SCI2);
+// 	// #endif
+// 	// 	}
+// 	RecvByte_4G();
+// }
+
 void USART2_IRQHandler(void)
 {
-#if (defined _COMMOM_UPPER_SCI2)
-	Sci2_CommonUpper_FaultChk();
-#endif
-	// 	if (USART_GetITStatus(USART2, USART_IT_RXNE) != RESET)
-	// 	{
-	// 		RTC_ExtComCnt++;
+    uint32_t isr = USART2->ISR;
 
-	// #ifdef _COMMOM_UPPER_SCI2
-	// 		Sci2_CommonUpper_Rx_Deal(&g_stCurrentMsgPtr_SCI2);
-	// #endif
-	// 	}
-	RecvByte_4G();
+    // ---- 1. 错误检测与清除 ----
+    if (isr & (USART_ISR_ORE | USART_ISR_FE | USART_ISR_NE | USART_ISR_PE))
+    {
+        volatile uint32_t dump = USART2->RDR;
+        (void)dump;
+
+        // 手动清除错误标志（ICR是写1清零）
+        USART2->ICR = (1 << 3) | (1 << 2) | (1 << 1) | (1 << 0);
+
+        // gu16_CommuErrCnt_SCI2++;
+        return;
+    }
+
+    // ---- 2. 循环读取所有接收到的数据 ----
+    while (USART2->ISR & USART_ISR_RXNE)
+    {
+        uint8_t data = (uint8_t)USART2->RDR;
+        uart_receive_input(data);
+    }
+
+    // ---- 3. 可选IDLE清除 ----
+    if (isr & USART_ISR_IDLE)
+    {
+        volatile uint32_t dump = USART2->RDR;
+        (void)dump;
+        USART2->ICR = (1 << 4);  // IDLECF
+    }
 }
+
 
 #endif

@@ -71,7 +71,7 @@
 
 /*============Sci===========*/
 //ÿ������ֻ��ѡһ��ͨѶ
-#define _COMMOM_UPPER_SCI1
+// #define _COMMOM_UPPER_SCI1
 //#define _CLIENT_SCI1
 //#define _LCD_SCI1
 

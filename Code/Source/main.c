@@ -28,6 +28,8 @@ void InitVar(void);
 void InitDevice(void);
 void InitSystemWakeUp(void);
 
+// #define _DEBUG_CODE
+
 int main(void)
 {
 	InitDevice(); // 初始化外设，这两个函数的位置需要斟酌一下，现在换回去先
@@ -36,15 +38,18 @@ int main(void)
 	while (1)
 	{
 #if (defined _DEBUG_CODE)
-		App_SysTime();
+		// App_SysTime();
+		cellular_uart_service();
+		// MCUO_DEBUG_LED1 = !MCUO_DEBUG_LED1;
+		// __delay_ms(200);
 #else
 		App_SysTime();
 		// test_main();
 		// App_SOC();
-		cellular_uart_service();
+		// cellular_uart_service();
 		// App_CommonUpper();
 	
-	#if 0
+	#if 1
 		cellular_uart_service();
 		App_CommonUpper();
 
@@ -87,6 +92,11 @@ void InitDevice(void)
 
 #if (defined _DEBUG_CODE)
 	InitDelay();
+	InitIO();
+
+	InitUSART_CommonUpper();
+	cellular_protocol_init();
+	// USART_ITConfig(USART2, USART_IT_RXNE, ENABLE); // 使能接收中断
 #else
 	InitDelay();
 	IsSleepStartUp();
