@@ -41,8 +41,10 @@ int main(void)
 		App_SysTime();
 		// test_main();
 		// App_SOC();
+		cellular_uart_service();
+		// App_CommonUpper();
 	
-	#if 1
+	#if 0
 		cellular_uart_service();
 		App_CommonUpper();
 
@@ -94,7 +96,6 @@ void InitDevice(void)
 	InitSystemWakeUp();
 	InitE2PROM(); // 内部EEPROM，不需要初始化
 	InitAFE1();
-	InitUSART_CommonUpper();
 	InitADC();
 	InitData_SOC();
 	Init_ChargerLoad_Det();
@@ -102,7 +103,9 @@ void InitDevice(void)
 	InitHeat_Cool();
 #endif
 	InitMosRelay_DOx();
+	InitUSART_CommonUpper();
 	cellular_protocol_init();
+	// USART_ITConfig(USART2, USART_IT_RXNE, ENABLE); // 使能接收中断
 	// bsp_Init();
 
 #ifdef wdog_enable
