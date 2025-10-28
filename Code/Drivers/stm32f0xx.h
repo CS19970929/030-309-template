@@ -65,9 +65,9 @@
    application 
   */
   
-// #define _HSE_NOPLL_8M		//�⼸������ѡ��ѡ��ֻҪȥ���ⲿ����ͻ��Զ��л��ڲ�8M������Ҫ��
+#define _HSE_NOPLL_8M		//�⼸������ѡ��ѡ��ֻҪȥ���ⲿ����ͻ��Զ��л��ڲ�8M������Ҫ��
 //#define _HSE_NOPLL_12M
-#define _HSE_8M_PLL_48M
+// #define _HSE_8M_PLL_48M
 //#define _HSE_12M_PLL_48M
 
 

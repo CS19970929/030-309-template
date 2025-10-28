@@ -998,23 +998,17 @@ void Sci1_CommonUpper_Tx_Deal(struct RS485MSG *s)
 	}
 }
 
-// 串口初始化函数
 void InitSCI1_CommonUpper(void)
 {
 	GPIO_InitTypeDef GPIO_InitStructure;
 	USART_InitTypeDef USART_InitStructure;
 	NVIC_InitTypeDef NVIC_InitStructure;
 
-	RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1, ENABLE); // 开启USART1外设时钟
-	// RCC->AHBENR |= 1<<17;										//开启GPIOA的外设时钟
+	// === 开启外设时钟 ===
+	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA, ENABLE);
+	RCC_APB1PeriphClockCmd(RCC_APB2Periph_USART1, ENABLE);
 
-	// Enable the USART1 Interrupt(使能USART1中断)
-	NVIC_InitStructure.NVIC_IRQChannel = USART1_IRQn;
-	NVIC_InitStructure.NVIC_IRQChannelPriority = 0;
-	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
-	NVIC_Init(&NVIC_InitStructure);
-
-	// USART1_TX -> PA9 , USART1_RX -> PA10
+	// === GPIO 配置 ===
 	GPIO_PinAFConfig(GPIOA, GPIO_PinSource9, GPIO_AF_1); // 030的AF表格在非reg的datasheet里
 	GPIO_PinAFConfig(GPIOA, GPIO_PinSource10, GPIO_AF_1);
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9 | GPIO_Pin_10;
@@ -1024,24 +1018,39 @@ void InitSCI1_CommonUpper(void)
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
 	GPIO_Init(GPIOA, &GPIO_InitStructure);
 
-	// 串口初始化
-	USART_InitStructure.USART_BaudRate = 19200;										// 设置串口波特率
-	USART_InitStructure.USART_WordLength = USART_WordLength_8b;						// 设置数据位
-	USART_InitStructure.USART_StopBits = USART_StopBits_1;							// 设置停止位
-	USART_InitStructure.USART_Parity = USART_Parity_No;								// 设置效验位
-	USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None; // 设置流控制
-	USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;					// 设置工作模式
-	USART_Init(USART1, &USART_InitStructure);										// 配置入结构体
+	// === USART 参数配置 ===
+	USART_InitStructure.USART_BaudRate = 115200;
+	USART_InitStructure.USART_WordLength = USART_WordLength_8b;
+	USART_InitStructure.USART_StopBits = USART_StopBits_1;
+	USART_InitStructure.USART_Parity = USART_Parity_No;
+	USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
+	USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;
+	USART_Init(USART1, &USART_InitStructure);
 
-	USART1->CR3 |= 1 << 0;	// EIE，开帧错误中断，同时开启噪声中断
-	USART1->CR3 |= 1 << 11; // 未被使能前改写，禁止噪声中断
+	// === 先使能 USART ===
+	USART_Cmd(USART1, ENABLE);
 
-	USART_Cmd(USART1, ENABLE);					   // 使能串口1
-	USART_ITConfig(USART1, USART_IT_RXNE, ENABLE); // 使能接收中断
+	// === 清除上电残留标志 ===
+	volatile uint32_t tmp;
+	tmp = USART1->ISR; // 读 ISR
+	tmp = USART1->RDR; // 读 RDR
+	(void)tmp;
+	USART1->ICR = 0xFFFFFFFF; // 写1清零所有错误标志 (ORE, FE, NE, PE, IDLE等)
 
-	g_stCurrentMsgPtr_SCI1.uart = USART1;
-	Sci_DataInit(&g_stCurrentMsgPtr_SCI1);
+	// === 关闭 ONEBIT（防止误判噪声） ===
+	USART1->CR3 &= ~(USART_CR3_ONEBIT);
+
+	// === 使能错误中断和接收中断 ===
+	USART1->CR3 |= USART_CR3_EIE;
+	USART_ITConfig(USART1, USART_IT_RXNE, ENABLE);
+
+	// === NVIC 优先级设置 ===
+	NVIC_InitStructure.NVIC_IRQChannel = USART1_IRQn;
+	NVIC_InitStructure.NVIC_IRQChannelPriority = 0; // 串口最高
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+	NVIC_Init(&NVIC_InitStructure);
 }
+
 
 void App_CommonUpperSCI1(struct RS485MSG *s)
 {
@@ -1365,58 +1374,57 @@ void Sci2_CommonUpper_Tx_Deal(struct RS485MSG *s)
 
 void InitSCI2_CommonUpper(void)
 {
-    GPIO_InitTypeDef GPIO_InitStructure;
-    USART_InitTypeDef USART_InitStructure;
-    NVIC_InitTypeDef NVIC_InitStructure;
+	GPIO_InitTypeDef GPIO_InitStructure;
+	USART_InitTypeDef USART_InitStructure;
+	NVIC_InitTypeDef NVIC_InitStructure;
 
-    // === 开启外设时钟 ===
-    RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA, ENABLE);
-    RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART2, ENABLE);
+	// === 开启外设时钟 ===
+	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA, ENABLE);
+	RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART2, ENABLE);
 
-    // === GPIO 配置 ===
-    GPIO_PinAFConfig(GPIOA, GPIO_PinSource2, GPIO_AF_1); // PA2 = TX
-    GPIO_PinAFConfig(GPIOA, GPIO_PinSource3, GPIO_AF_1); // PA3 = RX
+	// === GPIO 配置 ===
+	GPIO_PinAFConfig(GPIOA, GPIO_PinSource2, GPIO_AF_1); // PA2 = TX
+	GPIO_PinAFConfig(GPIOA, GPIO_PinSource3, GPIO_AF_1); // PA3 = RX
 
-    GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_2 | GPIO_Pin_3;
-    GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_AF;
-    GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-    GPIO_InitStructure.GPIO_PuPd  = GPIO_PuPd_UP;
-    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
-    GPIO_Init(GPIOA, &GPIO_InitStructure);
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_2 | GPIO_Pin_3;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
+	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
+	GPIO_Init(GPIOA, &GPIO_InitStructure);
 
-    // === USART 参数配置 ===
-    USART_InitStructure.USART_BaudRate            = 115200;
-    USART_InitStructure.USART_WordLength          = USART_WordLength_8b;
-    USART_InitStructure.USART_StopBits            = USART_StopBits_1;
-    USART_InitStructure.USART_Parity              = USART_Parity_No;
-    USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
-    USART_InitStructure.USART_Mode                = USART_Mode_Rx | USART_Mode_Tx;
-    USART_Init(USART2, &USART_InitStructure);
+	// === USART 参数配置 ===
+	USART_InitStructure.USART_BaudRate = 115200;
+	USART_InitStructure.USART_WordLength = USART_WordLength_8b;
+	USART_InitStructure.USART_StopBits = USART_StopBits_1;
+	USART_InitStructure.USART_Parity = USART_Parity_No;
+	USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
+	USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;
+	USART_Init(USART2, &USART_InitStructure);
 
-    // === 先使能 USART ===
-    USART_Cmd(USART2, ENABLE);
+	// === 先使能 USART ===
+	USART_Cmd(USART2, ENABLE);
 
-    // === 清除上电残留标志 ===
-    volatile uint32_t tmp;
-    tmp = USART2->ISR;   // 读 ISR
-    tmp = USART2->RDR;   // 读 RDR
-    (void)tmp;
-    USART2->ICR = 0xFFFFFFFF; // 写1清零所有错误标志 (ORE, FE, NE, PE, IDLE等)
+	// === 清除上电残留标志 ===
+	volatile uint32_t tmp;
+	tmp = USART2->ISR; // 读 ISR
+	tmp = USART2->RDR; // 读 RDR
+	(void)tmp;
+	USART2->ICR = 0xFFFFFFFF; // 写1清零所有错误标志 (ORE, FE, NE, PE, IDLE等)
 
-    // === 关闭 ONEBIT（防止误判噪声） ===
-    USART2->CR3 &= ~(USART_CR3_ONEBIT);
+	// === 关闭 ONEBIT（防止误判噪声） ===
+	USART2->CR3 &= ~(USART_CR3_ONEBIT);
 
-    // === 使能错误中断和接收中断 ===
-    USART2->CR3 |= USART_CR3_EIE;
-    USART_ITConfig(USART2, USART_IT_RXNE, ENABLE);
+	// === 使能错误中断和接收中断 ===
+	USART2->CR3 |= USART_CR3_EIE;
+	USART_ITConfig(USART2, USART_IT_RXNE, ENABLE);
 
-    // === NVIC 优先级设置 ===
-    NVIC_InitStructure.NVIC_IRQChannel = USART2_IRQn;
-    NVIC_InitStructure.NVIC_IRQChannelPriority = 0; // 串口最高
-    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
-    NVIC_Init(&NVIC_InitStructure);
+	// === NVIC 优先级设置 ===
+	NVIC_InitStructure.NVIC_IRQChannel = USART2_IRQn;
+	NVIC_InitStructure.NVIC_IRQChannelPriority = 0; // 串口最高
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+	NVIC_Init(&NVIC_InitStructure);
 }
-
 
 void App_CommonUpperSCI2(struct RS485MSG *s)
 {
