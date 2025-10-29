@@ -108,7 +108,7 @@ void InitDevice(void)
 	InitAFE1();
 	InitADC();
 	InitData_SOC();
-	Init_ChargerLoad_Det();
+	// Init_ChargerLoad_Det();
 #ifdef __FUNC__HEAT__
 	InitHeat_Cool();
 #endif

@@ -145,7 +145,7 @@ void DataLoad_Temperature(void)
 	INT32 t_i32temp;
 	UINT8 Select;
 
-	Select = 2;
+	Select = 3;
 
 	for (i = 0; i < Select; i++)
 	{

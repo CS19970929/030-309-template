@@ -55,6 +55,26 @@ void InitWakeUp_Base(void)
 		NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;		// 使能外部中断通道
 		NVIC_Init(&NVIC_InitStructure);
 	}
+
+	{
+		GPIO_InitStructure.GPIO_Pin = PIN_INT_WK_CMNT; // 选择要用的GPIO引脚
+		GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
+		GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL; // 设置引脚模式为上拉输入模式
+		GPIO_Init(GPIO_INT_WK_CMNT, &GPIO_InitStructure);
+
+		SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOB, EXTI_PinSource8);
+		// 配置PA1_WKUP外部上升沿中断
+		EXTI_InitStruct.EXTI_Line = EXTI_Line8;
+		EXTI_InitStruct.EXTI_Mode = EXTI_Mode_Interrupt;
+		EXTI_InitStruct.EXTI_Trigger = EXTI_Trigger_Falling; // 上升沿中断
+		EXTI_InitStruct.EXTI_LineCmd = ENABLE;
+		EXTI_Init(&EXTI_InitStruct);
+		// 中断嵌套设计
+		NVIC_InitStructure.NVIC_IRQChannel = EXTI4_15_IRQn; // 使能按键WK_UP所在的外部中断通道
+		NVIC_InitStructure.NVIC_IRQChannelPriority = 0x00;	// 抢占优先级0
+		NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;		// 使能外部中断通道
+		NVIC_Init(&NVIC_InitStructure);
+	}
 	// SOC KEY
 	// {
 	// 	GPIO_InitStructure.GPIO_Pin = PIN_KEY2; // 选择要用的GPIO引脚
@@ -89,27 +109,27 @@ void InitWakeUp_NormalMode(void)
 	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOB, ENABLE); // 开启GPIOB的外设时钟
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_PWR, ENABLE); // 使能PWR外设时钟，待机模式，RTC，看门狗
 
-	{
-		// fixme 485????
-		//  PB7_INT_WK_CMNT
-		GPIO_InitStructure.GPIO_Pin = PIN_INT_WK_CMNT; // 选择要用的GPIO引脚
-		GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
-		GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL; // 设置引脚模式为上拉输入模式
-		GPIO_Init(GPIO_INT_WK_CMNT, &GPIO_InitStructure);
+	// {
+	// 	// fixme 485????
+	// 	//  PB7_INT_WK_CMNT
+	// 	GPIO_InitStructure.GPIO_Pin = PIN_INT_WK_CMNT; // 选择要用的GPIO引脚
+	// 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
+	// 	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL; // 设置引脚模式为上拉输入模式
+	// 	GPIO_Init(GPIO_INT_WK_CMNT, &GPIO_InitStructure);
 
-		SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOB, EXTI_PinSource8);
-		// 配置PA1_WKUP外部上升沿中断
-		EXTI_InitStruct.EXTI_Line = EXTI_Line8;
-		EXTI_InitStruct.EXTI_Mode = EXTI_Mode_Interrupt;
-		EXTI_InitStruct.EXTI_Trigger = EXTI_Trigger_Rising; // 上升沿中断
-		EXTI_InitStruct.EXTI_LineCmd = ENABLE;
-		EXTI_Init(&EXTI_InitStruct);
-		// 中断嵌套设计
-		NVIC_InitStructure.NVIC_IRQChannel = EXTI4_15_IRQn; // 使能按键WK_UP所在的外部中断通道
-		NVIC_InitStructure.NVIC_IRQChannelPriority = 0x00;	// 抢占优先级0
-		NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;		// 使能外部中断通道
-		NVIC_Init(&NVIC_InitStructure);
-	}
+	// 	SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOB, EXTI_PinSource8);
+	// 	// 配置PA1_WKUP外部上升沿中断
+	// 	EXTI_InitStruct.EXTI_Line = EXTI_Line8;
+	// 	EXTI_InitStruct.EXTI_Mode = EXTI_Mode_Interrupt;
+	// 	EXTI_InitStruct.EXTI_Trigger = EXTI_Trigger_Rising; // 上升沿中断
+	// 	EXTI_InitStruct.EXTI_LineCmd = ENABLE;
+	// 	EXTI_Init(&EXTI_InitStruct);
+	// 	// 中断嵌套设计
+	// 	NVIC_InitStructure.NVIC_IRQChannel = EXTI4_15_IRQn; // 使能按键WK_UP所在的外部中断通道
+	// 	NVIC_InitStructure.NVIC_IRQChannelPriority = 0x00;	// 抢占优先级0
+	// 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;		// 使能外部中断通道
+	// 	NVIC_Init(&NVIC_InitStructure);
+	// }
 
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_3; // 选择要用的GPIO引脚
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;

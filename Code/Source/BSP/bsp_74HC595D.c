@@ -102,7 +102,13 @@ void bsp_74HC595D_init(void)
     RCLK_LOW();
 }
 
-#define HC595_DELAY()  __NOP();__NOP();__NOP();__NOP();
+// #define HC595_DELAY()  __NOP();__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();
+#define HC595_DELAY() \
+    __NOP();          \
+    __NOP();          \
+    __NOP();          \
+    __NOP();
+// #define HC595_DELAY()  ;
 //--------------------------------------
 // 发送一字节给74HC595
 //--------------------------------------
@@ -123,6 +129,9 @@ static void HC595_SendByte(uint8_t data)
     RCLK_HIGH();
     HC595_DELAY();
     RCLK_LOW();
+
+    SER_LOW();
+    SRCLK_LOW();
 }
 
 //--------------------------------------
@@ -223,52 +232,84 @@ void display_fault(void)
     if (System_ERROR_UserCallback(ERROR_AFE1))
         fault_code = 13;
 
-    Display_UpdateData(DISPLAY_FAULT, 0, fault_code);
+    Display_UpdateData(DISPLAY_FAULT, g_stCellInfoReport.SocElement.u16Soc, fault_code);
 }
 
+uint16_t test_soc = 0;
+uint16_t test_fault = 0;
 void Display_ScanTask(uint32_t now_ms)
 {
     uint16_t value;
     uint8_t digits[3];
     uint8_t seg_data;
+    static uint16_t delay_toggle = 0;
 
-    // if (0 == g_st_SysTimeFlag.bits.b1Sys1msFlag)
-    // {
-    //     return;
-    // }
-
-    if (g_stCellInfoReport.unMdlFault_Third.all)
+    static uint16_t delay = 0;
+    static uint16_t delay_fault = 0;
+    if (test_soc < 100)
     {
-        display_fault();
+        if (++delay >= 1000)
+        {
+            delay = 0;
+            test_soc++;
+        }
     }
     else
     {
-        Display_UpdateData(DISPLAY_SOC, g_stCellInfoReport.SocElement.u16Soc, 1);
+        test_soc = 0;
     }
+    if (test_fault < 20)
+    {
+        if (++delay_fault >= 1000)
+        {
+            delay_fault = 0;
+            test_fault++;
+        }
+    }
+    else
+    {
+        test_fault = 0;
+    }
+    // Display_UpdateData(DISPLAY_SOC, test_soc, 1);
+    Display_UpdateData(DISPLAY_FAULT, test_soc, test_fault);
+
+    // if (g_stCellInfoReport.unMdlFault_Third.all)
+    // {
+    //     display_fault();
+    // }
+    // else
+    // {
+    //     Display_UpdateData(DISPLAY_SOC, g_stCellInfoReport.SocElement.u16Soc, 1);
+    //     // Display_UpdateData(DISPLAY_SOC, test_soc, 1);
+    // }
 
     if (gDisplay.mode == DISPLAY_FAULT)
     {
         // 每 1000ms 切换显示 SOC / 故障码
         // if (now_ms - gDisplay.toggle_timer >= 1000)
+        if (++delay_toggle >= 1000)
         {
+            delay_toggle = 0;
             // gDisplay.toggle_timer = now_ms;
             gDisplay.toggle_state ^= 1;
         }
 
-        if (gDisplay.toggle_state == 0)
+        // if (gDisplay.toggle_state == 0)
         { // 显示故障
             uint8_t fault = gDisplay.fault;
-            digits[0] = 0xEE; // E 的标志（我们用特殊码表示）
-            digits[1] = fault % 10;
-            digits[2] = (fault / 10) % 10;
+            // digits[0] = 0xEE; // E 的标志（我们用特殊码表示）
+            // digits[0] = 0x79; // E 的标志（我们用特殊码表示）
+            digits[0] = fault % 10;
+            digits[1] = (fault / 10) % 10;
+            digits[2] = 14; // E 的标志（我们用特殊码表示）
         }
-        else
-        { // 显示SOC
-            value = gDisplay.soc;
-            digits[0] = value % 10;
-            digits[1] = (value / 10) % 10;
-            digits[2] = (value / 100) % 10;
-        }
+        // else
+        // { // 显示SOC
+        //     value = gDisplay.soc;
+        //     digits[0] = value % 10;
+        //     digits[1] = (value / 10) % 10;
+        //     digits[2] = (value / 100) % 10;
+        // }
     }
     else
     {
@@ -283,6 +324,10 @@ void Display_ScanTask(uint32_t now_ms)
     MCUO_SEG_DIG1 = 0;
     MCUO_SEG_DIG2 = 0;
     MCUO_SEG_DIG3 = 0;
+
+    // MCUO_SEG_DIG1 = 1;
+    // MCUO_SEG_DIG2 = 1;
+    // MCUO_SEG_DIG3 = 1;
 
     // uint8_t fault = gDisplay.fault;
     // digits[0] = 0xEE; // E 的标志（我们用特殊码表示）
@@ -318,13 +363,6 @@ void Display_ScanTask(uint32_t now_ms)
         gDisplay.current_digit = 0;
 }
 
-// void SysTick_Handler(void)
-// {
-//     static uint32_t tick = 0;
-//     tick++;
-//     Display_ScanTask(tick);
-// }
-
 uint16_t test_segcode = 0;
 void test_main(void)
 {
@@ -346,7 +384,8 @@ void test_main(void)
     // HC595_SendByte(0x79);
     // HC595_SendByte(sys_time.occ1_cnt);
     // HC595_SendByte(soc);
-    HC595_SendByte(SEG_CODE[soc]);
+    // HC595_SendByte(SEG_CODE[soc]);
+    HC595_SendByte(0x79);
     if (soc < 9)
     {
         soc++;

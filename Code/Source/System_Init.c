@@ -149,6 +149,18 @@ void InitIO(void)
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
 	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL; // 设置引脚模式为上拉输入模式
 	GPIO_Init(GPIO_KEY1, &GPIO_InitStructure);
+
+	GPIO_InitStructure.GPIO_Pin = PIN_INT_WK_MCU; // 选择要用的GPIO引脚,PA0也可以唤醒
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
+	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL; // 设置引脚模式为上拉输入模式
+	GPIO_Init(GPIO_INT_WK_MCU, &GPIO_InitStructure);
+
+	CLOSE_CHG();
+	GPIO_InitStructure.GPIO_Pin = PIN_DR_CHG;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_Level_1;
+	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+	GPIO_Init(GPIO_DR_CHG, &GPIO_InitStructure);
 }
 
 void InitTimer(void)
@@ -171,7 +183,7 @@ void InitTimer(void)
 
 	/*中断嵌套设计*/
 	NVIC_InitStructure.NVIC_IRQChannel = TIM17_IRQn;
-	NVIC_InitStructure.NVIC_IRQChannelPriority = 0; // 抢占优先级0级，没响应优先级
+	NVIC_InitStructure.NVIC_IRQChannelPriority = 1; // 抢占优先级0级，没响应优先级
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE; // IRQ通道被使能
 	NVIC_Init(&NVIC_InitStructure);
 

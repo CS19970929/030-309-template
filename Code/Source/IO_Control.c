@@ -270,13 +270,68 @@ void App_DI1_Switch(void)
 #endif
 }
 
+bool isCHGsig(void)
+{
+	static uint16_t cnt_chg_sig = 0;
+	bool result = false;
+
+	if (GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_0))
+	{
+		if (++cnt_chg_sig >= 10)
+		{
+			cnt_chg_sig = 0;
+
+			result = true;
+		}
+	}
+	else
+	{
+		cnt_chg_sig = 0;
+	}
+
+	return result;
+}
 void Drivers_External_Ctrl(void)
 {
+	static bool isCHG_MDOE = false;
+
+	if (!isCHG_MDOE)
+	{
+		Driver_Element.MosRelay_Status.bits.b1Status_MOS_CHG = 0;
+		if (isCHGsig())
+		{
+			isCHG_MDOE = true;
+		}
+	}
+	else
+	{
+		static UINT16 I_cnt = 0;
+
+		if (!g_stCellInfoReport.u16Ichg)
+		{
+			if (++I_cnt >= 100)
+			{
+				I_cnt = 0;
+
+				CLOSE_CHG();
+				// __delay_ms(100);
+				if (!GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_0))
+				{
+					isCHG_MDOE = false;
+				}
+			}
+		}
+		else
+		{
+			I_cnt = 0;
+		}
+	}
+
 	if (Driver_Element.u8_DriverCtrl_Right)
 	{
 		SystemStatus.bits.b1Status_MOS_DSG = 1;
 		SystemStatus.bits.b1Status_MOS_CHG = GPIO_ReadOutputDataBit(GPIO_DR_CHG, PIN_DR_CHG);
-		//todo 冗余设计、异常处理、测试ctlc 强制关来测试时序是否有问题
+		// todo 冗余设计、异常处理、测试ctlc 强制关来测试时序是否有问题
 		if (SystemStatus.bits.b1Status_MOS_CHG != Driver_Element.MosRelay_Status.bits.b1Status_MOS_CHG)
 		{
 			log_w();
