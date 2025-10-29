@@ -97,14 +97,18 @@ void bsp_74HC595D_init(void)
     GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
     GPIO_Init(GPIO_MCU_DIG3, &GPIO_InitStructure);
 
+    SER_LOW();
+    SRCLK_LOW();
     RCLK_LOW();
 }
 
+#define HC595_DELAY()  __NOP();__NOP();__NOP();__NOP();
 //--------------------------------------
 // 发送一字节给74HC595
 //--------------------------------------
 static void HC595_SendByte(uint8_t data)
 {
+    RCLK_LOW();
     for (int i = 0; i < 8; i++)
     {
         SRCLK_LOW();
@@ -113,9 +117,11 @@ static void HC595_SendByte(uint8_t data)
         else
             SER_LOW();
         SRCLK_HIGH();
+        HC595_DELAY();
         data <<= 1;
     }
     RCLK_HIGH();
+    HC595_DELAY();
     RCLK_LOW();
 }
 
@@ -278,10 +284,10 @@ void Display_ScanTask(uint32_t now_ms)
     MCUO_SEG_DIG2 = 0;
     MCUO_SEG_DIG3 = 0;
 
-    uint8_t fault = gDisplay.fault;
-    digits[0] = 0xEE; // E 的标志（我们用特殊码表示）
-    digits[1] = fault % 10;
-    digits[2] = (fault / 10) % 10;
+    // uint8_t fault = gDisplay.fault;
+    // digits[0] = 0xEE; // E 的标志（我们用特殊码表示）
+    // digits[1] = fault % 10;
+    // digits[2] = (fault / 10) % 10;
 
     // // 确定当前位段码
     // if (digits[gDisplay.current_digit] == 0xEE)
@@ -341,7 +347,7 @@ void test_main(void)
     // HC595_SendByte(sys_time.occ1_cnt);
     // HC595_SendByte(soc);
     HC595_SendByte(SEG_CODE[soc]);
-    if (soc < 16)
+    if (soc < 9)
     {
         soc++;
     }

@@ -1004,11 +1004,12 @@ void InitSCI1_CommonUpper(void)
 	USART_InitTypeDef USART_InitStructure;
 	NVIC_InitTypeDef NVIC_InitStructure;
 
-	// === 开启外设时钟 ===
-	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA, ENABLE);
-	RCC_APB1PeriphClockCmd(RCC_APB2Periph_USART1, ENABLE);
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1, ENABLE); // 开启USART1外设时钟
+	// RCC->AHBENR |= 1<<17;										//开启GPIOA的外设时钟
 
-	// === GPIO 配置 ===
+	
+
+	// USART1_TX -> PA9 , USART1_RX -> PA10
 	GPIO_PinAFConfig(GPIOA, GPIO_PinSource9, GPIO_AF_1); // 030的AF表格在非reg的datasheet里
 	GPIO_PinAFConfig(GPIOA, GPIO_PinSource10, GPIO_AF_1);
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9 | GPIO_Pin_10;
@@ -1049,6 +1050,9 @@ void InitSCI1_CommonUpper(void)
 	NVIC_InitStructure.NVIC_IRQChannelPriority = 0; // 串口最高
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
 	NVIC_Init(&NVIC_InitStructure);
+
+	g_stCurrentMsgPtr_SCI1.uart = USART1;
+	Sci_DataInit(&g_stCurrentMsgPtr_SCI1);
 }
 
 
