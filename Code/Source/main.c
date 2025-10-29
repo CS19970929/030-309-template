@@ -58,7 +58,7 @@ int main(void)
 		App_AnlogCal();
 
 		App_E2promDeal();
-		App_SleepDeal(); // 放在App_MOS_Relay_Control()后面
+		// App_SleepDeal(); // 放在App_MOS_Relay_Control()后面
 		App_SOC();
 		App_CellBalance();
 

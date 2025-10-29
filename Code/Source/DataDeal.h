@@ -165,7 +165,7 @@ struct OTHER_ELEMENT {
 #define OtherElement_default 	{3700,	30,	20,		0,	0,		0,	0,	0,\
 	                             CS_Cur_CHGmax,	CS_Cur_DSGmax,CBC_DelayT,CBC_Cur_DSG,\
 	                             SOC_TABLE_TERNARYLI,	0,		1000,	30,\
-	                             4000,	7200,	2900,	10,		10,		10,	240,0,\
+	                             4000,	10,	    3000,	1,		10,		10,	240,0,\
 	                             220,	3,		4200,	3000,\
 	                             SNum,CS_Res,CS_Res_Num,10}
 #elif (defined(LIFEPO))

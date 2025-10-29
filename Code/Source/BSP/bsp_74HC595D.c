@@ -26,11 +26,10 @@ const uint8_t SEG_CODE[16] = {
     0x7F, 0x6F, 0x77, 0x7C,
     0x39, 0x5E, 0x79, 0x71};
 
-typedef enum
-{
-    DISPLAY_SOC,
-    DISPLAY_FAULT
-} DisplayMode_t;
+
+uint16_t test_soc = 0;
+uint16_t test_fault = 0;
+uint8_t digits[3];
 
 typedef struct
 {
@@ -139,9 +138,28 @@ static void HC595_SendByte(uint8_t data)
 //--------------------------------------
 void Display_UpdateData(DisplayMode_t mode, uint16_t soc, uint16_t fault)
 {
+    uint16_t value;
+
     gDisplay.mode = mode;
     gDisplay.soc = soc;
     gDisplay.fault = fault;
+
+    if (mode == DISPLAY_FAULT)
+    {
+        uint8_t fault = gDisplay.fault;
+        // digits[0] = 0xEE; // E 的标志（我们用特殊码表示）
+        // digits[0] = 0x79; // E 的标志（我们用特殊码表示）
+        digits[0] = fault % 10;
+        digits[1] = (fault / 10) % 10;
+        digits[2] = 14; // E 的标志（我们用特殊码表示）
+    }
+    else if (mode == DISPLAY_SOC)
+    {
+        value = gDisplay.soc;
+        digits[0] = value % 10;
+        digits[1] = (value / 10) % 10;
+        digits[2] = (value / 100) % 10;
+    }
 }
 
 #if 0
@@ -201,7 +219,7 @@ void Display_ScanTask(uint32_t now_ms)
 }
 #endif
 
-void display_fault(void)
+uint8_t display_fault(void)
 {
     uint16_t fault_code = 0;
 
@@ -229,18 +247,15 @@ void display_fault(void)
         fault_code = 11;
     if (g_stCellInfoReport.SocElement.u16Soc == 100)
         fault_code = 12;
-    if (System_ERROR_UserCallback(ERROR_AFE1))
+    if (System_ERROR_UserCallback(ERROR_STATUS_AFE1))
         fault_code = 13;
 
-    Display_UpdateData(DISPLAY_FAULT, g_stCellInfoReport.SocElement.u16Soc, fault_code);
+    return fault_code;
 }
 
-uint16_t test_soc = 0;
-uint16_t test_fault = 0;
 void Display_ScanTask(uint32_t now_ms)
 {
-    uint16_t value;
-    uint8_t digits[3];
+    // uint16_t value;
     uint8_t seg_data;
     static uint16_t delay_toggle = 0;
 
@@ -271,11 +286,16 @@ void Display_ScanTask(uint32_t now_ms)
         test_fault = 0;
     }
     // Display_UpdateData(DISPLAY_SOC, test_soc, 1);
-    Display_UpdateData(DISPLAY_FAULT, test_soc, test_fault);
+    // Display_UpdateData(DISPLAY_FAULT, test_soc, test_fault);
 
     // if (g_stCellInfoReport.unMdlFault_Third.all)
     // {
     //     display_fault();
+    // }
+    // uint8_t fault_code = display_fault();
+    // if (fault_code)
+    // {
+    //     Display_UpdateData(DISPLAY_FAULT, g_stCellInfoReport.SocElement.u16Soc, fault_code);
     // }
     // else
     // {
@@ -295,17 +315,17 @@ void Display_ScanTask(uint32_t now_ms)
         }
 
         // if (gDisplay.toggle_state == 0)
-        { // 显示故障
-            uint8_t fault = gDisplay.fault;
-            // digits[0] = 0xEE; // E 的标志（我们用特殊码表示）
-            // digits[0] = 0x79; // E 的标志（我们用特殊码表示）
-            digits[0] = fault % 10;
-            digits[1] = (fault / 10) % 10;
-            digits[2] = 14; // E 的标志（我们用特殊码表示）
-        }
+        // { // 显示故障
+        //     uint8_t fault = gDisplay.fault;
+        //     // digits[0] = 0xEE; // E 的标志（我们用特殊码表示）
+        //     // digits[0] = 0x79; // E 的标志（我们用特殊码表示）
+        //     digits[0] = fault % 10;
+        //     digits[1] = (fault / 10) % 10;
+        //     digits[2] = 14; // E 的标志（我们用特殊码表示）
+        // }
         // else
         // { // 显示SOC
-        //     value = gDisplay.soc;
+            // value = gDisplay.soc;
         //     digits[0] = value % 10;
         //     digits[1] = (value / 10) % 10;
         //     digits[2] = (value / 100) % 10;
@@ -313,10 +333,10 @@ void Display_ScanTask(uint32_t now_ms)
     }
     else
     {
-        value = gDisplay.soc;
-        digits[0] = value % 10;
-        digits[1] = (value / 10) % 10;
-        digits[2] = (value / 100) % 10;
+        // value = gDisplay.soc;
+        // digits[0] = value % 10;
+        // digits[1] = (value / 10) % 10;
+        // digits[2] = (value / 100) % 10;
     }
 
     // 关闭所有位选

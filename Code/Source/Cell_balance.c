@@ -369,6 +369,17 @@ void App_CellBalance(void)
 		return;
 	}
 
+	// uint8_t fault_code = display_fault();
+	// if (fault_code)
+	// {
+	// 	Display_UpdateData(DISPLAY_FAULT, g_stCellInfoReport.SocElement.u16Soc, fault_code);
+	// }
+	// else
+	// {
+	// 	Display_UpdateData(DISPLAY_SOC, g_stCellInfoReport.SocElement.u16Soc, 1);
+	// 	// Display_UpdateData(DISPLAY_SOC, test_soc, 1);
+	// }
+
 	switch (g_enBalanceState)
 	{
 	case BALANCE_ST_INIT:
