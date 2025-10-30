@@ -994,6 +994,11 @@ void Sci1_CommonUpper_Tx_Deal(struct RS485MSG *s)
 			s->csr = RS485_STA_TX_COMPLETE;
 			gu8_TxFinishFlag_SCI1 = 1;
 			gu8_TxEnable_SCI1 = 0;
+			if (u8FlashUpdateE2PROM)
+			{
+				u8FlashUpdateE2PROM = 0;
+				u8FlashUpdateFlag = 1;
+			}
 		}
 	}
 }
@@ -1006,8 +1011,6 @@ void InitSCI1_CommonUpper(void)
 
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1, ENABLE); // 开启USART1外设时钟
 	// RCC->AHBENR |= 1<<17;										//开启GPIOA的外设时钟
-
-	
 
 	// USART1_TX -> PA9 , USART1_RX -> PA10
 	GPIO_PinAFConfig(GPIOA, GPIO_PinSource9, GPIO_AF_1); // 030的AF表格在非reg的datasheet里
@@ -1054,7 +1057,6 @@ void InitSCI1_CommonUpper(void)
 	g_stCurrentMsgPtr_SCI1.uart = USART1;
 	Sci_DataInit(&g_stCurrentMsgPtr_SCI1);
 }
-
 
 void App_CommonUpperSCI1(struct RS485MSG *s)
 {

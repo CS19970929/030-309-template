@@ -290,7 +290,7 @@ void DataLoad_Current(void)
 		u32_ChgCur_mA = 0;
 	}
 
-	DataLoad_CurrentCali();
+	// DataLoad_CurrentCali();
 
 	if (u32_DsgCur_mA > 2000)
 	{
