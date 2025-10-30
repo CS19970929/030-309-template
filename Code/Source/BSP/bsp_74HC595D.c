@@ -19,6 +19,46 @@
    C    D       E      F
 */
 
+/*======================== 共阴极段码表 ========================*/
+#define SEG_0 0x3F
+#define SEG_1 0x06
+#define SEG_2 0x5B
+#define SEG_3 0x4F
+#define SEG_4 0x66
+#define SEG_5 0x6D
+#define SEG_6 0x7D
+#define SEG_7 0x07
+#define SEG_8 0x7F
+#define SEG_9 0x6F
+#define SEG_E 0x79
+#define SEG_BLANK 0x00
+
+/* 数字段码表：仅 10 B，驻 Flash */
+static const uint8_t seg_digit[10] = {
+    SEG_0, SEG_1, SEG_2, SEG_3, SEG_4,
+    SEG_5, SEG_6, SEG_7, SEG_8, SEG_9};
+
+/*======================== BCD 查表区 ========================*/
+/* 0 – 100 → 101 B，每项高 4 位十位、低 4 位个位 */
+static const uint8_t SOC_BCD[101] = {
+    0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09,
+    0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19,
+    0x20, 0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29,
+    0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39,
+    0x40, 0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x47, 0x48, 0x49,
+    0x50, 0x51, 0x52, 0x53, 0x54, 0x55, 0x56, 0x57, 0x58, 0x59,
+    0x60, 0x61, 0x62, 0x63, 0x64, 0x65, 0x66, 0x67, 0x68, 0x69,
+    0x70, 0x71, 0x72, 0x73, 0x74, 0x75, 0x76, 0x77, 0x78, 0x79,
+    0x80, 0x81, 0x82, 0x83, 0x84, 0x85, 0x86, 0x87, 0x88, 0x89,
+    0x90, 0x91, 0x92, 0x93, 0x94, 0x95, 0x96, 0x97, 0x98, 0x99,
+    0x00 // 100 特殊处理
+};
+
+/* 01 – 20 → 20 B，索引 0 → 01 */
+static const uint8_t FLT_BCD[20] = {
+    0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x10,
+    0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x20};
+
 // 共阴数码管
 const uint8_t SEG_CODE[16] = {
     0x3F, 0x06, 0x5B, 0x4F,
@@ -26,8 +66,6 @@ const uint8_t SEG_CODE[16] = {
     0x7F, 0x6F, 0x77, 0x7C,
     0x39, 0x5E, 0x79, 0x71};
 
-
-uint16_t test_soc = 0;
 uint16_t test_fault = 0;
 uint8_t digits[3];
 
@@ -40,6 +78,16 @@ typedef struct
     uint32_t toggle_timer; // 用于故障闪烁
     uint8_t toggle_state;  // 切换SOC/故障显示
 } Display_t;
+
+static struct
+{
+    DISP_Mode_t mode;
+    uint8_t soc_seg[3];   // 缓存 SOC 段码
+    uint8_t fault_seg[3]; // 缓存 E+故障段码
+    uint16_t tick_ms;
+    uint8_t toggle;
+    uint8_t cur_digit;
+} disp;
 
 Display_t gDisplay;
 
@@ -99,6 +147,21 @@ void bsp_74HC595D_init(void)
     SER_LOW();
     SRCLK_LOW();
     RCLK_LOW();
+
+    MCUO_SEG_DIG1 = 0;
+    MCUO_SEG_DIG2 = 0;
+    MCUO_SEG_DIG3 = 0;
+
+    disp.mode = DISP_MODE_SOC;
+    disp.tick_ms = 0;
+    disp.toggle = 0;
+    disp.cur_digit = 0;
+    disp.soc_seg[0] = SEG_0;
+    disp.soc_seg[1] = SEG_BLANK;
+    disp.soc_seg[2] = SEG_BLANK;
+    disp.fault_seg[0] = SEG_1;
+    disp.fault_seg[1] = SEG_0;
+    disp.fault_seg[2] = SEG_E;
 }
 
 // #define HC595_DELAY()  __NOP();__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();__NOP();
@@ -113,7 +176,7 @@ void bsp_74HC595D_init(void)
 //--------------------------------------
 static void HC595_SendByte(uint8_t data)
 {
-    RCLK_LOW();
+    // RCLK_LOW();
     for (int i = 0; i < 8; i++)
     {
         SRCLK_LOW();
@@ -125,99 +188,112 @@ static void HC595_SendByte(uint8_t data)
         HC595_DELAY();
         data <<= 1;
     }
+
+    RCLK_LOW();
+    HC595_DELAY();
     RCLK_HIGH();
     HC595_DELAY();
     RCLK_LOW();
 
     SER_LOW();
     SRCLK_LOW();
+    HC595_DELAY();
+    HC595_DELAY();
 }
 
 //--------------------------------------
 // 更新显示数据（SOC / 故障）
 //--------------------------------------
-void Display_UpdateData(DisplayMode_t mode, uint16_t soc, uint16_t fault)
+void Display_UpdateData(DISP_Mode_t mode, uint16_t soc, uint16_t code)
 {
+    static uint8_t ge, shi, bai = 0;
     uint16_t value;
 
-    gDisplay.mode = mode;
-    gDisplay.soc = soc;
-    gDisplay.fault = fault;
+    // gDisplay.mode = mode;
+    // gDisplay.soc = soc;
+    // gDisplay.fault = fault;
+    disp.mode = mode;
+
+    {
+        disp.soc_seg[0] = seg_digit[ge];
+        disp.soc_seg[1] = seg_digit[shi];
+        disp.soc_seg[2] = seg_digit[bai];
+        return;
+    }
+
+    {
+        // if(soc > 100)
+        // {
+        //      disp.soc_seg[0] = seg_digit[0];
+        //     disp.soc_seg[1] = seg_digit[0];
+        //     disp.soc_seg[2] = seg_digit[1];
+        //     return;
+        // }
+        // if (soc > 100)
+        //     soc = 100;
+        if (soc == 100)
+        { // 100 特殊显示
+            disp.soc_seg[0] = seg_digit[0];
+            disp.soc_seg[1] = seg_digit[0];
+            disp.soc_seg[2] = seg_digit[1];
+            return;
+        }
+        uint8_t b = SOC_BCD[soc];
+        uint8_t ones = b & 0x0F;
+        uint8_t tens = (b >> 4) & 0x0F;
+        disp.soc_seg[0] = seg_digit[ones];
+        disp.soc_seg[1] = (tens == 0) ? SEG_BLANK : seg_digit[tens];
+        disp.soc_seg[2] = SEG_BLANK;
+    }
 
     if (mode == DISPLAY_FAULT)
     {
-        uint8_t fault = gDisplay.fault;
-        // digits[0] = 0xEE; // E 的标志（我们用特殊码表示）
-        // digits[0] = 0x79; // E 的标志（我们用特殊码表示）
-        digits[0] = fault % 10;
-        digits[1] = (fault / 10) % 10;
-        digits[2] = 14; // E 的标志（我们用特殊码表示）
-    }
-    else if (mode == DISPLAY_SOC)
-    {
-        value = gDisplay.soc;
-        digits[0] = value % 10;
-        digits[1] = (value / 10) % 10;
-        digits[2] = (value / 100) % 10;
-    }
-}
+        // uint8_t fault = gDisplay.fault;
+        // // digits[0] = 0xEE; // E 的标志（我们用特殊码表示）
+        // // digits[0] = 0x79; // E 的标志（我们用特殊码表示）
+        // digits[0] = fault % 10;
+        // digits[1] = (fault / 10) % 10;
+        // digits[2] = 14; // E 的标志（我们用特殊码表示）
 
-#if 0
-//--------------------------------------
-// 定时任务：1ms 调用一次
-//--------------------------------------
-void Display_ScanTask(uint32_t now_ms)
-{
-    uint16_t value;
-    if (gDisplay.mode == DISPLAY_FAULT)
-    {
-        // 每 1000ms 在 SOC 和 故障码之间切换
-        if (now_ms - gDisplay.toggle_timer >= 1000)
         {
-            gDisplay.toggle_timer = now_ms;
-            gDisplay.toggle_state ^= 1;
+            if (code < 1)
+                code = 1;
+            if (code > 20)
+                code = 20;
+            uint8_t b = FLT_BCD[code - 1];
+            uint8_t ones = b & 0x0F;
+            uint8_t tens = (b >> 4) & 0x0F;
+            disp.fault_seg[2] = SEG_E;
+            disp.fault_seg[1] = (tens == 0) ? SEG_BLANK : seg_digit[tens];
+            disp.fault_seg[0] = seg_digit[ones];
         }
-        value = gDisplay.toggle_state ? gDisplay.soc : gDisplay.fault;
     }
-    else
-    {
-        value = gDisplay.soc;
-    }
+    // else if (mode == DISPLAY_SOC)
+    // {
+    //     value = gDisplay.soc;
+    //     digits[0] = value % 10;
+    //     digits[1] = (value / 10) % 10;
+    //     digits[2] = (value / 100) % 10;
 
-    uint8_t digits[3];
-    digits[0] = value % 10;
-    digits[1] = (value / 10) % 10;
-    digits[2] = (value / 100) % 10;
-
-    // 关闭所有位选
-    // GPIO_ResetBits(GPIOB, DIGIT1_PIN | DIGIT2_PIN | DIGIT3_PIN);
-    MCUO_SEG_DIG1 = 0;
-    MCUO_SEG_DIG2 = 0;
-    MCUO_SEG_DIG3 = 0;
-
-    // 输出段码
-    HC595_SendByte(SEG_CODE[digits[gDisplay.current_digit]]);
-
-    // 打开当前位选
-    switch (gDisplay.current_digit)
-    {
-    case 0:
-        GPIO_SetBits(GPIO_MCU_DIG1, PIN_MCU_DIG1);
-        break;
-    case 1:
-        GPIO_SetBits(GPIO_MCU_DIG2, PIN_MCU_DIG2);
-        break;
-    case 2:
-        GPIO_SetBits(GPIO_MCU_DIG3, PIN_MCU_DIG3);
-        break;
-    }
-
-    // 下次扫描切换下一位
-    gDisplay.current_digit++;
-    if (gDisplay.current_digit >= 3)
-        gDisplay.current_digit = 0;
+    //     {
+    //         if (soc > 100)
+    //             soc = 100;
+    //         if (soc == 100)
+    //         { // 100 特殊显示
+    //             disp.soc_seg[0] = seg_digit[0];
+    //             disp.soc_seg[1] = seg_digit[0];
+    //             disp.soc_seg[2] = seg_digit[1];
+    //             return;
+    //         }
+    //         uint8_t b = SOC_BCD[soc];
+    //         uint8_t ones = b & 0x0F;
+    //         uint8_t tens = (b >> 4) & 0x0F;
+    //         disp.soc_seg[0] = seg_digit[ones];
+    //         disp.soc_seg[1] = (tens == 0) ? SEG_BLANK : seg_digit[tens];
+    //         disp.soc_seg[2] = SEG_BLANK;
+    //     }
+    // }
 }
-#endif
 
 uint8_t display_fault(void)
 {
@@ -253,134 +329,85 @@ uint8_t display_fault(void)
     return fault_code;
 }
 
-void Display_ScanTask(uint32_t now_ms)
+void Display_ScanTask(void)
 {
-    // uint16_t value;
-    uint8_t seg_data;
-    static uint16_t delay_toggle = 0;
+    uint8_t seg;
 
-    static uint16_t delay = 0;
-    static uint16_t delay_fault = 0;
-    if (test_soc < 100)
+    disp.tick_ms++;
+    if (disp.mode == DISP_MODE_FAULT)
     {
-        if (++delay >= 1000)
+        if (disp.tick_ms >= 1000)
         {
-            delay = 0;
-            test_soc++;
+            disp.tick_ms = 0;
+            disp.toggle ^= 1;
         }
     }
     else
     {
-        test_soc = 0;
-    }
-    if (test_fault < 20)
-    {
-        if (++delay_fault >= 1000)
-        {
-            delay_fault = 0;
-            test_fault++;
-        }
-    }
-    else
-    {
-        test_fault = 0;
-    }
-    // Display_UpdateData(DISPLAY_SOC, test_soc, 1);
-    // Display_UpdateData(DISPLAY_FAULT, test_soc, test_fault);
-
-    // if (g_stCellInfoReport.unMdlFault_Third.all)
-    // {
-    //     display_fault();
-    // }
-    // uint8_t fault_code = display_fault();
-    // if (fault_code)
-    // {
-    //     Display_UpdateData(DISPLAY_FAULT, g_stCellInfoReport.SocElement.u16Soc, fault_code);
-    // }
-    // else
-    // {
-    //     Display_UpdateData(DISPLAY_SOC, g_stCellInfoReport.SocElement.u16Soc, 1);
-    //     // Display_UpdateData(DISPLAY_SOC, test_soc, 1);
-    // }
-
-    if (gDisplay.mode == DISPLAY_FAULT)
-    {
-        // 每 1000ms 切换显示 SOC / 故障码
-        // if (now_ms - gDisplay.toggle_timer >= 1000)
-        if (++delay_toggle >= 1000)
-        {
-            delay_toggle = 0;
-            // gDisplay.toggle_timer = now_ms;
-            gDisplay.toggle_state ^= 1;
-        }
-
-        // if (gDisplay.toggle_state == 0)
-        // { // 显示故障
-        //     uint8_t fault = gDisplay.fault;
-        //     // digits[0] = 0xEE; // E 的标志（我们用特殊码表示）
-        //     // digits[0] = 0x79; // E 的标志（我们用特殊码表示）
-        //     digits[0] = fault % 10;
-        //     digits[1] = (fault / 10) % 10;
-        //     digits[2] = 14; // E 的标志（我们用特殊码表示）
-        // }
-        // else
-        // { // 显示SOC
-            // value = gDisplay.soc;
-        //     digits[0] = value % 10;
-        //     digits[1] = (value / 10) % 10;
-        //     digits[2] = (value / 100) % 10;
-        // }
-    }
-    else
-    {
-        // value = gDisplay.soc;
-        // digits[0] = value % 10;
-        // digits[1] = (value / 10) % 10;
-        // digits[2] = (value / 100) % 10;
+        disp.tick_ms = 0;
+        disp.toggle = 0;
     }
 
+    HC595_DELAY();
     // 关闭所有位选
-    // GPIO_ResetBits(GPIOB, DIGIT1_PIN | DIGIT2_PIN | DIGIT3_PIN);
     MCUO_SEG_DIG1 = 0;
     MCUO_SEG_DIG2 = 0;
     MCUO_SEG_DIG3 = 0;
 
-    // MCUO_SEG_DIG1 = 1;
-    // MCUO_SEG_DIG2 = 1;
-    // MCUO_SEG_DIG3 = 1;
+#if 1
+    if (disp.mode == DISP_MODE_FAULT && disp.toggle == 0)
+        seg = disp.fault_seg[disp.cur_digit];
+    else
+        seg = disp.soc_seg[disp.cur_digit];
+#else
+    seg = disp.fault_seg[disp.cur_digit];
+#endif
 
-    // uint8_t fault = gDisplay.fault;
-    // digits[0] = 0xEE; // E 的标志（我们用特殊码表示）
-    // digits[1] = fault % 10;
-    // digits[2] = (fault / 10) % 10;
+    HC595_SendByte(seg);
+    // 4. 等信号稳定再开位选（关键）
+    HC595_DELAY();
+    // HC595_DELAY();
 
-    // // 确定当前位段码
-    // if (digits[gDisplay.current_digit] == 0xEE)
-    //     seg_data = SEG_E;
-    // else
-    //     seg_data = SEG_CODE[digits[gDisplay.current_digit]];
-
-    // ????输出段码
-    // HC595_SendByte(seg_data);
-    HC595_SendByte(SEG_CODE[digits[gDisplay.current_digit]]);
-
-    // 打开对应位
-    switch (gDisplay.current_digit)
+    // HC595_SendByte(SEG_CODE[digits[gDisplay.current_digit]]);
+    if (seg != SEG_BLANK)
     {
-    case 0:
-        GPIO_SetBits(GPIO_MCU_DIG3, PIN_MCU_DIG3);
-        break;
-    case 1:
-        GPIO_SetBits(GPIO_MCU_DIG2, PIN_MCU_DIG2);
-        break;
-    case 2:
-        GPIO_SetBits(GPIO_MCU_DIG1, PIN_MCU_DIG1);
-        break;
-    }
+#if 1
+        switch (disp.cur_digit)
+        {
+        case 0:
+            GPIO_SetBits(GPIO_MCU_DIG3, PIN_MCU_DIG3);
+            break;
+        case 1:
+            GPIO_SetBits(GPIO_MCU_DIG2, PIN_MCU_DIG2);
+            break;
+        case 2:
+            GPIO_SetBits(GPIO_MCU_DIG1, PIN_MCU_DIG1);
+            break;
+        }
 
-    gDisplay.current_digit++;
-    if (gDisplay.current_digit >= 3)
-        gDisplay.current_digit = 0;
+#else
+        switch (disp.cur_digit)
+        {
+        case 0:
+            GPIO_SetBits(GPIO_MCU_DIG1, PIN_MCU_DIG1);
+            break;
+        case 1:
+            GPIO_SetBits(GPIO_MCU_DIG2, PIN_MCU_DIG2);
+            break;
+        case 2:
+            GPIO_SetBits(GPIO_MCU_DIG3, PIN_MCU_DIG3);
+            break;
+        }
+#endif
+    }
+    // disp.cur_digit = (disp.cur_digit + 1) % 3;
+    disp.cur_digit++;
+    if (disp.cur_digit >= 3)
+        disp.cur_digit = 0;
+
+    // gDisplay.current_digit++;
+    // if (gDisplay.current_digit >= 3)
+    //     gDisplay.current_digit = 0;
 }
 
 uint16_t test_segcode = 0;

@@ -342,11 +342,12 @@ void App_SysTime(void)
 void TIM17_IRQHandler(void)
 {
 	if (TIM_GetITStatus(TIM17, TIM_IT_Update) != RESET)
-	{												 // 检查TIM3更新中断发生与否
+	{ // 检查TIM3更新中断发生与否
+
 		TIM_ClearITPendingBit(TIM17, TIM_IT_Update); // 清除TIMx更新中断标志
-		if ((++g_u81msCnt) >= 2)
+		if ((++g_u81msCnt) >= 6)
 		{ // 1ms
-			// Display_ScanTask();
+			Display_ScanTask();
 
 			g_u81msCnt = 0;
 			g_u81msClockCnt++;

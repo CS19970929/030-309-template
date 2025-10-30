@@ -118,6 +118,30 @@ void App_SOC(void)
 		return;
 	}
 
+	static uint8_t soc = 0;
+	static uint8_t fault = 0;
+
+	// Display_UpdateData(DISP_MODE_SOC, soc, fault);
+	Display_UpdateData(DISP_MODE_SOC, soc, fault);
+	// Display_UpdateData(DISP_MODE_FAULT, g_stCellInfoReport.SocElement.u16Soc, fault);
+	// if (soc < 100)
+	// {
+	// 	soc++;
+	// }
+	// else
+	// {
+	// 	soc = 0;
+	// }
+	// if (fault < 20)
+	// {
+	// 	fault++;
+	// }
+	// else
+	// {
+	// 	fault = 0;
+	// }
+	
+
 	RefreshData_SOC();
 	GetData_SOC();
 	SOC_IntEnhance_Ctrl(gu8_200msAccClock_Flag);

@@ -48,8 +48,8 @@ int main(void)
 		// App_SOC();
 		// cellular_uart_service();
 		// App_CommonUpper();
-	
-	#if 1
+
+#if 1
 		cellular_uart_service();
 		App_CommonUpper();
 
@@ -61,6 +61,8 @@ int main(void)
 		// App_SleepDeal(); // 放在App_MOS_Relay_Control()后面
 		App_SOC();
 		App_CellBalance();
+
+		
 
 		// APP_LedBar();
 		// Display_ScanTask();
@@ -74,7 +76,7 @@ int main(void)
 		App_FlashUpdateDet();
 		App_LogRecord();
 		App_ProID_Deal();
-	#endif
+#endif
 
 #ifdef wdog_enable
 		Feed_WatchDog;
@@ -87,7 +89,7 @@ int main(void)
 void InitDevice(void)
 {
 	SystemInit();
-	//SystemCoreClockUpdate();
+	// SystemCoreClockUpdate();
 	Init_IAPAPP();
 
 #if (defined _DEBUG_CODE)
@@ -100,7 +102,7 @@ void InitDevice(void)
 #else
 	InitDelay();
 	IsSleepStartUp();
-	
+
 	InitIO();
 	InitTimer();
 	InitSystemWakeUp();

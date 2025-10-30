@@ -369,15 +369,28 @@ void App_CellBalance(void)
 		return;
 	}
 
-	// uint8_t fault_code = display_fault();
-	// if (fault_code)
+	// static uint8_t soc = 0;
+	// static uint8_t fault = 0;
+
+	// Display_UpdateData(DISP_MODE_SOC, soc, fault);
+	// Display_UpdateData(DISP_MODE_SOC, soc, fault);
+	// if(soc < 100)
 	// {
-	// 	Display_UpdateData(DISPLAY_FAULT, g_stCellInfoReport.SocElement.u16Soc, fault_code);
+	// 	soc++;
 	// }
 	// else
 	// {
-	// 	Display_UpdateData(DISPLAY_SOC, g_stCellInfoReport.SocElement.u16Soc, 1);
-	// 	// Display_UpdateData(DISPLAY_SOC, test_soc, 1);
+	// 	soc = 0;
+	// }
+
+	// uint16_t code = display_fault();
+	// if (code)
+	// {
+	// 	Display_UpdateData(DISP_MODE_FAULT, g_stCellInfoReport.SocElement.u16Soc, code);
+	// }
+	// else
+	// {
+	// 	Display_UpdateData(DISP_MODE_SOC, g_stCellInfoReport.SocElement.u16Soc, code);
 	// }
 
 	switch (g_enBalanceState)
