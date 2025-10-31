@@ -373,9 +373,11 @@ void SOC_Simulate(void)
 {
 	static uint8_t soc = 0;
 	static bool soc_increasing = true;
+	static uint8_t fault_code = 16;
 
+	Display_UpdateData(DISP_MODE_FAULT, g_stCellInfoReport.SocElement.u16Soc, fault_code);
 	// Display_UpdateData(DISP_MODE_SOC, g_stCellInfoReport.SocElement.u16Soc, 1);
-	Display_UpdateData(DISP_MODE_SOC, soc, 1);
+	// Display_UpdateData(DISP_MODE_SOC, soc, 1);
 
 	if (soc_increasing)
 	{

@@ -213,6 +213,22 @@ void Display_UpdateData(DISP_Mode_t mode, uint16_t soc, uint16_t code)
     // gDisplay.soc = soc;
     // gDisplay.fault = fault;
     disp.mode = mode;
+    
+    if (mode == DISPLAY_FAULT)
+    {
+        {
+            if (code < 1)
+                code = 1;
+            if (code > 20)
+                code = 20;
+            uint8_t b = FLT_BCD[code - 1];
+            uint8_t ones = b & 0x0F;
+            uint8_t tens = (b >> 4) & 0x0F;
+            disp.fault_seg[2] = SEG_E;
+            disp.fault_seg[1] = (tens == 0) ? SEG_BLANK : seg_digit[tens];
+            disp.fault_seg[0] = seg_digit[ones];
+        }
+    }
 
     // {
     //     disp.soc_seg[0] = seg_digit[ge];
@@ -246,22 +262,7 @@ void Display_UpdateData(DISP_Mode_t mode, uint16_t soc, uint16_t code)
         disp.soc_seg[2] = SEG_BLANK;
     }
 
-    if (mode == DISPLAY_FAULT)
-    {
-        {
-            if (code < 1)
-                code = 1;
-            if (code > 20)
-                code = 20;
-            uint8_t b = FLT_BCD[code - 1];
-            uint8_t ones = b & 0x0F;
-            uint8_t tens = (b >> 4) & 0x0F;
-            disp.fault_seg[2] = SEG_E;
-            disp.fault_seg[1] = (tens == 0) ? SEG_BLANK : seg_digit[tens];
-            disp.fault_seg[0] = seg_digit[ones];
-        }
-    }
-    // else if (mode == DISPLAY_SOC)
+        // else if (mode == DISPLAY_SOC)
     // {
     //     value = gDisplay.soc;
     //     digits[0] = value % 10;
