@@ -39,16 +39,8 @@ int main(void)
 	{
 #if (defined _DEBUG_CODE)
 		// App_SysTime();
-		cellular_uart_service();
-		// MCUO_DEBUG_LED1 = !MCUO_DEBUG_LED1;
-		// __delay_ms(200);
 #else
 		App_SysTime();
-		// test_main();
-		// App_SOC();
-		// cellular_uart_service();
-		// App_CommonUpper();
-
 #if 1
 		cellular_uart_service();
 		App_CommonUpper();
@@ -61,10 +53,6 @@ int main(void)
 		App_SleepDeal(); // 放在App_MOS_Relay_Control()后面
 		App_SOC();
 		App_CellBalance();
-
-		// APP_LedBar();
-		// Display_ScanTask();
-		// test_main();
 
 		// App_ChargerLoad_Det();
 #ifdef __FUNC__HEAT__
@@ -117,8 +105,6 @@ void InitDevice(void)
 	// bsp_Init();
 	InitUSART_CommonUpper();
 
-	GPIO_WriteBit(GPIO_M_STB, PIN_M_STB, 1);
-	POWER_ON_4G_AND_INIT();
 	InitTimer();
 
 #ifdef wdog_enable

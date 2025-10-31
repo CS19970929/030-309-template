@@ -646,6 +646,8 @@ void InitData_E2prom(void)
 										   // 如果有别的添加，可以往这个函数写，目前加了保护记录初始化
 		WriteProID_Default();
 
+		soc_factory_param_init_first();
+
 		bool ret = false;
 		do
 		{

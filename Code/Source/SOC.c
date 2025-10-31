@@ -51,7 +51,6 @@ const UINT16 SOC_Table_Default[42] = {
 void RefreshData_SOC(void)
 {
 	SOC_Enhance_Element.u16_VCellMax = g_stCellInfoReport.u16VCellMax;
-	// SOC_Enhance_Element.u16_VCellMin = g_stCellInfoReport.u16VCellMin;	//扩散出去，不用这个值，去掉6和16串
 	SOC_Enhance_Element.u16_VCellMin = g_stCellInfoReport.u16VCellMin; // 公版决定不扩散出去，包含6和16串，客户使用体验问题，低压保护SOC一定要降下来
 	SOC_Enhance_Element.u16_Ichg = g_stCellInfoReport.u16Ichg;
 	SOC_Enhance_Element.u16_Idsg = g_stCellInfoReport.u16IDischg;
@@ -77,8 +76,6 @@ void GetData_SOC(void)
 	{
 		g_stCellInfoReport.SocElement.u16Soc = 0;
 	}
-
-	// g_stCellInfoReport.u16VCell[30] = SOC_Enhance_Element.u8_SOC_OCV_Cali;
 }
 
 // 一次性赋值
@@ -92,23 +89,18 @@ void InitData_SOC(void)
 	;
 	SOC_Enhance_Element.u16_SOC_CycleT_Limit = 5000;
 	SOC_Enhance_Element.u16_SOC_TableSelect = OtherElement.u16Soc_TableSelect;
-	// SOC_Enhance_Element.u16_SOC_DsgVcell_Limit = OtherElement.u16Soc_V_0;
 	SOC_Enhance_Element.u16_SOC_100_Vol = OtherElement.u16Soc_V_100;
 	SOC_Enhance_Element.u16_SOC_0_Vol = OtherElement.u16Soc_V_0;
 
 	SOC_Enhance_Element.u8_LargeCurFlag_Chg = 0; // 默认是0，除非末端大电流CC充放电导致没法在端点达到100%和0%置1
 	SOC_Enhance_Element.u8_LargeCurFlag_Dsg = 0;
 
-	for (i = 0; i < E2P_AdressNum; ++i)
-	{
-		SOC_Enhance_Element.SOC_E2P_Adress[i] = E2P_ADDR_E2POS_ENHANCE_SOC + 2 * i;
-	}
-
 	for (i = 0; i < SOC_Size_TableCanSet; ++i)
 	{
 		SOC_Enhance_Element.SOC_Table_CanSet[i] = SOC_Table_Set[i];
 	}
-	// SOC_Enhance_Element.SOC_E2P_Adress = E2P_ADDR_E2POS_ENHANCE_SOC;
+
+	soc_param_lib_init();
 }
 
 void App_SOC(void)
@@ -118,33 +110,9 @@ void App_SOC(void)
 		return;
 	}
 
-	static uint8_t soc = 0;
-	static uint8_t fault = 0;
-
-	// Display_UpdateData(DISP_MODE_SOC, g_stCellInfoReport.SocElement.u16Soc, fault);
-	// Display_UpdateData(DISP_MODE_SOC, soc, fault);
-	// Display_UpdateData(DISP_MODE_FAULT, g_stCellInfoReport.SocElement.u16Soc, fault);
-	if (soc < 100)
-	{
-		soc++;
-	}
-	else
-	{
-		soc = 0;
-	}
-	if (fault < 20)
-	{
-		fault++;
-	}
-	else
-	{
-		fault = 0;
-	}
-	
-
 	RefreshData_SOC();
 	GetData_SOC();
-	SOC_IntEnhance_Ctrl(gu8_200msAccClock_Flag);
+	SOC_IntEnhance_Ctrl();
 
 	// 要精确统计，不能在别的地方置零。200ms以内执行一次，然后置零便可。这样就不会被拉长时间导致容量计算有问题。
 	// 例如200ms时基变为240ms，误差就是40/200 = 20%，20Ah统计最后就18Ah。

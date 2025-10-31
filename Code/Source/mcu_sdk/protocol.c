@@ -191,21 +191,21 @@ void all_data_update(void)
     int16_t current = 0xffff;
     int16_t temperature = 0xffff;
     uint16_t fault_code = 0;
-    if(g_stCellInfoReport.u16Ichg == 0)
-    {
-        time_chg = 0xffff;
-    }
-    else
-    {
-        time_chg = (g_stCellInfoReport.SocElement.u16CapacityFactory - g_stCellInfoReport.SocElement.u16CapacityNow) / g_stCellInfoReport.u16Ichg * 60 / 10;
-    }
-    if(g_stCellInfoReport.u16IDischg == 0)
+
+    if (g_stCellInfoReport.u16Ichg)
     {
         time_dsg = 0xffff;
+        time_chg = ((uint32_t)g_stCellInfoReport.SocElement.u16CapacityFactory - (uint32_t)g_stCellInfoReport.SocElement.u16CapacityNow) * 6 / g_stCellInfoReport.u16Ichg;
+    }
+    else if (g_stCellInfoReport.u16IDischg)
+    {
+        time_chg = 0xffff;
+        time_dsg = g_stCellInfoReport.SocElement.u16CapacityNow * 6 / g_stCellInfoReport.u16IDischg;
     }
     else
     {
-        time_dsg = (g_stCellInfoReport.SocElement.u16CapacityNow) / g_stCellInfoReport.u16IDischg * 60 / 10;
+        time_chg = 0xffff;
+        time_dsg = 0xffff;
     }
 
     if(g_stCellInfoReport.u16IDischg)
