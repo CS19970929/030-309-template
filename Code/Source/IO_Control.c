@@ -277,7 +277,7 @@ bool isCHGsig(void)
 
 	if (GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_0))
 	{
-		if (++cnt_chg_sig >= 10)
+		if (++cnt_chg_sig >= 5)
 		{
 			cnt_chg_sig = 0;
 
@@ -309,7 +309,7 @@ void Drivers_External_Ctrl(void)
 
 		if (!g_stCellInfoReport.u16Ichg)
 		{
-			if (++I_cnt >= 100)
+			if (++I_cnt >= 5)
 			{
 				I_cnt = 0;
 
@@ -318,6 +318,7 @@ void Drivers_External_Ctrl(void)
 				if (!GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_0))
 				{
 					isCHG_MDOE = false;
+					Driver_Element.MosRelay_Status.bits.b1Status_MOS_CHG = 0;
 				}
 			}
 		}

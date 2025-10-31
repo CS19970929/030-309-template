@@ -317,11 +317,11 @@ void DataLoad_Current(void)
 	g_stCellInfoReport.u16Ichg = (UINT16)((u32_ChgCur_mA >> 10) / 100);
 	g_stCellInfoReport.u16IDischg = (UINT16)((u32_DsgCur_mA >> 10) / 100);
 
-	if (g_stCellInfoReport.u16Ichg <= 2)
+	if (g_stCellInfoReport.u16Ichg <= 5)
 	{
 		g_stCellInfoReport.u16Ichg = 0;
 	}
-	if (g_stCellInfoReport.u16IDischg <= 2)
+	if (g_stCellInfoReport.u16IDischg <= 5)
 	{
 		g_stCellInfoReport.u16IDischg = 0;
 	}
@@ -333,6 +333,31 @@ void DataLoad_Current(void)
 		g_stCellInfoReport.u16IDischg = sys_time.DSG;
 	}
 #endif
+
+	static int16_t current = 0;
+	static int16_t back_current = 0;
+	static bool update = false;
+
+	if (g_stCellInfoReport.u16IDischg)
+	{
+		current = -g_stCellInfoReport.u16IDischg * 10;
+	}
+	else
+	{
+		current = g_stCellInfoReport.u16Ichg * 10;
+	}
+
+	if (back_current != current)
+	{
+		back_current = current;
+		mcu_dp_value_update(DPID_CUR, current); // VALUE型数据上报;
+	}
+	if(update)
+	{
+		update = false;
+		all_data_update();
+	}
+
 }
 
 void MonitorAFE(UINT8 num, UINT8 Result)

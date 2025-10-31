@@ -369,19 +369,7 @@ void App_CellBalance(void)
 		return;
 	}
 
-	// static uint8_t soc = 0;
-	// static uint8_t fault = 0;
-
-	// Display_UpdateData(DISP_MODE_SOC, soc, fault);
-	// Display_UpdateData(DISP_MODE_SOC, soc, fault);
-	// if(soc < 100)
-	// {
-	// 	soc++;
-	// }
-	// else
-	// {
-	// 	soc = 0;
-	// }
+	SOC_Simulate();
 
 	// uint16_t code = display_fault();
 	// if (code)

@@ -341,13 +341,13 @@ void App_SysTime(void)
 
 void TIM17_IRQHandler(void)
 {
+	static uint16_t cnt = 0;
 	if (TIM_GetITStatus(TIM17, TIM_IT_Update) != RESET)
 	{ // 检查TIM3更新中断发生与否
 
 		TIM_ClearITPendingBit(TIM17, TIM_IT_Update); // 清除TIMx更新中断标志
-		if ((++g_u81msCnt) >= 6)
+		if ((++g_u81msCnt) >= 2)
 		{ // 1ms
-			Display_ScanTask();
 
 			g_u81msCnt = 0;
 			g_u81msClockCnt++;
@@ -368,6 +368,11 @@ void TIM17_IRQHandler(void)
 				gu8_200msCnt = 0;
 				gu8_200msAccClock_Flag = 1;
 			}
+		}
+		if (++cnt >= (2 * 5))
+		{
+			cnt = 0;
+			Display_ScanTask();
 		}
 	}
 }

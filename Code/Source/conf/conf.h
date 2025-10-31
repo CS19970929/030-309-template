@@ -14,7 +14,7 @@
 
 // #define _SECOND_CURR_PROTECT_FUNC_
 
-// #define __VIRTURE_CURRENT__
+#define __VIRTURE_CURRENT__
 
 #define log_i(...)       ((void)0);
 #define log_w(...)       ((void)0);

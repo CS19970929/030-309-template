@@ -368,3 +368,38 @@ UINT8 Monitor_TempBreak(UINT16 *temp_AD)
 
 	return result;
 }
+
+void SOC_Simulate(void)
+{
+	static uint8_t soc = 0;
+	static bool soc_increasing = true;
+
+	// Display_UpdateData(DISP_MODE_SOC, g_stCellInfoReport.SocElement.u16Soc, 1);
+	Display_UpdateData(DISP_MODE_SOC, soc, 1);
+
+	if (soc_increasing)
+	{
+		if (soc < 100)
+		{
+			soc++;
+		}
+		else
+		{
+			soc_increasing = false; // 到顶，开始递减
+		}
+	}
+	else
+	{
+		if (soc > 0)
+		{
+			soc--;
+		}
+		else
+		{
+			soc_increasing = true; // 到底，开始递增
+		}
+	}
+
+	// 这里可以替换为你项目的日志或通信接口
+	// printf("Simulated SOC: %d%%\r\n", soc);
+}

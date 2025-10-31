@@ -1578,10 +1578,10 @@ void MosCtrl_SameDoor_NoPreChg(UINT8 OnOFF_Ctrl)
 		s_MosCHG_Status_ChgOcp = CLOSE_MODE;
 		s_MosDSG_Status_ChgOcp = OPEN_MODE;
 
-		if (Driver_Element.u16_CurDsg > DSG_MOS_OPEN_CUR)
-		{										// 如果电流大于2A，则必须立刻打开充电MOS
-			s_MosCHG_Status_ChgOcp = OPEN_MODE; // 即使目前还在30s的过流保护状态
-		}
+		// if (Driver_Element.u16_CurDsg > DSG_MOS_OPEN_CUR)
+		// {										// 如果电流大于2A，则必须立刻打开充电MOS
+		// 	s_MosCHG_Status_ChgOcp = OPEN_MODE; // 即使目前还在30s的过流保护状态
+		// }
 
 		if (!su8_FR_IchgOcp_Flag)
 		{

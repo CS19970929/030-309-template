@@ -197,8 +197,8 @@ static void HC595_SendByte(uint8_t data)
 
     SER_LOW();
     SRCLK_LOW();
-    HC595_DELAY();
-    HC595_DELAY();
+    // HC595_DELAY();
+    // HC595_DELAY();
 }
 
 //--------------------------------------
@@ -214,12 +214,12 @@ void Display_UpdateData(DISP_Mode_t mode, uint16_t soc, uint16_t code)
     // gDisplay.fault = fault;
     disp.mode = mode;
 
-    {
-        disp.soc_seg[0] = seg_digit[ge];
-        disp.soc_seg[1] = seg_digit[shi];
-        disp.soc_seg[2] = seg_digit[bai];
-        return;
-    }
+    // {
+    //     disp.soc_seg[0] = seg_digit[ge];
+    //     disp.soc_seg[1] = seg_digit[shi];
+    //     disp.soc_seg[2] = seg_digit[bai];
+    //     return;
+    // }
 
     {
         // if(soc > 100)
@@ -229,8 +229,8 @@ void Display_UpdateData(DISP_Mode_t mode, uint16_t soc, uint16_t code)
         //     disp.soc_seg[2] = seg_digit[1];
         //     return;
         // }
-        // if (soc > 100)
-        //     soc = 100;
+        if (soc > 100)
+            soc = 100;
         if (soc == 100)
         { // 100 特殊显示
             disp.soc_seg[0] = seg_digit[0];
@@ -248,13 +248,6 @@ void Display_UpdateData(DISP_Mode_t mode, uint16_t soc, uint16_t code)
 
     if (mode == DISPLAY_FAULT)
     {
-        // uint8_t fault = gDisplay.fault;
-        // // digits[0] = 0xEE; // E 的标志（我们用特殊码表示）
-        // // digits[0] = 0x79; // E 的标志（我们用特殊码表示）
-        // digits[0] = fault % 10;
-        // digits[1] = (fault / 10) % 10;
-        // digits[2] = 14; // E 的标志（我们用特殊码表示）
-
         {
             if (code < 1)
                 code = 1;
@@ -336,7 +329,7 @@ void Display_ScanTask(void)
     disp.tick_ms++;
     if (disp.mode == DISP_MODE_FAULT)
     {
-        if (disp.tick_ms >= 1000)
+        if (disp.tick_ms >= 100)
         {
             disp.tick_ms = 0;
             disp.toggle ^= 1;
@@ -347,12 +340,19 @@ void Display_ScanTask(void)
         disp.tick_ms = 0;
         disp.toggle = 0;
     }
-
-    HC595_DELAY();
     // 关闭所有位选
     MCUO_SEG_DIG1 = 0;
     MCUO_SEG_DIG2 = 0;
     MCUO_SEG_DIG3 = 0;
+
+    // HC595_DELAY();
+    // HC595_DELAY();
+    // HC595_DELAY();
+    // HC595_DELAY();
+    // HC595_DELAY();
+    // HC595_DELAY();
+    // HC595_DELAY();
+    // HC595_DELAY();
 
 #if 1
     if (disp.mode == DISP_MODE_FAULT && disp.toggle == 0)
@@ -364,11 +364,10 @@ void Display_ScanTask(void)
 #endif
 
     HC595_SendByte(seg);
-    // 4. 等信号稳定再开位选（关键）
-    HC595_DELAY();
+
+    // HC595_DELAY();
     // HC595_DELAY();
 
-    // HC595_SendByte(SEG_CODE[digits[gDisplay.current_digit]]);
     if (seg != SEG_BLANK)
     {
 #if 1
@@ -384,7 +383,6 @@ void Display_ScanTask(void)
             GPIO_SetBits(GPIO_MCU_DIG1, PIN_MCU_DIG1);
             break;
         }
-
 #else
         switch (disp.cur_digit)
         {
