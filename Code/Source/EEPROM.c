@@ -655,7 +655,7 @@ void InitData_E2prom(void)
 			ret = SH367309_UpdataAfeConfig();
 
 		} while (ret == false);
-		DataLoad_CurrentCali_startup();
+		// DataLoad_CurrentCali_startup();
 
 		WriteEEPROM_Word_NoZone(EEPROM_ADDR_PASS, EEPROM_VALUE_BEGIN_FLAG); // 第一次上电初始化完成
 
