@@ -6,12 +6,13 @@ struct CBC_ELEMENT CBC_Element;
 static INT8 fac_us = 0;	 // us
 static INT16 fac_ms = 0; // ms
 
-UINT8 g_u81msCnt = 0;
+// UINT8 g_u81msCnt = 0;
 UINT8 g_u810msClockCnt = 0;
 UINT8 g_u81msClockCnt = 0;
 
 UINT8 gu8_200msCnt = 0;
 UINT8 gu8_200msAccClock_Flag = 0;
+bool gu8_1000msAccClock_Flag = false;
 
 void IWDG_HaltConfig(void);
 
@@ -172,7 +173,7 @@ void InitTimer(void)
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_TIM17, ENABLE);
 
 	// 定时器初始化
-	TIM_TimeBaseStructure.TIM_Period = 500 - 1;							 // 设置在下一个更新事件装入活动的自动重装载寄存器周期的值
+	TIM_TimeBaseStructure.TIM_Period = 1000 - 1;						 // 设置在下一个更新事件装入活动的自动重装载寄存器周期的值
 	TIM_TimeBaseStructure.TIM_Prescaler = SystemCoreClock / 1000000 - 1; // 设置用来作为TIMx时钟频率除数的预分频值——计数分频
 	// TIM_TimeBaseStructure.TIM_Prescaler = 1; 					//设置用来作为TIMx时钟频率除数的预分频值——计数分频
 	// TIM_TimeBaseStructure.TIM_Prescaler = 16;
@@ -342,14 +343,15 @@ void App_SysTime(void)
 void TIM17_IRQHandler(void)
 {
 	static uint16_t cnt = 0;
+	static uint16_t cnt_1000ms = 0;
+
 	if (TIM_GetITStatus(TIM17, TIM_IT_Update) != RESET)
 	{ // 检查TIM3更新中断发生与否
 
 		TIM_ClearITPendingBit(TIM17, TIM_IT_Update); // 清除TIMx更新中断标志
-		if ((++g_u81msCnt) >= 2)
+		// if ((++g_u81msCnt) >= 1)
 		{ // 1ms
-
-			g_u81msCnt = 0;
+			// g_u81msCnt = 0;
 			g_u81msClockCnt++;
 			gu8_200msCnt++;
 
@@ -369,10 +371,15 @@ void TIM17_IRQHandler(void)
 				gu8_200msAccClock_Flag = 1;
 			}
 		}
-		if (++cnt >= (2 * 5))
+		if (++cnt >= (5))
 		{
 			cnt = 0;
 			Display_ScanTask();
+		}
+		if (++cnt_1000ms >= 1000)
+		{
+			cnt_1000ms = 0;
+			gu8_1000msAccClock_Flag = true;
 		}
 	}
 }

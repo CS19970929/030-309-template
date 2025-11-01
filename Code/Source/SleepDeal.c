@@ -85,7 +85,8 @@ void InitWakeUp_Base(void)
 		// 配置PA0_WKUP外部上升沿中断
 		EXTI_InitStruct.EXTI_Line = EXTI_Line3;
 		EXTI_InitStruct.EXTI_Mode = EXTI_Mode_Interrupt;
-		EXTI_InitStruct.EXTI_Trigger = EXTI_Trigger_Rising; // 上升沿中断
+		// EXTI_InitStruct.EXTI_Trigger = EXTI_Trigger_Rising; // 上升沿中断
+		EXTI_InitStruct.EXTI_Trigger = EXTI_Trigger_Rising_Falling; // 上升沿中断
 		EXTI_InitStruct.EXTI_LineCmd = ENABLE;
 		EXTI_Init(&EXTI_InitStruct);
 		// 中断嵌套设计

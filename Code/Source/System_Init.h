@@ -126,6 +126,7 @@ struct CBC_ELEMENT {
 
 
 extern UINT8 gu8_200msAccClock_Flag;
+extern bool gu8_1000msAccClock_Flag;
 
 extern struct CBC_ELEMENT CBC_Element;
 extern volatile union SYS_TIME g_st_SysTimeFlag;

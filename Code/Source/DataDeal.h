@@ -147,8 +147,10 @@ struct OTHER_ELEMENT {
 #define CS_Res			2
 #define CS_Res_Num		4
 
-#define CS_Cur_CHGmax	((INT32)CS_Res_Num*1250/CS_Res-10)
-#define CS_Cur_DSGmax	CS_Cur_CHGmax
+// #define CS_Cur_CHGmax	((INT32)CS_Res_Num*1250/CS_Res-10)
+// #define CS_Cur_DSGmax	CS_Cur_CHGmax
+#define CS_Cur_CHGmax	(20000)
+#define CS_Cur_DSGmax	20000
 #define CBC_DelayT		1280
 #define CBC_Cur_DSG		(50000)
 
@@ -166,7 +168,7 @@ struct OTHER_ELEMENT {
 	                             CS_Cur_CHGmax,	CS_Cur_DSGmax,CBC_DelayT,CBC_Cur_DSG,\
 	                             SOC_TABLE_TERNARYLI,	0,		1000,	30,\
 	                             4000,	10,	    3000,	1,		10,		10,	240,0,\
-	                             220,	3,		4200,	3000,\
+	                             220,	3,		4150,	3100,\
 	                             SNum,CS_Res,CS_Res_Num,10}
 #elif (defined(LIFEPO))
 #define OtherElement_default 	{3000,	30,	20,	0,	0,	0,	0,	0,\

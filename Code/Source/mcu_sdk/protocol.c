@@ -186,6 +186,8 @@ void all_data_update(void)
     mcu_dp_value_update(DPID_NUM_12_VOL,当前第12节电压); //VALUE型数据上报;
 
     */
+    System_ERROR_UserCallback(ERROR_CAN);
+    
     uint16_t time_chg = 0xffff;
     uint16_t time_dsg = 0xffff;
     int16_t current = 0xffff;
