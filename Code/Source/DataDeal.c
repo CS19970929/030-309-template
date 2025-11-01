@@ -488,7 +488,7 @@ void App_AFEGet(void)
 	{
 		sys_time.test_cnt_fuse++;
 		
-		if (g_stCellInfoReport.u16Ichg >= 10 && g_stCellInfoReport.u16VCellMax >= 4250)
+		if (g_stCellInfoReport.u16Ichg >= 10 && g_stCellInfoReport.u16VCellMax >= 4250 && g_stCellInfoReport.u16VCellMin >= 3000)
 		{
 			if (++close_fuse_delay_cnt >= (5 * 10))
 			{
