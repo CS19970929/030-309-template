@@ -104,6 +104,7 @@ void InitDevice(void)
 	// USART_ITConfig(USART2, USART_IT_RXNE, ENABLE); // 使能接收中断
 	// bsp_Init();
 	InitUSART_CommonUpper();
+	// DBGMCU_Config(DBGMCU_STOP, ENABLE);
 
 	InitTimer();
 

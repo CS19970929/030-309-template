@@ -91,8 +91,8 @@ void InitWakeUp_Base(void)
 		EXTI_Init(&EXTI_InitStruct);
 		// 中断嵌套设计
 		NVIC_InitStructure.NVIC_IRQChannel = EXTI2_3_IRQn; // 使能按键WK_UP所在的外部中断通道
-		NVIC_InitStructure.NVIC_IRQChannelPriority = 0x00;	// 抢占优先级0
-		NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;		// 使能外部中断通道
+		NVIC_InitStructure.NVIC_IRQChannelPriority = 0x00; // 抢占优先级0
+		NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;	   // 使能外部中断通道
 		NVIC_Init(&NVIC_InitStructure);
 	}
 }
@@ -184,14 +184,31 @@ void IOstatus_Base(void)
 	// InitAFE1_Sleep();
 	ADC_DeInit(ADC1);
 
-	GPIOA->PUPDR = 0;
-	GPIOA->MODER = 0XFFFFFFFF;
-	GPIOB->PUPDR = 0;
-	GPIOB->MODER = 0XFFFFFFFF;
-	GPIOC->PUPDR = 0;
-	GPIOC->MODER = 0XFFFFFFFF;
-	GPIOF->PUPDR = 0;
-	GPIOF->MODER = 0XFFFFFFFF;
+	// GPIOA->PUPDR = 0;
+	// GPIOA->MODER = 0XFFFFFFFF;
+	// GPIOB->PUPDR = 0;
+	// GPIOB->MODER = 0XFFFFFFFF;
+	// GPIOC->PUPDR = 0;
+	// GPIOC->MODER = 0XFFFFFFFF;
+	// GPIOF->PUPDR = 0;
+	// GPIOF->MODER = 0XFFFFFFFF;
+
+	GPIO_WriteBit(GPIO_M_STB, PIN_M_STB, 1);
+	// GPIO_WriteBit(GPIO_AD_SPS_EN, PIN_AD_SPS_EN, 1);
+	// GPIO_WriteBit(GPIO_CMNT_EN, PIN_CMNT_EN, 1);
+	// GPIO_WriteBit(GPIO_SEG_SPS, PIN_SEG_SPS, 1);
+
+	GPIO_InitStructure.GPIO_Pin = PIN_M_STB;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_Level_1;
+	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+	GPIO_Init(GPIO_M_STB, &GPIO_InitStructure);
+
+	GPIO_InitStructure.GPIO_Pin = PIN_PWR_4G;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_Level_1;
+	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+	GPIO_WriteBit(GPIO_PWR_4G, PIN_PWR_4G, 1);
 
 	// GPIO_WriteBit(GPIO_M_STB, PIN_M_STB, 0);
 	// GPIO_WriteBit(GPIO_AD_EN, PIN_AD_EN, 1);
@@ -386,11 +403,19 @@ void SleepDeal_Continue(void)
 
 	if (u8FlashWriteOK_flag)
 	{
-		InitAFE1_Sleep(0);
-		AFE_Sleep();
-		//暂时不需要4G休眠，4G需要唤醒bms
-		// POWER_OFF_4G_AND_INIT();
-		MCU_RESET();
+		InitWakeUp_DeepMode();
+		// Sys_StandbyMode();		//不能掌控外部IO，弃用
+		Sys_StopMode();
+
+		SystemInit();
+		InitUSART_CommonUpper();
+		Sleep_Mode.all = 0;
+
+		// InitAFE1_Sleep(0);
+		// AFE_Sleep();
+		// 暂时不需要4G休眠，4G需要唤醒bms
+		//  POWER_OFF_4G_AND_INIT();
+		// MCU_RESET();
 	}
 }
 
