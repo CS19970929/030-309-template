@@ -84,33 +84,33 @@ void InitShortCur(void)
     g_tParam.other.u16CS_Cur_CHGmax = 2000 * g_tParam.other.u16Sys_CS_Res_Num / g_tParam.other.u16Sys_CS_Res;
     g_tParam.other.u16CS_Cur_DSGmax = 2000 * g_tParam.other.u16Sys_CS_Res_Num / g_tParam.other.u16Sys_CS_Res;
 
-    // /* 短路延时 */
-    // temp = Choose_Right_Value(g_tParam.other.u16CBC_DelayT / 10, AFE_SCT);
-    // AFE_ROM_PARAMETERS_Struction.m0EH_0FH.SCT = temp;
-    // g_tParam.other.u16CBC_DelayT = AFE_SCT[temp] * 10; // 修改最终设置的值，接近的那个
-
-    // /* 短路电压 */
-    // temp = g_tParam.other.u16CBC_Cur_DSG / 10; // A
-    // temp = temp * 1000 / g_u32CS_Res_AFE;      // 当前对应多少mv
-    // AFE_ROM_PARAMETERS_Struction.m0EH_0FH.SCV = Choose_Right_Value(temp, AFE_SCV);
-    // // 修改最终设置的值，接近的那个
-
-    // g_tParam.other.u16CBC_Cur_DSG = AFE_SCV[AFE_ROM_PARAMETERS_Struction.m0EH_0FH.SCV] * g_u32CS_Res_AFE / 1000; // 防止数据溢出。
-    // g_tParam.other.u16CBC_Cur_DSG *= 10;                                                                // 防止数据溢出。
-
-     /* 短路延时 */
-    temp = 1;
+    /* 短路延时 */
+    temp = Choose_Right_Value(g_tParam.other.u16CBC_DelayT / 10, AFE_SCT);
     AFE_ROM_PARAMETERS_Struction.m0EH_0FH.SCT = temp;
     g_tParam.other.u16CBC_DelayT = AFE_SCT[temp] * 10; // 修改最终设置的值，接近的那个
 
     /* 短路电压 */
     temp = g_tParam.other.u16CBC_Cur_DSG / 10; // A
     temp = temp * 1000 / g_u32CS_Res_AFE;      // 当前对应多少mv
-    AFE_ROM_PARAMETERS_Struction.m0EH_0FH.SCV = 0;
+    AFE_ROM_PARAMETERS_Struction.m0EH_0FH.SCV = Choose_Right_Value(temp, AFE_SCV);
     // 修改最终设置的值，接近的那个
 
     g_tParam.other.u16CBC_Cur_DSG = AFE_SCV[AFE_ROM_PARAMETERS_Struction.m0EH_0FH.SCV] * g_u32CS_Res_AFE / 1000; // 防止数据溢出。
-    g_tParam.other.u16CBC_Cur_DSG *= 10;                                                                // 防止数据溢
+    g_tParam.other.u16CBC_Cur_DSG *= 10;                                                                // 防止数据溢出。
+
+    //  /* 短路延时 */
+    // temp = 1;
+    // AFE_ROM_PARAMETERS_Struction.m0EH_0FH.SCT = temp;
+    // g_tParam.other.u16CBC_DelayT = AFE_SCT[temp] * 10; // 修改最终设置的值，接近的那个
+
+    // /* 短路电压 */
+    // temp = g_tParam.other.u16CBC_Cur_DSG / 10; // A
+    // temp = temp * 1000 / g_u32CS_Res_AFE;      // 当前对应多少mv
+    // AFE_ROM_PARAMETERS_Struction.m0EH_0FH.SCV = 0;
+    // // 修改最终设置的值，接近的那个
+
+    // g_tParam.other.u16CBC_Cur_DSG = AFE_SCV[AFE_ROM_PARAMETERS_Struction.m0EH_0FH.SCV] * g_u32CS_Res_AFE / 1000; // 防止数据溢出。
+    // g_tParam.other.u16CBC_Cur_DSG *= 10;                                                                // 防止数据溢
 		
 
 #else
