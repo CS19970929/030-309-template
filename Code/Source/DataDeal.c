@@ -80,7 +80,7 @@ void DataLoad_CellVolt(void)
 
 	if (SeriesNum < 32)
 	{
-		for (i = SeriesNum; i < 32; ++i)
+		for (i = SeriesNum; i < 24; ++i)
 		{
 			g_stCellInfoReport.u16VCell[i] = 61001;
 		}
@@ -334,30 +334,30 @@ void DataLoad_Current(void)
 	}
 #endif
 
-	static int16_t current = 0;
-	static int16_t back_current = 0;
-	static bool update = false;
+	// if(update)
+	// {
+	// 	update = false;
+	// 	all_data_update();
+	// }
 
-	if (g_stCellInfoReport.u16IDischg)
+	static uint16_t cnt = 0;
+	static uint16_t cnt_1h = 0;
+	if (g_stCellInfoReport.u16Ichg || g_stCellInfoReport.u16IDischg)
 	{
-		current = -g_stCellInfoReport.u16IDischg * 10;
+		if (++cnt >= (5 * 60 * 5))
+		{
+			cnt = 0;
+			all_data_update();
+		}
 	}
 	else
 	{
-		current = g_stCellInfoReport.u16Ichg * 10;
+		if(++cnt_1h >= (5 * 3600))
+		{
+			cnt_1h = 0;
+			all_data_update();
+		}
 	}
-
-	if (back_current != current)
-	{
-		back_current = current;
-		mcu_dp_value_update(DPID_CUR, current); // VALUE型数据上报;
-	}
-	if(update)
-	{
-		update = false;
-		all_data_update();
-	}
-
 }
 
 void MonitorAFE(UINT8 num, UINT8 Result)

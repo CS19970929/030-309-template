@@ -315,8 +315,8 @@ uint8_t display_fault(void)
         fault_code = 10;
     if (System_ERROR_UserCallback(ERROR_STATUS_CBC_DSG))
         fault_code = 11;
-    if (g_stCellInfoReport.SocElement.u16Soc == 100)
-        fault_code = 12;
+    // if (g_stCellInfoReport.SocElement.u16Soc == 100)
+    //     fault_code = 12;
     if (System_ERROR_UserCallback(ERROR_STATUS_AFE1))
         fault_code = 13;
 

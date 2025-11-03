@@ -184,31 +184,31 @@ void IOstatus_Base(void)
 	// InitAFE1_Sleep();
 	ADC_DeInit(ADC1);
 
-	// GPIOA->PUPDR = 0;
-	// GPIOA->MODER = 0XFFFFFFFF;
-	// GPIOB->PUPDR = 0;
-	// GPIOB->MODER = 0XFFFFFFFF;
-	// GPIOC->PUPDR = 0;
-	// GPIOC->MODER = 0XFFFFFFFF;
-	// GPIOF->PUPDR = 0;
-	// GPIOF->MODER = 0XFFFFFFFF;
+	GPIOA->PUPDR = 0;
+	GPIOA->MODER = 0XFFFFFFFF;
+	GPIOB->PUPDR = 0;
+	GPIOB->MODER = 0XFFFFFFFF;
+	GPIOC->PUPDR = 0;
+	GPIOC->MODER = 0XFFFFFFFF;
+	GPIOF->PUPDR = 0;
+	GPIOF->MODER = 0XFFFFFFFF;
 
-	GPIO_WriteBit(GPIO_M_STB, PIN_M_STB, 1);
-	// GPIO_WriteBit(GPIO_AD_SPS_EN, PIN_AD_SPS_EN, 1);
-	// GPIO_WriteBit(GPIO_CMNT_EN, PIN_CMNT_EN, 1);
-	// GPIO_WriteBit(GPIO_SEG_SPS, PIN_SEG_SPS, 1);
+	// GPIO_WriteBit(GPIO_M_STB, PIN_M_STB, 1);
+	// // GPIO_WriteBit(GPIO_AD_SPS_EN, PIN_AD_SPS_EN, 1);
+	// // GPIO_WriteBit(GPIO_CMNT_EN, PIN_CMNT_EN, 1);
+	// // GPIO_WriteBit(GPIO_SEG_SPS, PIN_SEG_SPS, 1);
 
-	GPIO_InitStructure.GPIO_Pin = PIN_M_STB;
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_Level_1;
-	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-	GPIO_Init(GPIO_M_STB, &GPIO_InitStructure);
+	// GPIO_InitStructure.GPIO_Pin = PIN_M_STB;
+	// GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
+	// GPIO_InitStructure.GPIO_Speed = GPIO_Speed_Level_1;
+	// GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+	// GPIO_Init(GPIO_M_STB, &GPIO_InitStructure);
 
-	GPIO_InitStructure.GPIO_Pin = PIN_PWR_4G;
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_Level_1;
-	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-	GPIO_WriteBit(GPIO_PWR_4G, PIN_PWR_4G, 1);
+	// GPIO_InitStructure.GPIO_Pin = PIN_PWR_4G;
+	// GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
+	// GPIO_InitStructure.GPIO_Speed = GPIO_Speed_Level_1;
+	// GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+	// GPIO_WriteBit(GPIO_PWR_4G, PIN_PWR_4G, 1);
 
 	// GPIO_WriteBit(GPIO_M_STB, PIN_M_STB, 0);
 	// GPIO_WriteBit(GPIO_AD_EN, PIN_AD_EN, 1);
@@ -403,6 +403,7 @@ void SleepDeal_Continue(void)
 
 	if (u8FlashWriteOK_flag)
 	{
+#if 0
 		InitWakeUp_DeepMode();
 		// Sys_StandbyMode();		//不能掌控外部IO，弃用
 		Sys_StopMode();
@@ -410,12 +411,12 @@ void SleepDeal_Continue(void)
 		SystemInit();
 		InitUSART_CommonUpper();
 		Sleep_Mode.all = 0;
-
-		// InitAFE1_Sleep(0);
-		// AFE_Sleep();
+#endif
+		InitAFE1_Sleep(0);
+		AFE_Sleep();
 		// 暂时不需要4G休眠，4G需要唤醒bms
 		//  POWER_OFF_4G_AND_INIT();
-		// MCU_RESET();
+		MCU_RESET();
 	}
 }
 
@@ -1077,6 +1078,7 @@ void IsSleepStartUp(void)
 // 以上架构因太过复杂太过难以被后续人员维护，不太契合实际流程，已被修改为如下。
 // 唤醒进入相关循环函数，含有第一次FIRST和后续HICCUP模式进入两种情况，所以第一次能立刻进入，第二次开始打嗝进入
 // Sleep_Mode标志-->SleepDeal_Normal(正常循环)-->SleepDeal_NormalQuit(跳转)-->唤醒进入相关循环函数-->SleepDeal_Continue(休眠)
+#if 0
 void App_SleepDeal(void)
 {
 	if (!System_OnOFF_Func.bits.b1OnOFF_Sleep)
@@ -1130,6 +1132,43 @@ void App_SleepDeal(void)
 	else
 	{
 		Sleep_Mode.bits.b1_ToSleepFlag = 0;
+	}
+
+	if ((Sleep_Mode.all & 0x00ff))
+	{
+		LogRecord_Flag.bits.Log_Sleep = 1;
+		LogEvent_Record(LogRecord_Flag.bits.Log_Sleep, BMS_SLEEP, &su32_Interval_S_Tcnt);
+		SleepDeal_Continue();
+	}
+}
+#endif
+
+void App_SleepDeal(void)
+{
+	static uint32_t deepsleep_cnt = 0;
+
+	if (0 == g_st_SysTimeFlag.bits.b1Sys1000msFlag1 && !Sleep_Mode.bits.b1ForceToSleep_L1 && !Sleep_Mode.bits.b1ForceToSleep_L2 && !Sleep_Mode.bits.b1ForceToSleep_L3)
+	{
+		return; // 如果是强制进入休眠的则必须快点进入休眠，不能拖
+	}
+
+	if (g_stCellInfoReport.u16VCellMin < OtherElement.u16Sleep_Vlow && !g_stCellInfoReport.u16Ichg)
+	{
+		if (++deepsleep_cnt >= (uint32_t)OtherElement.u16Sleep_TimeVlow * 60)
+		{
+			deepsleep_cnt = 0;
+
+			Sleep_Mode.bits.b1NormalSleep_L3 = 1;
+		}
+	}
+	// else if (condition)
+	// {
+	// 	/* code */
+	// }
+	
+	else
+	{
+		deepsleep_cnt = 0;
 	}
 
 	if ((Sleep_Mode.all & 0x00ff))

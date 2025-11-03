@@ -18,6 +18,7 @@
 
 #define SYSTEM_GLOBAL
 
+#include "Sci_Upper.h"
 #include "cellular.h"
 
 extern const DOWNLOAD_CMD_S download_cmd[];
@@ -389,6 +390,8 @@ static void cellular_heatbeat_reset_timer(void)
 	//#error "请自行完成相关代码,并删除该行"
 }
 
+
+extern struct stCell_Info g_stCellInfoReport;
 /**
  * @brief  数据帧处理
  * @param[in] {offset} 数据起始位
@@ -419,14 +422,17 @@ void data_handle(u16 offset)
     {
         case HEAT_BEAT_CMD:                                     //心跳包
             heat_beat_check();
+            g_stCellInfoReport.u16VCell[24] += 1;
         break;
 
         case PRODUCT_INFO_CMD:                                  //产品信息
             product_info_update();
+            g_stCellInfoReport.u16VCell[25] += 1;
         break;
 
         case WORK_MODE_CMD:                                     //查询MCU设定的模块工作模式
             get_mcu_cellular_mode();
+            g_stCellInfoReport.u16VCell[26] += 1;
         break;
 
 #ifndef CELLULAR_CONTROL_SELF_MODE
@@ -439,14 +445,17 @@ void data_handle(u16 offset)
                 isWoSend = 1;
             }
 #endif
+            g_stCellInfoReport.u16VCell[27] += 1;
         break;
 
         case DEACTIVE_CELLULAR_NET:                                    //重置模组的激活状态(返回成功)
             reset_cellular_flag = RESET_CELLULAR_SUCCESS;
+            g_stCellInfoReport.u16VCell[28] += 1;
         break;
 
         case SET_CELLULAR_WORK_MODE:                                 //设置模组工作模式
             set_cellularmode_flag = SET_CELLULARCONFIG_SUCCESS;
+            g_stCellInfoReport.u16VCell[29] += 1;
         break;
 #endif
 
@@ -470,10 +479,12 @@ void data_handle(u16 offset)
             #ifdef DP_ACK
                 dp_ack_respond(1);
             #endif
+            g_stCellInfoReport.u16VCell[30] += 1;
         break;
 
         case STATE_QUERY_CMD:                                   //状态查询
             all_data_update();
+            g_stCellInfoReport.u16VCell[31] += 1;
         break;
 
 #ifdef SUPPORT_MCU_FIRM_UPDATE
