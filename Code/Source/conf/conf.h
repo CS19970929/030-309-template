@@ -13,6 +13,7 @@
 #define log_i(...)       ((void)0);
 #define log_w(...)       ((void)0);
 
+#define PARAM_VER			0x1104					/* �����汾 */
 #define EEPROM_VALUE_BEGIN_FLAG				0x1104		//Ĭ��0x1133������Լ���Ҫˢһ�飬���Լ������ٸĻ�0x1133
 
 //#define _DI_SWITCH_SYS_ONOFF	//DI������������
