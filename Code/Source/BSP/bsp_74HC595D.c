@@ -213,7 +213,7 @@ void Display_UpdateData(DISP_Mode_t mode, uint16_t soc, uint16_t code)
     // gDisplay.soc = soc;
     // gDisplay.fault = fault;
     disp.mode = mode;
-    
+
     if (mode == DISPLAY_FAULT)
     {
         {
@@ -262,7 +262,7 @@ void Display_UpdateData(DISP_Mode_t mode, uint16_t soc, uint16_t code)
         disp.soc_seg[2] = SEG_BLANK;
     }
 
-        // else if (mode == DISPLAY_SOC)
+    // else if (mode == DISPLAY_SOC)
     // {
     //     value = gDisplay.soc;
     //     digits[0] = value % 10;
@@ -326,6 +326,28 @@ uint8_t display_fault(void)
 void Display_ScanTask(void)
 {
     uint8_t seg;
+    static bool enable = true;
+    static uint16_t delay = 0;
+
+    if (++delay >= (200 * 10))
+    {
+        delay = 0;
+        enable = false;
+    }
+    if (0 == MCUI_ENI_DI1)
+    {
+        delay = 0;
+        enable = true;
+    }
+
+    if (!enable)
+    {
+        MCUO_SEG_DIG1 = 0;
+        MCUO_SEG_DIG2 = 0;
+        MCUO_SEG_DIG3 = 0;
+        disp.cur_digit = 0;
+        return;
+    }
 
     disp.tick_ms++;
     if (disp.mode == DISP_MODE_FAULT)
