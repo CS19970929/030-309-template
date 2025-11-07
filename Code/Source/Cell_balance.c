@@ -369,15 +369,7 @@ void App_CellBalance(void)
 		return;
 	}
 
-	uint16_t code = display_fault();
-	if (code)
-	{
-		Display_UpdateData(DISP_MODE_FAULT, g_stCellInfoReport.SocElement.u16Soc, code);
-	}
-	else
-	{
-		Display_UpdateData(DISP_MODE_SOC, g_stCellInfoReport.SocElement.u16Soc, code);
-	}
+	
 
 	switch (g_enBalanceState)
 	{

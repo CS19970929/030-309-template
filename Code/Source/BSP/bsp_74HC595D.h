@@ -11,7 +11,9 @@ typedef enum
 typedef enum
 {
     DISP_MODE_SOC = 0,
-    DISP_MODE_FAULT
+    DISP_MODE_FAULT,
+    DISP_MODE_SLEEP,
+    DISP_MODE_RECOVER_4G,
 } DISP_Mode_t;
 
 void bsp_74HC595D_init(void);

@@ -142,9 +142,130 @@ void InitData_Drivers(void)
 	Driver_Element.u8_DriverCtrl_Right = 1; // AFE控制
 }
 
+#define PRESS_3S_MS 3000
+#define PRESS_10S_MS 10000
+#define CONFIRM_TIMEOUT_MS 10000
+#define SCAN_INTERVAL 250
+
+typedef enum
+{
+	KEY_IDLE = 0,
+	KEY_PRESSED,
+	WAIT_CONFIRM_RESET,
+} key_state_t;
+
+static key_state_t key_state = KEY_IDLE;
+static uint32_t press_time_ms = 0;
+static uint32_t confirm_timer = 0;
+static bool reset_triggered = false;
+
+bool button_is_pressed(void)
+{
+	return MCUI_ENI_DI1 == 0 ? true : false;
+}
+
+void key_task(void)
+{
+	static bool key_event = false;
+	static bool test_reset = false;
+	bool pressed = button_is_pressed();
+
+	if (!key_event)
+	{
+		uint16_t code = display_fault();
+		if (code)
+		{
+			Display_UpdateData(DISP_MODE_FAULT, g_stCellInfoReport.SocElement.u16Soc, code);
+		}
+		else
+		{
+			Display_UpdateData(DISP_MODE_SOC, g_stCellInfoReport.SocElement.u16Soc, code);
+		}
+	}
+
+	switch (key_state)
+	{
+	case KEY_IDLE:
+		if (pressed)
+		{
+			key_state = KEY_PRESSED;
+			press_time_ms = 0;
+			reset_triggered = false;
+		}
+		break;
+
+	case KEY_PRESSED:
+		if (pressed)
+		{
+			press_time_ms += SCAN_INTERVAL;
+
+			if (press_time_ms == PRESS_3S_MS)
+			{
+				confirm_timer = 0;
+				key_event = true;
+				Display_UpdateData(DISP_MODE_SLEEP, g_stCellInfoReport.SocElement.u16Soc, 0);
+				// display_blink(2, 300);
+			}
+
+			if (press_time_ms >= PRESS_10S_MS)
+			{
+				key_event = true;
+				// key_state = WAIT_CONFIRM_RESET;
+				confirm_timer = 0;
+				Display_UpdateData(DISP_MODE_RECOVER_4G, g_stCellInfoReport.SocElement.u16Soc, 0);
+				// display_blink(5, 200); // 显示“等待确认”
+			}
+		}
+		else
+		{ // 松开
+			// if (!reset_triggered &&
+			// 	press_time_ms >= PRESS_3S_MS &&
+			// 	press_time_ms < PRESS_10S_MS)
+			{
+				key_state = WAIT_CONFIRM_RESET;
+				// display_show_text("OFF");
+				// display_blink(3, 300);
+				// bms_enter_sleep();
+			}
+			// key_state = KEY_IDLE;
+		}
+		break;
+
+	case WAIT_CONFIRM_RESET:
+		confirm_timer += SCAN_INTERVAL;
+
+		if (pressed)
+		{ // 用户确认单击
+			if (press_time_ms >= PRESS_10S_MS)
+			{
+				// display_show_text("YES");
+				// display_blink(3, 200);
+				// delay_ms(1000);
+				mcu_reset_cellular();
+				test_reset = mcu_get_reset_celluluar_flag();
+				reset_triggered = true;
+				key_state = KEY_IDLE;
+				key_event = false;
+			}
+			else
+			{
+				entersleep(DEEP_MODE);
+			}
+		}
+		else if (confirm_timer >= CONFIRM_TIMEOUT_MS)
+		{
+			// display_show_text("---"); // 恢复正常显示
+			key_event = false;
+			key_state = KEY_IDLE;
+		}
+		break;
+	}
+}
+
 void App_DI1_Switch(void)
 {
 #ifdef _DI_SWITCH_longKEY_ONOFF
+#if 0
 	static UINT16 su16_AntiShake_Cnt2 = 0;
 
 	if (0 == MCUI_ENI_DI1)
@@ -159,6 +280,9 @@ void App_DI1_Switch(void)
 	{
 		su16_AntiShake_Cnt2 = 0;
 	}
+#endif
+
+	key_task();
 
 #endif // _DI_SWITCH_longKEY_ONOFF
 

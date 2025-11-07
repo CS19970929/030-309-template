@@ -32,6 +32,8 @@
 #define SEG_9 0x6F
 #define SEG_E 0x79
 #define SEG_BLANK 0x00
+#define SEG_O 0x3F
+#define SEG_F 0x71
 
 /* 数字段码表：仅 10 B，驻 Flash */
 static const uint8_t seg_digit[10] = {
@@ -229,6 +231,18 @@ void Display_UpdateData(DISP_Mode_t mode, uint16_t soc, uint16_t code)
             disp.fault_seg[0] = seg_digit[ones];
         }
     }
+    else if (mode == DISP_MODE_SLEEP)
+    {
+        disp.fault_seg[2] = SEG_O;
+        disp.fault_seg[1] = SEG_F;
+        disp.fault_seg[0] = SEG_F;
+    }
+    else if (mode == DISP_MODE_RECOVER_4G)
+    {
+        disp.fault_seg[2] = SEG_E;
+        disp.fault_seg[1] = seg_digit[9];
+        disp.fault_seg[0] = seg_digit[9];
+    }
 
     // {
     //     disp.soc_seg[0] = seg_digit[ge];
@@ -329,11 +343,19 @@ void Display_ScanTask(void)
     static bool enable = true;
     static uint16_t delay = 0;
 
-    if (++delay >= (200 * 10))
+    if (disp.mode == DISP_MODE_SOC || disp.mode == DISP_MODE_FAULT)
+    {
+        if (++delay >= (200 * 10))
+        {
+            delay = 0;
+            enable = false;
+        }
+    }
+    else
     {
         delay = 0;
-        enable = false;
     }
+
     if (0 == MCUI_ENI_DI1)
     {
         delay = 0;
@@ -376,15 +398,46 @@ void Display_ScanTask(void)
     // HC595_DELAY();
     // HC595_DELAY();
     // HC595_DELAY();
+    static uint16_t delay_shanshuo = 0;
+    static bool disp_shanshuo_toggle = false;
 
 #if 1
     if (disp.mode == DISP_MODE_FAULT && disp.toggle == 0)
+    {
+        delay_shanshuo = 0;
         seg = disp.fault_seg[disp.cur_digit];
+    }
+    else if (disp.mode == DISP_MODE_SLEEP)
+    {
+        if (++delay_shanshuo >= 100)
+        {
+            delay_shanshuo = 0;
+            disp_shanshuo_toggle = !disp_shanshuo_toggle;
+        }
+
+        seg = disp.fault_seg[disp.cur_digit];
+    }
+    else if (disp.mode == DISP_MODE_RECOVER_4G)
+    {
+        if (++delay_shanshuo >= 100)
+        {
+            delay_shanshuo = 0;
+            disp_shanshuo_toggle = !disp_shanshuo_toggle;
+        }
+
+        seg = disp.fault_seg[disp.cur_digit];
+    }
     else
+    {
+        delay_shanshuo = 0;
         seg = disp.soc_seg[disp.cur_digit];
+    }
 #else
     seg = disp.fault_seg[disp.cur_digit];
 #endif
+
+    if (disp_shanshuo_toggle && (disp.mode == DISP_MODE_SLEEP || disp.mode == DISP_MODE_RECOVER_4G))
+        return;
 
     HC595_SendByte(seg);
 
@@ -424,7 +477,10 @@ void Display_ScanTask(void)
     // disp.cur_digit = (disp.cur_digit + 1) % 3;
     disp.cur_digit++;
     if (disp.cur_digit >= 3)
+    {
         disp.cur_digit = 0;
+        // if(disp)
+    }
 
     // gDisplay.current_digit++;
     // if (gDisplay.current_digit >= 3)
