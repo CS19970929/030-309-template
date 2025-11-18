@@ -1709,6 +1709,9 @@ void Sci_WrRegs_0x10_SystemElement(struct RS485MSG *s)
 		{
 			*(&OtherElement.u16Sys_SeriesNum + i) = (UINT16)(s->u16Buffer[2 * i + 8] + (s->u16Buffer[2 * i + 7] << 8));
 		}
+		if (OtherElement.u16Sys_PreChg_Time > 1000)
+			OtherElement.u16Sys_PreChg_Time = 100;
+			
 		u32E2P_OtherElement1_WriteFlag |= EE_FLAG_OTHER1_SYS_SERIES_NUM;
 		u32E2P_OtherElement1_WriteFlag |= EE_FLAG_OTHER1_SYS_CS_RESIS;
 		u32E2P_OtherElement1_WriteFlag |= EE_FLAG_OTHER1_SYS_CS_NUM;

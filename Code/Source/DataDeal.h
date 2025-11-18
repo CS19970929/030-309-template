@@ -138,7 +138,7 @@ struct OTHER_ELEMENT {
 #define  BMS_SOFTWARE_VERDION_DEFAULT   "MOT-WH-001"  //32
 #define  BMS_SERIAL_NUMBER_DEFAULT  	"MOT-WH-001"
 
-#define SNum 			16
+#define SNum 			8
 
 // #define TERNARYLI		//��Ԫ﮵�أ���ѡһ
 #define LIFEPO			//������﮵�أ���ѡһ
@@ -149,8 +149,8 @@ struct OTHER_ELEMENT {
 
 #define CS_Cur_CHGmax	((INT32)CS_Res_Num*1250/CS_Res-10)
 #define CS_Cur_DSGmax	CS_Cur_CHGmax
-#define CBC_DelayT		1280
-#define CBC_Cur_DSG		(10000)
+#define CBC_DelayT		5000
+#define CBC_Cur_DSG		(6000)
 
 
 #define OtherElement_min		{1000,	1,		0,		0,		0,	0,	0,	0,\
@@ -173,8 +173,8 @@ struct OTHER_ELEMENT {
 	                             CS_Cur_CHGmax,	CS_Cur_DSGmax,CBC_DelayT,CBC_Cur_DSG,\
 	                             SOC_TABLE_LIFEPO,0,1000,30,\
 	                             3200,	7200,	2800,	10,		10,	10,	240,0,\
-	                             1000,	1,		3650,	2600,\
-	                             SNum,CS_Res,CS_Res_Num,10}
+	                             1000,	1,		3550,	2600,\
+	                             SNum,CS_Res,CS_Res_Num,500}
 #endif
 
 

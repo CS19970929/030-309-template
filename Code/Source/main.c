@@ -119,12 +119,19 @@ void InitDevice(void)
 	InitSystemWakeUp();
 	InitE2PROM(); // 内部EEPROM，不需要初始化
 	InitAFE1();
+	if (OtherElement.u16Sys_PreChg_Time >= 1)
 	{
 		GPIO_WriteBit(GPIO_RES_EN, PIN_RES_EN, 1);
-		__delay_ms(99);
+		if(OtherElement.u16Sys_PreChg_Time > 1000)
+			OtherElement.u16Sys_PreChg_Time = 100;
+		__delay_ms(OtherElement.u16Sys_PreChg_Time - 1);
 		MCUO_AFE_CTLC = 1; // 刚上电，默认高阻态，所以不慌AFE刚开机瞬间打开MOS
 		__delay_ms(1);
 		GPIO_WriteBit(GPIO_RES_EN, PIN_RES_EN, 0);
+	}
+	else
+	{
+		MCUO_AFE_CTLC = 1; // 刚上电，默认高阻态，所以不慌AFE刚开机瞬间打开MOS
 	}
 	InitUSART_CommonUpper();
 	InitADC();
