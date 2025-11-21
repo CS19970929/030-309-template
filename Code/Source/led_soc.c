@@ -284,11 +284,12 @@ void LedBar_Show_Normal(void)
             su8_ShowStatus = 1;
         }
         // if (g_stCellInfoReport.u16IDischg && bms_status == S_DSG)
-        if (bms_status == S_DSG)
-        {
-            LedBar_Command = LED_BAR_DSG;
-        }
-        else if (bms_status == S_CHG)
+        // if (bms_status == S_DSG)
+        // {
+        //     LedBar_Command = LED_BAR_DSG;
+        // }
+        // else 
+        if (bms_status == S_CHG)
         {
             LedBar_Command = LED_BAR_CHG;
         }

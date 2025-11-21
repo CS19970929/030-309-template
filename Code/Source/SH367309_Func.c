@@ -534,6 +534,7 @@ void Fault_ChangeToMCU(void)
 	case 0:
 		if (SH367309_Reg_Store.REG_BSTATUS2.bits.UTC)
 		{
+			g_stCellInfoReport.unMdlFault_Third.bits.b1CellChgUtp = 1;
 			FaultWarnRecord2(CellChgUTp_Third);
 			su8_CellChgUtp_Flag = 1;
 		}
@@ -542,6 +543,7 @@ void Fault_ChangeToMCU(void)
 	case 1:
 		if (!SH367309_Reg_Store.REG_BSTATUS2.bits.UTC)
 		{
+			g_stCellInfoReport.unMdlFault_Third.bits.b1CellChgUtp = 0;
 			su8_CellChgUtp_Flag = 0;
 		}
 		break;
@@ -555,6 +557,7 @@ void Fault_ChangeToMCU(void)
 	case 0:
 		if (SH367309_Reg_Store.REG_BSTATUS2.bits.OTC)
 		{
+			g_stCellInfoReport.unMdlFault_Third.bits.b1CellChgOtp = 1;
 			FaultWarnRecord2(CellChgOTp_Third);
 			su8_CellChgOtp_Flag = 1;
 		}
@@ -563,6 +566,7 @@ void Fault_ChangeToMCU(void)
 	case 1:
 		if (!SH367309_Reg_Store.REG_BSTATUS2.bits.OTC)
 		{
+			g_stCellInfoReport.unMdlFault_Third.bits.b1CellChgOtp = 0;
 			su8_CellChgOtp_Flag = 0;
 		}
 		break;
@@ -576,6 +580,7 @@ void Fault_ChangeToMCU(void)
 	case 0:
 		if (SH367309_Reg_Store.REG_BSTATUS2.bits.UTD)
 		{
+			g_stCellInfoReport.unMdlFault_Third.bits.b1CellDischgUtp = 1;
 			FaultWarnRecord2(CellDsgUTp_Third);
 			su8_CellDsgUtp_Flag = 1;
 		}
@@ -584,6 +589,7 @@ void Fault_ChangeToMCU(void)
 	case 1:
 		if (!SH367309_Reg_Store.REG_BSTATUS2.bits.UTD)
 		{
+			g_stCellInfoReport.unMdlFault_Third.bits.b1CellDischgUtp = 0;
 			su8_CellDsgUtp_Flag = 0;
 		}
 		break;
@@ -597,6 +603,7 @@ void Fault_ChangeToMCU(void)
 	case 0:
 		if (SH367309_Reg_Store.REG_BSTATUS2.bits.OTD)
 		{
+			g_stCellInfoReport.unMdlFault_Third.bits.b1CellDischgOtp = 1;
 			FaultWarnRecord2(CellDsgOTp_Third);
 			su8_CellDsgOtp_Flag = 1;
 		}
@@ -605,6 +612,7 @@ void Fault_ChangeToMCU(void)
 	case 1:
 		if (!SH367309_Reg_Store.REG_BSTATUS2.bits.OTD)
 		{
+			g_stCellInfoReport.unMdlFault_Third.bits.b1CellDischgOtp = 0;
 			su8_CellDsgOtp_Flag = 0;
 		}
 		break;

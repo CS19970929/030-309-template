@@ -150,7 +150,7 @@ struct OTHER_ELEMENT {
 #define CS_Cur_CHGmax	((INT32)CS_Res_Num*1250/CS_Res-10)
 #define CS_Cur_DSGmax	CS_Cur_CHGmax
 // #define CBC_DelayT		0
-#define CBC_DelayT		(1280)
+#define CBC_DelayT		(5120)
 // #define CBC_Cur_DSG		((CS_Cur_CHGmax<<2)/5)
 #define CBC_Cur_DSG		(1000)
 

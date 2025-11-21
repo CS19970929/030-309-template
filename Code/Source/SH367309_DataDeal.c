@@ -111,7 +111,7 @@ void Refresh_Parameters(void)
 	AFE_ROM_PARAMETERS_Struction.m06H_07H.UV = (2700 / 20) & 0x00FF;
 	AFE_ROM_PARAMETERS_Struction.m06H_07H.UVR = (3000 / 20) & 0x00FF;
 
-	AFE_ROM_PARAMETERS_Struction.m0CH_0DH.OCD1V = 1;
+	AFE_ROM_PARAMETERS_Struction.m0CH_0DH.OCD1V = 2;
 	AFE_ROM_PARAMETERS_Struction.m0CH_0DH.OCD1T = 0;
 
 	AFE_ROM_PARAMETERS_Struction.m0EH_0FH.OCCV = 0;
@@ -198,6 +198,7 @@ bool SH367309_UpdataAfeConfig(void)
 
 UINT8 Sci_WrRegs_0x10_AFE_Parameters(UINT16 u16Channel, struct RS485MSG *s)
 {
+#if 1
 	UINT16 u16WrRegNum;
 	UINT16 u16SciRegStartAddr;
 
@@ -226,6 +227,7 @@ UINT8 Sci_WrRegs_0x10_AFE_Parameters(UINT16 u16Channel, struct RS485MSG *s)
 	}
 
 	return 0;
+#endif
 }
 
 void Sci_WrReg_0x06_Reset_AFE_Parameters(struct RS485MSG *s)
