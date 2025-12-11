@@ -288,7 +288,7 @@ void LedBar_Show_Normal(void)
         // {
         //     LedBar_Command = LED_BAR_DSG;
         // }
-        // else 
+        // else
         if (bms_status == S_CHG)
         {
             LedBar_Command = LED_BAR_CHG;
@@ -381,27 +381,55 @@ void LedBar_Show_DSG(void)
 
 static void led_soc_update(void)
 {
-    if (g_stCellInfoReport.u16VCellTotle >= 5740)
-        cur_level = 5;
-    else if (g_stCellInfoReport.u16VCellTotle >= 5460)
+    if (g_stCellInfoReport.u16IDischg >= 20)
     {
-        cur_level = 4;
-    }
-    else if (g_stCellInfoReport.u16VCellTotle >= 5040)
-    {
-        cur_level = 3;
-    }
-    else if (g_stCellInfoReport.u16VCellTotle >= 4620)
-    {
-        cur_level = 2;
-    }
-    else if (g_stCellInfoReport.u16VCellTotle >= 4340)
-    {
-        cur_level = 1;
+        if (g_stCellInfoReport.u16VCellTotle >= 5280)
+            cur_level = 5;
+        else if (g_stCellInfoReport.u16VCellTotle >= 5120)
+        {
+            cur_level = 4;
+        }
+        else if (g_stCellInfoReport.u16VCellTotle >= 4950)
+        {
+            cur_level = 3;
+        }
+        else if (g_stCellInfoReport.u16VCellTotle >= 4800)
+        {
+            cur_level = 2;
+        }
+        else if (g_stCellInfoReport.u16VCellTotle >= 4400)
+        {
+            cur_level = 1;
+        }
+        else
+        {
+            cur_level = 0;
+        }
     }
     else
     {
-        cur_level = 0;
+        if (g_stCellInfoReport.u16VCellTotle >= 5500)
+            cur_level = 5;
+        else if (g_stCellInfoReport.u16VCellTotle >= 5220)
+        {
+            cur_level = 4;
+        }
+        else if (g_stCellInfoReport.u16VCellTotle >= 5050)
+        {
+            cur_level = 3;
+        }
+        else if (g_stCellInfoReport.u16VCellTotle >= 4950)
+        {
+            cur_level = 2;
+        }
+        else if (g_stCellInfoReport.u16VCellTotle >= 4650)
+        {
+            cur_level = 1;
+        }
+        else
+        {
+            cur_level = 0;
+        }
     }
 }
 
