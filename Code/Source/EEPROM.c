@@ -444,7 +444,7 @@ void WriteEEPROM_ByteData_Circle(void)
 			if ((u32E2P_Pro_VolCur_WriteFlag >> i) & 1)
 			{
 				WriteEEPROM_Word_NoZone((UINT16) * (&PrtE2paras_Pos.u16VcellOvp_First + i),
-										  *(&PRT_E2ROMParas.u16VcellOvp_First + i));
+										*(&PRT_E2ROMParas.u16VcellOvp_First + i));
 				u32E2P_Pro_VolCur_WriteFlag -= ((long)1 << i); // 按位操作，有一个减一个。
 				break;
 			}
@@ -458,7 +458,7 @@ void WriteEEPROM_ByteData_Circle(void)
 			if ((u32E2P_Pro_Temp_WriteFlag >> i) & 1)
 			{
 				WriteEEPROM_Word_NoZone((UINT16) * (&PrtE2paras_Pos.u16TChgOTp_First + i),
-										  *(&PRT_E2ROMParas.u16TChgOTp_First + i));
+										*(&PRT_E2ROMParas.u16TChgOTp_First + i));
 				u32E2P_Pro_Temp_WriteFlag -= ((long)1 << i);
 				break;
 			}
@@ -472,7 +472,7 @@ void WriteEEPROM_ByteData_Circle(void)
 			if ((u32E2P_Pro_Other_WriteFlag >> i) & 1)
 			{
 				WriteEEPROM_Word_NoZone((UINT16) * (&PrtE2paras_Pos.u16VdeltaOvp_First + i),
-										  *(&PRT_E2ROMParas.u16VdeltaOvp_First + i));
+										*(&PRT_E2ROMParas.u16VdeltaOvp_First + i));
 				u32E2P_Pro_Other_WriteFlag -= ((long)1 << i);
 				break;
 			}
@@ -486,7 +486,7 @@ void WriteEEPROM_ByteData_Circle(void)
 			if ((u32E2P_OtherElement1_WriteFlag >> i) & 1)
 			{
 				WriteEEPROM_Word_NoZone((UINT16) * (&OtherCanAdd_Pos.u16Balance_OpenVoltage + i),
-										  *(&OtherElement.u16Balance_OpenVoltage + i));
+										*(&OtherElement.u16Balance_OpenVoltage + i));
 				u32E2P_OtherElement1_WriteFlag -= ((long)1 << i);
 				break;
 			}
@@ -616,6 +616,7 @@ UINT16 OffsetValue_CHG = 0;
 UINT16 OffsetValue_DSG = 0;
 void InitData_E2prom(void)
 {
+#if !defined(__ONLY_UPDATE_NO_REFREH_PARAM__)
 	if (EEPROM_VALUE_BEGIN_FLAG == ReadEEPROM_Word_NoZone(EEPROM_ADDR_PASS))
 	{ // 第二次上电就会执行这个
 		ReadEEPROM_ByteData_StartUp();
@@ -636,9 +637,9 @@ void InitData_E2prom(void)
 	else
 	{ // 第一次上电，用于量产
 		EEPROM_ResetData_AllToDefault();
-		while (u8E2P_KB_WriteFlag || u32E2P_Pro_VolCur_WriteFlag || u32E2P_Pro_Temp_WriteFlag || 
-		u32E2P_Pro_Other_WriteFlag || u8E2P_SocTable_WriteFlag || u8E2P_CopperLoss_WriteFlag || 
-		u32E2P_RTC_Element_WriteFlag || u32E2P_OtherElement1_WriteFlag || u32E2P_HeatCool_WriteFlag)
+		while (u8E2P_KB_WriteFlag || u32E2P_Pro_VolCur_WriteFlag || u32E2P_Pro_Temp_WriteFlag ||
+			   u32E2P_Pro_Other_WriteFlag || u8E2P_SocTable_WriteFlag || u8E2P_CopperLoss_WriteFlag ||
+			   u32E2P_RTC_Element_WriteFlag || u32E2P_OtherElement1_WriteFlag || u32E2P_HeatCool_WriteFlag)
 		{ // 0x2000,0x2100,0x2200,0x2300
 			WriteEEPROM_ByteData_Circle();
 		}
@@ -663,13 +664,29 @@ void InitData_E2prom(void)
 
 		MCU_RESET();
 	}
+#else
+	ReadEEPROM_ByteData_StartUp();
+	{
+		g_u32CS_Res_AFE = ((UINT32)OtherElement.u16Sys_CS_Res_Num * 1000) / OtherElement.u16Sys_CS_Res;
+		curr_offset = FlashReadOneHalfWord(FLASH_ADDR_SH367309_VALUE);
+
+		if ((curr_offset & 0x8000) == 0)
+		{
+			OffsetValue_CHG = (UINT32)curr_offset * 200 * g_u32CS_Res_AFE / (21470);
+		}
+		else
+		{
+			OffsetValue_DSG = (UINT32)((UINT16)(0xFFFF - curr_offset + 1)) * 200 * g_u32CS_Res_AFE / (21470); // mA
+		}
+	}
+#endif
 }
 
 void App_E2promDeal(void)
 {
-	if (u8E2P_KB_WriteFlag || u32E2P_Pro_VolCur_WriteFlag || u32E2P_Pro_Temp_WriteFlag || 
-	u32E2P_Pro_Other_WriteFlag || u8E2P_SocTable_WriteFlag || u8E2P_CopperLoss_WriteFlag || 
-	u32E2P_RTC_Element_WriteFlag || u32E2P_OtherElement1_WriteFlag || u32E2P_HeatCool_WriteFlag)
+	if (u8E2P_KB_WriteFlag || u32E2P_Pro_VolCur_WriteFlag || u32E2P_Pro_Temp_WriteFlag ||
+		u32E2P_Pro_Other_WriteFlag || u8E2P_SocTable_WriteFlag || u8E2P_CopperLoss_WriteFlag ||
+		u32E2P_RTC_Element_WriteFlag || u32E2P_OtherElement1_WriteFlag || u32E2P_HeatCool_WriteFlag)
 	{ // 0x2000,0x2100,0x2200,0x2300
 		WriteEEPROM_ByteData_Circle();
 	}

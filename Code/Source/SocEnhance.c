@@ -20,11 +20,11 @@
 // 充电可以提前充满，但是不能卡死
 // #define _CAL_SLOW_DOWN_CHG
 
-//typedef enum _CUR
+// typedef enum _CUR
 //{
 //	CurCHG = 0,
 //	CurDSG
-//} _Cur;
+// } _Cur;
 
 enum SOC_CALI_STATE
 {
@@ -854,6 +854,56 @@ void InitSOC_IntEnhance(void)
 	SOC_Cali_Flag = SOC_CALI_STATE_TRANSFER;
 }
 
+UINT8 isCHG(void)
+{
+	return SOC_Enhance_Element.u16_Ichg > SOC_VIRTUAL_CURRENT_CHG ? 1 : 0;
+}
+
+UINT8 isDSG(void)
+{
+	return SOC_Enhance_Element.u16_Idsg > SOC_VIRTUAL_CURRENT_DSG ? 1 : 0;
+}
+
+void soc_cali(void)
+{
+	static uint8_t dsg_soc0_delay = 0;
+// todo 实时校准 待完善
+#ifdef _SOC_OCV_Fix2_func_
+	SOC_OCV_Fix2();
+#endif
+
+#ifdef TERNARYLI
+#define Totle_soc100 (4000)
+#elif (defined(LIFEPO))
+#define Totle_soc100 (3300)
+#endif
+
+	if (isCHG())
+	{
+		if ((SOC_Enhance_Element.u16_VCellMax >= SOC_Enhance_Element.u16_SOC_100_Vol) && SOC_Enhance_Element.u16_VCellMin >= Totle_soc100)
+		{
+			SOC_Calculate_Element.u8SOC_Now = 100;
+			SOC_Calculate_Element.u32CapNow = SOC_Calculate_Element.u32CapFactory;
+		}
+	}
+	else
+	{
+		if ((SOC_Enhance_Element.u16_VCellMin <= SOC_Enhance_Element.u16_SOC_0_Vol) && (SOC_Enhance_Element.u16_VCellMin >= 2000))
+		{
+			if (++dsg_soc0_delay >= (5 * 10))
+			{
+				dsg_soc0_delay = 0;
+				SOC_Calculate_Element.u8SOC_Now = 0;
+				SOC_Calculate_Element.u32CapNow = 0;
+			}
+		}
+		else
+		{
+			dsg_soc0_delay = 0;
+		}
+	}
+}
+
 /*
 >>后记：
 1，这个做法会出现一个问题，SOC加速，容量膨胀，然后静置之后，SOC保持不变，但是满电容量减少(因为满电容量是实打实计算的)。
@@ -885,6 +935,8 @@ void SOC_IntEnhance_Ctrl(void)
 		SOC_Cali_Flag = SOC_CALI_STATE_TRANSFER;
 		break;
 	}
+
+	soc_cali();
 
 	// 这几个函数的写法真的难，因为害怕长期循环所以运行一次必须不能再被运行一次的规避
 	SOC_EEPROM_Deal_Monitor();

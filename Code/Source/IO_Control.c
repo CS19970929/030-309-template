@@ -210,10 +210,9 @@ void App_DI1_Switch(void)
 #ifdef _DI_SWITCH_SYS_ONOFF
 	static UINT16 su16_AntiShake_Cnt1 = 0;
 
-#if 0
-	if (1 == MCUI_ENI_DI1 )
+	if (1 == MCUI_ENI_DI1 && 1 == MCUI_ENI_DI2)
 	{
-		if (++su16_AntiShake_Cnt1 >= 270)
+		if (++su16_AntiShake_Cnt1 >= 3)
 		{
 			su16_AntiShake_Cnt1 = 0;
 			entersleep(DEEP_MODE);
@@ -227,45 +226,7 @@ void App_DI1_Switch(void)
 			return;
 		}
 	}
-#else
 
-	uint8_t state1 = 2;
-	uint8_t state2 = 2;
-	uint8_t state3 = 2;
-	// if (MCUI_ENI_DI1 && MCUI_ENI_DI2 && MCUI_ENI_DI3)
-	state1 = GPIO_ReadInputDataBit(GPIO_KEY1, PIN_KEY1);
-	// state2 = GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_3);
-	// state3 = GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_15);
-
-	// if (state1 && state2 && state3)
-	if (state1)
-	{
-		if (++su16_AntiShake_Cnt1 >= 10 * 2)
-		{
-			su16_AntiShake_Cnt1 = 0;
-			entersleep(DEEP_MODE);
-
-			BSP_Printf("switch deep sleep\n");
-		}
-	}
-	else
-	{
-		su16_AntiShake_Cnt1 = 0;
-
-		return;
-	}
-
-#if 0
-	if (!MCUI_ENI_DI1 || !MCUI_ENI_DI2 || !MCUI_ENI_DI3)
-	{
-		return;
-	}
-	else
-	{
-	}
-#endif
-
-#endif
 
 #endif
 }
