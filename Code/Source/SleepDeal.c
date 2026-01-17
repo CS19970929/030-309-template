@@ -14,6 +14,7 @@ void InitWakeUp_Base(void)
 	GPIO_InitTypeDef GPIO_InitStructure;
 
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_PWR, ENABLE); // 使能PWR外设时钟，待机模式，RTC，看门狗
+#if 0
 	// PA0_WKUP
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0; // 选择要用的GPIO引脚
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
@@ -53,6 +54,7 @@ void InitWakeUp_Base(void)
 		NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;		// 使能外部中断通道
 		NVIC_Init(&NVIC_InitStructure);
 	}
+#endif
 
 	{
 		GPIO_InitStructure.GPIO_Pin = GPIO_Pin_13; // 选择要用的GPIO引脚
