@@ -113,6 +113,12 @@ void InitIO(void)
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
 	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL; // 设置引脚模式为上拉输入模式
 	GPIO_Init(GPIO_KEY1, &GPIO_InitStructure);
+
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_7;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_Level_1;
+	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+	GPIO_Init(GPIOF, &GPIO_InitStructure);
 }
 
 void Init_IWDG(void)

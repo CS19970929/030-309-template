@@ -2053,6 +2053,7 @@ void Sci_WrReg_0x06_BMS_FunctionON(struct RS485MSG *s)
 				System_OnOFF_Func_StartUpRec.bits.b1OnOFF_Cool = 1;
 				System_Func_StartUp.bits.b1StartUpFlag_Cool = 1;
 			}
+			GPIO_WriteBit(GPIOF, GPIO_Pin_7, 1);
 			break;
 
 		case 8: // 激活模拟前端AFE1
@@ -2103,6 +2104,9 @@ void Sci_WrReg_0x06_BMS_FunctionOFF(struct RS485MSG *s)
 	{
 		//*(&System_OnOFF_Func.bits.b1OnOFF_Balance+(u16SciRegData-1)) = 0;
 		System_OnOFF_Func.all &= ~((UINT32)1 << (u16SciRegData - 1)); // 功能途中关闭不需要初始化验证
+		if(!System_OnOFF_Func.bits.b1OnOFF_Cool)
+			GPIO_WriteBit(GPIOF, GPIO_Pin_7, 0);
+
 
 		if (u16SciRegData == 0x0B)
 		{
