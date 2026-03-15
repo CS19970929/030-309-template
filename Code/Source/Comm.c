@@ -43,14 +43,30 @@ static uint8_t Comm_RingPopByte(CommPortContext *ctx, uint8_t *byte)
     return 1;
 }
 
+static void Comm_PortDisableRx(CommPortContext *ctx)
+{
+    USART_ITConfig(ctx->instance, USART_IT_RXNE, DISABLE);
+    ctx->instance->CR1 &= ~(1 << 2);
+}
+
+static void Comm_PortEnableRx(CommPortContext *ctx)
+{
+    ctx->instance->CR1 |= (1 << 2);
+    USART_ITConfig(ctx->instance, USART_IT_RXNE, ENABLE);
+}
+
 static void Comm_PortResetRx(CommPortContext *ctx)
 {
+    DISABLE_INT();
     ctx->active_protocol = PROTO_NONE;
     ctx->frame_ready_flag = 0;
     ctx->rx_len = 0;
     ctx->rx_timeout_ms = 0;
+    ctx->ring_head = 0;
+    ctx->ring_tail = 0;
     AsciiParser_Reset(&ctx->ascii_parser);
     ModbusRtuParser_Reset(&ctx->modbus_parser);
+    ENABLE_INT();
 }
 
 static void Comm_PortInit(CommPortContext *ctx, USART_TypeDef *instance, uint8_t port_id)
@@ -103,7 +119,7 @@ static void Comm_PortInit(CommPortContext *ctx, USART_TypeDef *instance, uint8_t
     instance->CR3 |= (1 << 0);
     instance->CR3 |= (1 << 11);
     USART_Cmd(instance, ENABLE);
-    USART_ITConfig(instance, USART_IT_RXNE, ENABLE);
+    Comm_PortEnableRx(ctx);
 }
 
 static void Comm_PortCaptureFrame(CommPortContext *ctx, const uint8_t *frame, uint16_t frame_len)
@@ -345,8 +361,12 @@ void Comm_PortStartTx(CommPortContext *ctx, const uint8_t *data, uint16_t len)
     memcpy(ctx->tx_buf, data, len);
     ctx->tx_len = len;
     ctx->tx_pos = 0;
+    Comm_PortResetRx(ctx);
+    Comm_PortDisableRx(ctx);
+    USART_ClearFlag(ctx->instance, USART_FLAG_TC);
     ctx->tx_active = 1;
     TRANS_EN_485();
+    __delay_us(COMM_RS485_TURNAROUND_US);
 }
 
 void Comm_PortTxPump(CommPortContext *ctx)
@@ -367,10 +387,12 @@ void Comm_PortTxPump(CommPortContext *ctx)
 
     if (USART_GetFlagStatus(ctx->instance, USART_FLAG_TC) != RESET)
     {
+        __delay_us(COMM_RS485_TURNAROUND_US);
         RECV_EN_485();
         ctx->tx_active = 0;
         ctx->tx_len = 0;
         ctx->tx_pos = 0;
+        Comm_PortEnableRx(ctx);
         if (u8FlashUpdateE2PROM != 0)
         {
             u8FlashUpdateE2PROM = 0;
