@@ -11,6 +11,10 @@ typedef enum {
     PROTO_ASCII
 } ProtocolType;
 
+#define COMM_RX_RING_SIZE           256
+#define COMM_RTU_RX_TIMEOUT_MS      20
+#define COMM_ASCII_RX_TIMEOUT_MS    100
+
 typedef struct {
     ProtocolType protocol;
     uint8_t *payload;
@@ -30,10 +34,15 @@ typedef struct {
     uint8_t tx_active;
     uint16_t error_count;
     uint16_t rx_len;
+    uint16_t ring_head;
+    uint16_t ring_tail;
     uint16_t tx_len;
     uint16_t tx_pos;
+    int32_t last_rx_tick;
+    uint16_t rx_timeout_ms;
     ProtocolType active_protocol;
     uint8_t rx_buf[MAX_FRAME_LEN];
+    uint8_t ring_buf[COMM_RX_RING_SIZE];
     uint8_t tx_buf[MAX_FRAME_LEN];
     struct RS485MSG modbus_ctx;
     ModbusRtuParser modbus_parser;

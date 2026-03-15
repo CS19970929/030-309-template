@@ -6,11 +6,49 @@
 CommPortContext g_comm_port1;
 CommPortContext g_comm_port2;
 
+static uint16_t Comm_RingNext(uint16_t index)
+{
+    return (uint16_t)((index + 1U) % COMM_RX_RING_SIZE);
+}
+
+static uint8_t Comm_RingIsEmpty(const CommPortContext *ctx)
+{
+    return (uint8_t)(ctx->ring_head == ctx->ring_tail);
+}
+
+static uint8_t Comm_RingPushByte(CommPortContext *ctx, uint8_t byte)
+{
+    uint16_t next_head;
+
+    next_head = Comm_RingNext(ctx->ring_head);
+    if (next_head == ctx->ring_tail)
+    {
+        return 0;
+    }
+
+    ctx->ring_buf[ctx->ring_head] = byte;
+    ctx->ring_head = next_head;
+    return 1;
+}
+
+static uint8_t Comm_RingPopByte(CommPortContext *ctx, uint8_t *byte)
+{
+    if (Comm_RingIsEmpty(ctx) != 0)
+    {
+        return 0;
+    }
+
+    *byte = ctx->ring_buf[ctx->ring_tail];
+    ctx->ring_tail = Comm_RingNext(ctx->ring_tail);
+    return 1;
+}
+
 static void Comm_PortResetRx(CommPortContext *ctx)
 {
     ctx->active_protocol = PROTO_NONE;
     ctx->frame_ready_flag = 0;
     ctx->rx_len = 0;
+    ctx->rx_timeout_ms = 0;
     AsciiParser_Reset(&ctx->ascii_parser);
     ModbusRtuParser_Reset(&ctx->modbus_parser);
 }
@@ -89,11 +127,13 @@ static void Comm_PortFeedByte(CommPortContext *ctx, uint8_t byte)
         if (byte == SOI)
         {
             ctx->active_protocol = PROTO_ASCII;
+            ctx->rx_timeout_ms = COMM_ASCII_RX_TIMEOUT_MS;
             AsciiParser_Reset(&ctx->ascii_parser);
         }
         else if ((byte == RS485_SLAVE_ADDR) || (byte == RS485_BROADCAST_ADDR))
         {
             ctx->active_protocol = PROTO_MODBUS_RTU;
+            ctx->rx_timeout_ms = COMM_RTU_RX_TIMEOUT_MS;
             ModbusRtuParser_Reset(&ctx->modbus_parser);
         }
         else
@@ -125,6 +165,42 @@ static void Comm_PortFeedByte(CommPortContext *ctx, uint8_t byte)
         {
             Comm_PortResetRx(ctx);
         }
+    }
+}
+
+static void Comm_PortDrainRxRing(CommPortContext *ctx)
+{
+    uint8_t rx_byte;
+
+    if (ctx->tx_active != 0)
+    {
+        return;
+    }
+
+    while ((ctx->frame_ready_flag == 0) && (Comm_RingPopByte(ctx, &rx_byte) != 0))
+    {
+        Comm_PortFeedByte(ctx, rx_byte);
+    }
+}
+
+static void Comm_PortCheckTimeout(CommPortContext *ctx)
+{
+    int32_t elapsed_ms;
+
+    if (ctx->active_protocol == PROTO_NONE)
+    {
+        return;
+    }
+
+    if (ctx->frame_ready_flag != 0)
+    {
+        return;
+    }
+
+    elapsed_ms = bsp_CheckRunTime(ctx->last_rx_tick);
+    if ((elapsed_ms >= 0) && ((uint16_t)elapsed_ms >= ctx->rx_timeout_ms))
+    {
+        Comm_PortResetRx(ctx);
     }
 }
 
@@ -208,10 +284,14 @@ void Comm_InitAll(void)
 void Comm_PollAll(void)
 {
 #ifdef _COMMOM_UPPER_SCI1
+    Comm_PortDrainRxRing(&g_comm_port1);
+    Comm_PortCheckTimeout(&g_comm_port1);
     Comm_PortDispatch(&g_comm_port1);
     Comm_PortTxPump(&g_comm_port1);
 #endif
 #ifdef _COMMOM_UPPER_SCI2
+    Comm_PortDrainRxRing(&g_comm_port2);
+    Comm_PortCheckTimeout(&g_comm_port2);
     Comm_PortDispatch(&g_comm_port2);
     Comm_PortTxPump(&g_comm_port2);
 #endif
@@ -240,12 +320,19 @@ void Comm_PortIrqHandler(CommPortContext *ctx)
         RTC_ExtComCnt++;
     }
 
+    ctx->last_rx_tick = bsp_GetRunTime();
+
     if (ctx->tx_active != 0)
     {
         return;
     }
 
-    Comm_PortFeedByte(ctx, rx_byte);
+    if (Comm_RingPushByte(ctx, rx_byte) == 0)
+    {
+        ctx->error_count++;
+        Comm_PortResetRx(ctx);
+        ctx->ring_tail = ctx->ring_head;
+    }
 }
 
 void Comm_PortStartTx(CommPortContext *ctx, const uint8_t *data, uint16_t len)
