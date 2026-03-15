@@ -4,11 +4,11 @@
 
 UINT8 SeriesNum = 16;
 
-// ��ͬ����ά���ı���
-// ��ӱ
+// 不同串数维护的表格
+// 中颖
 const unsigned char SeriesSelect_AFE1[16][16] = {
-	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},	   // 1��
-	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},	   // 2��
+	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},	   // 1串
+	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},	   // 2串
 	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},	   // 3
 	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},	   // 4
 	{0, 1, 2, 3, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},	   // 5
@@ -31,14 +31,14 @@ void InitSystemWakeUp(void);
 
 int main(void)
 {
-	InitDevice(); // ��ʼ�����裬������������λ����Ҫ����һ�£����ڻ���ȥ��
-	InitVar();	  // ��ʼ������
+	InitDevice(); // 初始化外设，这两个函数的位置需要斟酌一下，现在换回去先
+	InitVar();	  // 初始化变量
 
 	while (1)
 	{
 		SCH_Dispatch_Tasks();
 
-		App_CommonUpper();
+		Comm_PollAll();
 
 		App_E2promDeal();
 		App_FlashUpdateDet();
@@ -54,23 +54,23 @@ int main(void)
 #if (defined _DEBUG_CODE)
 		App_SysTime();
 		App_AFEGet();
-		App_CommonUpper();
+		Comm_PollAll();
 		App_AnlogCal();
 		App_SOC();
 		App_WarnCtrl();
-		App_SleepDeal(); // ����App_MOS_Relay_Control()����
+		App_SleepDeal(); // 放在App_MOS_Relay_Control()后面
 		APP_LedBar();
 		Feed_IWatchDog;
 #else
 		App_SysTime();
-		App_CommonUpper();
+		Comm_PollAll();
 
 		App_AFEGet();
 		App_WarnCtrl();
 		App_AnlogCal();
 
 		App_E2promDeal();
-		App_SleepDeal(); // ����App_MOS_Relay_Control()����
+		App_SleepDeal(); // 放在App_MOS_Relay_Control()后面
 		App_SOC();
 		App_CellBalance();
 
@@ -109,7 +109,7 @@ void InitDevice(void)
 	InitDelay();
 	InitTimer();
 	// InitSystemWakeUp();
-	InitUSART_CommonUpper();
+	Comm_InitAll();
 #else
 	IsSleepStartUp();
 	// InitDelay();
@@ -117,7 +117,7 @@ void InitDevice(void)
 	InitIO();
 	// InitTimer();
 	InitSystemWakeUp();
-	InitE2PROM(); // �ڲ�EEPROM������Ҫ��ʼ��
+	InitE2PROM(); // 内部EEPROM，不需要初始化
 	InitAFE1();
 	if (OtherElement.u16Sys_PreChg_Time >= 1)
 	{
@@ -125,15 +125,15 @@ void InitDevice(void)
 		if(OtherElement.u16Sys_PreChg_Time > 1000)
 			OtherElement.u16Sys_PreChg_Time = 100;
 		__delay_ms(OtherElement.u16Sys_PreChg_Time - 1);
-		MCUO_AFE_CTLC = 1; // ���ϵ磬Ĭ�ϸ���̬�����Բ���AFE�տ���˲���MOS
+		MCUO_AFE_CTLC = 1; // 刚上电，默认高阻态，所以不慌AFE刚开机瞬间打开MOS
 		__delay_ms(1);
 		GPIO_WriteBit(GPIO_RES_EN, PIN_RES_EN, 0);
 	}
 	else
 	{
-		MCUO_AFE_CTLC = 1; // ���ϵ磬Ĭ�ϸ���̬�����Բ���AFE�տ���˲���MOS
+		MCUO_AFE_CTLC = 1; // 刚上电，默认高阻态，所以不慌AFE刚开机瞬间打开MOS
 	}
-	InitUSART_CommonUpper();
+	Comm_InitAll();
 	InitADC();
 	InitData_SOC();
 	Init_ChargerLoad_Det();

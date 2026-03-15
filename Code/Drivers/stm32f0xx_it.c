@@ -115,10 +115,10 @@ void PendSV_Handler(void)
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
 
-// Õ‚≤ø÷–∂œ0∑˛ŒÒ≥Ã–Ú£¨√ª”√
+// Â§ñÈÉ®‰∏≠Êñ≠0ÊúçÂä°Á®ãÂ∫èÔºåÊ≤°Áî®
 void EXTI0_1_IRQHandler(void)
 {
-  // delay_ms(10);//œ˚∂∂
+  // delay_ms(10);//Ê∂àÊäñ
   if (EXTI_GetITStatus(EXTI_Line0) != RESET)
   {
     EXTI_ClearITPendingBit(EXTI_Line0);
@@ -176,27 +176,14 @@ void EXTI4_15_IRQHandler(void)
 
 void USART1_IRQHandler(void)
 {
-  Sci1_CommonUpper_FaultChk();
-  if (USART_GetITStatus(USART1, USART_IT_RXNE) != RESET)
-  {
-    RTC_ExtComCnt++;
-    RTC_ExtComCnt1++;
-
 #if (defined _COMMOM_UPPER_SCI1)
-    Sci1_CommonUpper_Rx_Deal(&g_stCurrentMsgPtr_SCI1);
+  Comm_PortIrqHandler(&g_comm_port1);
 #endif
-  }
 }
 
 void USART2_IRQHandler(void)
 {
-  Sci2_CommonUpper_FaultChk();
-  if (USART_GetITStatus(USART2, USART_IT_RXNE) != RESET)
-  {
-    RTC_ExtComCnt++;
-
 #ifdef _COMMOM_UPPER_SCI2
-    Sci2_CommonUpper_Rx_Deal(&g_stCurrentMsgPtr_SCI2);
+  Comm_PortIrqHandler(&g_comm_port2);
 #endif
-  }
 }

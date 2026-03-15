@@ -514,6 +514,31 @@
               <FilePath>.\Code\Source\Sci_Upper.c</FilePath>
             </File>
             <File>
+              <FileName>Comm.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Code\Source\Comm.c</FilePath>
+            </File>
+            <File>
+              <FileName>ascii_slave.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Code\Source\ascii_slave.c</FilePath>
+            </File>
+            <File>
+              <FileName>bms_comm_data_adapter.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Code\Source\bms_comm_data_adapter.c</FilePath>
+            </File>
+            <File>
+              <FileName>modbus_rtu_parser.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Code\Source\modbus_rtu_parser.c</FilePath>
+            </File>
+            <File>
+              <FileName>modbus_service.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Code\Source\modbus_service.c</FilePath>
+            </File>
+            <File>
               <FileName>SH367309_DataDeal.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\Code\Source\SH367309_DataDeal.c</FilePath>

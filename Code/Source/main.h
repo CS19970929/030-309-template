@@ -33,6 +33,7 @@
 
 #include "conf.h"
 #include "bsp.h"
+#include "Comm.h"
 
 #define APPLICATION_ADDRESS     (uint32_t)0x08001C00
 #define UPDNLMT16(Var,Max,Min)	{(Var)=((Var)>=(Max))?(Max):(Var);(Var)=((Var)<=(Min))?(Min):(Var);}
@@ -85,4 +86,3 @@ UINT8 App_AFEshutdown(void);
 void InitSystemWakeUp(void);
 
 #endif	/* MAIN_H */
-
