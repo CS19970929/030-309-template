@@ -8,6 +8,7 @@
 #include "conf_gpio.h"
 #include "modbus_proto.h"
 #include "modbus_service.h"
+#include "main.h"
 
 CommPortContext g_comm_port1;
 CommPortContext g_comm_port2;
@@ -45,7 +46,7 @@ static const CommPortConfig g_comm_port1_config = {
     GPIO_PinSource9,
     GPIO_PinSource10,
     GPIO_AF_1,
-    19200
+    115200
 };
 
 static const CommPortConfig g_comm_port2_config = {
@@ -111,6 +112,24 @@ static void Comm_PortEnableRx(CommPortContext *ctx)
     USART_ITConfig(ctx->instance, USART_IT_RXNE, ENABLE);
 }
 
+static void Comm_PortDisableTxInterrupts(CommPortContext *ctx)
+{
+    USART_ITConfig(ctx->instance, USART_IT_TXE, DISABLE);
+    USART_ITConfig(ctx->instance, USART_IT_TC, DISABLE);
+}
+
+static void Comm_PortFinishTx(CommPortContext *ctx)
+{
+    ctx->ops->delay_us(COMM_RS485_TURNAROUND_US);
+    ctx->ops->set_rs485_rx_mode(ctx->port_id);
+    ctx->tx_active = 0;
+    ctx->tx_len = 0;
+    ctx->tx_pos = 0;
+    Comm_PortDisableTxInterrupts(ctx);
+    Comm_PortEnableRx(ctx);
+    ctx->ops->notify_tx_complete(ctx->port_id);
+}
+
 static void Comm_PortResetRx(CommPortContext *ctx)
 {
     ctx->ops->enter_critical();
@@ -125,6 +144,7 @@ static void Comm_PortResetRx(CommPortContext *ctx)
     ctx->rx_state.expected_length = 0;
     AsciiParser_Reset(&ctx->rx_state.parser.ascii);
     ModbusRtuParser_Reset(&ctx->rx_state.parser.modbus);
+    Comm_PortDisableTxInterrupts(ctx);
     ctx->ops->exit_critical();
 }
 
@@ -162,7 +182,8 @@ static void Comm_PortInit(CommPortContext *ctx, const CommPortConfig *config, co
     gpio_init.GPIO_Mode = GPIO_Mode_AF;
     gpio_init.GPIO_OType = GPIO_OType_PP;
     gpio_init.GPIO_PuPd = GPIO_PuPd_UP;
-    gpio_init.GPIO_Speed = GPIO_Speed_2MHz;
+    // gpio_init.GPIO_Speed = GPIO_Speed_2MHz;
+    gpio_init.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_Init(config->gpio_port, &gpio_init);
 
     usart_init.USART_BaudRate = config->baud_rate;
@@ -174,7 +195,7 @@ static void Comm_PortInit(CommPortContext *ctx, const CommPortConfig *config, co
     USART_Init(config->instance, &usart_init);
 
     config->instance->CR3 |= (1 << 0);
-    config->instance->CR3 |= (1 << 11);
+    config->instance->CR3 &= ~(1 << 11);
     USART_Cmd(config->instance, ENABLE);
     Comm_PortEnableRx(ctx);
 }
@@ -284,26 +305,29 @@ static void Comm_PortCheckTimeout(CommPortContext *ctx)
     }
 }
 
-static void Comm_PortHandleErrors(CommPortContext *ctx)
+static uint8_t Comm_PortHandleErrors(CommPortContext *ctx)
 {
     uint8_t fault_count = 0;
+    uint32_t isr;
 
-    if (ctx->instance->ISR & 0x08)
+    isr = ctx->instance->ISR;
+
+    if (isr & 0x08)
     {
         ctx->instance->ICR |= 1 << 3;
         fault_count++;
     }
-    if (ctx->instance->ISR & 0x04)
+    if (isr & 0x04)
     {
         ctx->instance->ICR |= 1 << 2;
         fault_count++;
     }
-    if (ctx->instance->ISR & 0x02)
+    if (isr & 0x02)
     {
         ctx->instance->ICR |= 1 << 1;
         fault_count++;
     }
-    if (ctx->instance->ISR & 0x01)
+    if (isr & 0x01)
     {
         ctx->instance->ICR |= 1 << 0;
         fault_count++;
@@ -313,7 +337,10 @@ static void Comm_PortHandleErrors(CommPortContext *ctx)
     {
         ctx->error_count++;
         Comm_PortResetRx(ctx);
+        return 1;
     }
+
+    return 0;
 }
 
 static void Comm_PortDispatch(CommPortContext *ctx)
@@ -354,6 +381,7 @@ static void Comm_PortDispatch(CommPortContext *ctx)
 
 void Comm_InitAll(void)
 {
+    NVIC_SetPriority(SysTick_IRQn, 3);
 #ifdef _COMMOM_UPPER_SCI1
     Comm_PortInit(&g_comm_port1, &g_comm_port1_config, &g_comm_platform_ops);
 #endif
@@ -381,30 +409,50 @@ void Comm_PollAll(void)
 void Comm_PortIrqHandler(CommPortContext *ctx)
 {
     uint8_t rx_byte;
+    uint32_t isr;
+
+    if ((ctx->tx_active != 0) && (USART_GetITStatus(ctx->instance, USART_IT_TXE) != RESET))
+    {
+        if (ctx->tx_pos < ctx->tx_len)
+        {
+            ctx->instance->TDR = ctx->tx_buf[ctx->tx_pos++];
+        }
+        else
+        {
+            USART_ITConfig(ctx->instance, USART_IT_TXE, DISABLE);
+            USART_ITConfig(ctx->instance, USART_IT_TC, ENABLE);
+        }
+    }
+
+    if ((ctx->tx_active != 0) && (USART_GetITStatus(ctx->instance, USART_IT_TC) != RESET))
+    {
+        USART_ClearFlag(ctx->instance, USART_FLAG_TC);
+        Comm_PortFinishTx(ctx);
+        return;
+    }
+
+    isr = ctx->instance->ISR;
+    while ((isr & USART_ISR_RXNE) != 0U)
+    {
+        rx_byte = (uint8_t)ctx->instance->RDR;
+        ctx->ops->notify_rx_activity(ctx->port_id);
+        ctx->last_rx_tick = ctx->ops->get_runtime_ms();
+
+        if (ctx->tx_active == 0)
+        {
+            if (Comm_RingPushByte(ctx, rx_byte) == 0)
+            {
+                ctx->error_count++;
+                Comm_PortResetRx(ctx);
+                ctx->ring_tail = ctx->ring_head;
+                break;
+            }
+        }
+
+        isr = ctx->instance->ISR;
+    }
 
     Comm_PortHandleErrors(ctx);
-
-    if (USART_GetITStatus(ctx->instance, USART_IT_RXNE) == RESET)
-    {
-        return;
-    }
-
-    rx_byte = (uint8_t)ctx->instance->RDR;
-
-    ctx->ops->notify_rx_activity(ctx->port_id);
-    ctx->last_rx_tick = ctx->ops->get_runtime_ms();
-
-    if (ctx->tx_active != 0)
-    {
-        return;
-    }
-
-    if (Comm_RingPushByte(ctx, rx_byte) == 0)
-    {
-        ctx->error_count++;
-        Comm_PortResetRx(ctx);
-        ctx->ring_tail = ctx->ring_head;
-    }
 }
 
 void Comm_PortStartTx(CommPortContext *ctx, const uint8_t *data, uint16_t len)
@@ -419,38 +467,17 @@ void Comm_PortStartTx(CommPortContext *ctx, const uint8_t *data, uint16_t len)
     ctx->tx_pos = 0;
     Comm_PortResetRx(ctx);
     Comm_PortDisableRx(ctx);
+    Comm_PortDisableTxInterrupts(ctx);
     USART_ClearFlag(ctx->instance, USART_FLAG_TC);
     ctx->tx_active = 1;
     ctx->ops->set_rs485_tx_mode(ctx->port_id);
     ctx->ops->delay_us(COMM_RS485_TURNAROUND_US);
+    USART_ITConfig(ctx->instance, USART_IT_TXE, ENABLE);
 }
 
 void Comm_PortTxPump(CommPortContext *ctx)
 {
-    if (ctx->tx_active == 0)
-    {
-        return;
-    }
-
-    if (ctx->tx_pos < ctx->tx_len)
-    {
-        if (USART_GetFlagStatus(ctx->instance, USART_FLAG_TXE) != RESET)
-        {
-            ctx->instance->TDR = ctx->tx_buf[ctx->tx_pos++];
-        }
-        return;
-    }
-
-    if (USART_GetFlagStatus(ctx->instance, USART_FLAG_TC) != RESET)
-    {
-        ctx->ops->delay_us(COMM_RS485_TURNAROUND_US);
-        ctx->ops->set_rs485_rx_mode(ctx->port_id);
-        ctx->tx_active = 0;
-        ctx->tx_len = 0;
-        ctx->tx_pos = 0;
-        Comm_PortEnableRx(ctx);
-        ctx->ops->notify_tx_complete(ctx->port_id);
-    }
+    (void)ctx;
 }
 
 static void Comm_DefaultEnterCritical(void)

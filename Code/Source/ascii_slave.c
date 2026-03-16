@@ -400,6 +400,7 @@ uint16_t Ascii_HandleFrame(const uint8_t *rx_buf, uint16_t rx_len, uint8_t *tx_b
         return Build_Response_Frame(tx_buf, tx_capacity, PROTOCOL_VERSION, SLAVE_ADDRESS, RTN_CHKSUM_ERROR, NULL, 0);
     }
 
+#if 1
     switch (cid2)
     {
     case CMD_GET_BATTERY_INFO:
@@ -413,4 +414,6 @@ uint16_t Ascii_HandleFrame(const uint8_t *rx_buf, uint16_t rx_len, uint8_t *tx_b
     default:
         return Build_Response_Frame(tx_buf, tx_capacity, PROTOCOL_VERSION, SLAVE_ADDRESS, RTN_CID2_INVALID, NULL, 0);
     }
+#endif
+        // return Build_Response_Frame(tx_buf, tx_capacity, PROTOCOL_VERSION, SLAVE_ADDRESS, RTN_CID2_INVALID, NULL, 0);
 }

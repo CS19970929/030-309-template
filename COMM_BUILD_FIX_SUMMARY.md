@@ -204,3 +204,35 @@ To close the remaining gap, `COMM_RX_RING_SIZE` was reduced further from `64` to
 
 - Add the same RTC-backup-based `BootFlag` protocol to the IAP project.
 - After the Bootloader is updated to read the backup register request, remove the remaining `FLASH_ADDR_UPDATE_FLAG` write from the APP.
+
+## Legacy Board Compatibility
+
+### Current Constraint
+
+- The shipped Bootloader in `Code/Source/iap/main.c` decides whether to stay in IAP by reading `FLASH_ADDR_UPDATE_FLAG`.
+- Existing field boards cannot switch that protocol unless the Bootloader itself can also be updated.
+- The current IAP source does not show a self-update path for the Bootloader region, so shipped boards must be treated as fixed on the old handshake mechanism.
+
+### Compatible Strategy For Shipped Boards
+
+- Keep `FLASH_ADDR_UPDATE_FLAG` reserved for the old APP-to-IAP upgrade request.
+- Keep the APP link boundary below the top reserved Flash pages.
+- Remove every other runtime Flash dependency from the APP side:
+  - sleep flags moved to RTC backup domain
+  - RTC wake marker removed from internal Flash
+  - current offset moved to external EEPROM
+
+### New Board Strategy
+
+- For new production or boards that can be reprogrammed with a new Bootloader, migrate the IAP request protocol to RTC backup registers as well.
+- Recommended migration rule:
+  - new Bootloader first checks RTC backup flag
+  - optionally keeps reading the old Flash update flag as a backward-compatible fallback
+  - new APP writes only the backup-domain request after the Bootloader rollout is complete
+
+### Branching Intention
+
+- Legacy compatibility line:
+  - continue preserving the old IAP Flash-flag protocol for shipped boards
+- New board line:
+  - evolve IAP and APP together toward backup-domain-only boot flags and a cleaner Flash partition

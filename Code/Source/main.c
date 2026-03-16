@@ -34,6 +34,7 @@ int main(void)
 {
 	InitDevice(); // 初始化外设，这两个函数的位置需要斟酌一下，现在换回去先
 	InitVar();	  // 初始化变量
+	// bsp_StartAutoTimer(2, 500);
 
 	while (1)
 	{
@@ -45,53 +46,60 @@ int main(void)
 		App_FlashUpdateDet();
 		App_ProID_Deal();
 		// bsp_DelayMS(3000);
+		if (bsp_CheckTimer(2))
+		{
+			extern CommPortContext g_comm_port1;
+			// Comm_PortStartTx(&g_comm_port1, &g_comm_port1.tx_buf, 10);
+			static const uint8_t test_data[10] = {0x55, 0xAA, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x0D, 0x0A};
+			Comm_PortStartTx(&g_comm_port1, test_data, 10);
+		}
 #ifdef wdog_enable
 		Feed_IWatchDog;
 #endif
 	}
 
-	while (1)
-	{
-#if (defined _DEBUG_CODE)
-		App_SysTime();
-		App_AFEGet();
-		Comm_PollAll();
-		App_AnlogCal();
-		App_SOC();
-		App_WarnCtrl();
-		App_SleepDeal(); // 放在App_MOS_Relay_Control()后面
-		APP_LedBar();
-		Feed_IWatchDog;
-#else
-		App_SysTime();
-		Comm_PollAll();
+	// 	while (1)
+	// 	{
+	// #if (defined _DEBUG_CODE)
+	// 		App_SysTime();
+	// 		App_AFEGet();
+	// 		Comm_PollAll();
+	// 		App_AnlogCal();
+	// 		App_SOC();
+	// 		App_WarnCtrl();
+	// 		App_SleepDeal(); // 放在App_MOS_Relay_Control()后面
+	// 		APP_LedBar();
+	// 		Feed_IWatchDog;
+	// #else
+	// 		App_SysTime();
+	// 		Comm_PollAll();
 
-		App_AFEGet();
-		App_WarnCtrl();
-		App_AnlogCal();
+	// 		App_AFEGet();
+	// 		App_WarnCtrl();
+	// 		App_AnlogCal();
 
-		App_E2promDeal();
-		App_SleepDeal(); // 放在App_MOS_Relay_Control()后面
-		App_SOC();
-		App_CellBalance();
+	// 		App_E2promDeal();
+	// 		App_SleepDeal(); // 放在App_MOS_Relay_Control()后面
+	// 		App_SOC();
+	// 		App_CellBalance();
 
-		// APP_LedBar();
+	// 		// APP_LedBar();
 
-		// App_ChargerLoad_Det();
-#ifdef __FUNC__HEAT__
-		App_Heat_Cool_Ctrl();
-#endif // DEBUG
+	// 		// App_ChargerLoad_Det();
+	// #ifdef __FUNC__HEAT__
+	// 		App_Heat_Cool_Ctrl();
+	// #endif // DEBUG
 
-		App_FlashUpdateDet();
-		App_LogRecord();
-		App_ProID_Deal();
+	// 		App_FlashUpdateDet();
+	// 		App_LogRecord();
+	// 		App_ProID_Deal();
 
-#ifdef wdog_enable
-		Feed_IWatchDog;
-#endif
+	// #ifdef wdog_enable
+	// 		Feed_IWatchDog;
+	// #endif
 
-#endif
-	}
+	// #endif
+	// 	}
 }
 
 void InitDevice(void)
@@ -123,7 +131,7 @@ void InitDevice(void)
 	if (OtherElement.u16Sys_PreChg_Time >= 1)
 	{
 		GPIO_WriteBit(GPIO_RES_EN, PIN_RES_EN, 1);
-		if(OtherElement.u16Sys_PreChg_Time > 1000)
+		if (OtherElement.u16Sys_PreChg_Time > 1000)
 			OtherElement.u16Sys_PreChg_Time = 100;
 		__delay_ms(OtherElement.u16Sys_PreChg_Time - 1);
 		MCUO_AFE_CTLC = 1; // 刚上电，默认高阻态，所以不慌AFE刚开机瞬间打开MOS

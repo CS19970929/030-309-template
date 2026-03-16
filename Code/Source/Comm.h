@@ -38,7 +38,7 @@ typedef struct {
     uint32_t baud_rate;
 } CommPortConfig;
 
-#define COMM_RX_RING_SIZE           56
+#define COMM_RX_RING_SIZE           260
 #define COMM_RTU_RX_TIMEOUT_MS      20
 #define COMM_ASCII_RX_TIMEOUT_MS    100
 #define COMM_RS485_TURNAROUND_US    100

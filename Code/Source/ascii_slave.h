@@ -24,7 +24,8 @@
 
 #define PROTOCOL_VERSION        0x20
 #define SLAVE_ADDRESS           0x12
-#define MAX_FRAME_LEN           600
+#define MAX_FRAME_LEN           350
+// #define MAX_FRAME_LEN           600
 #define ASCII_RX_FRAME_LEN      64
 #define CELL_MAX_NUM            16
 
