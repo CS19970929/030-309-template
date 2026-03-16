@@ -35,15 +35,15 @@ void Init_IAPAPP(void)
 
 static void BootFlag_EnableAccess(void)
 {
-	RCC_APB1PeriphClockCmd(RCC_APB1Periph_PWR, ENABLE);
-	PWR_BackupAccessCmd(ENABLE);
+	RCC->APB1ENR |= RCC_APB1ENR_PWREN;
+	PWR->CR |= PWR_CR_DBP;
 }
 
 void BootFlag_Write(UINT16 flag)
 {
 	BootFlag_EnableAccess();
-	RTC_WriteBackupRegister(RTC_BKP_DR1, flag);
-	RTC_WriteBackupRegister(RTC_BKP_DR2, (UINT16)(~flag));
+	RTC->BKP1R = flag;
+	RTC->BKP2R = (UINT16)(~flag);
 }
 
 UINT16 BootFlag_Read(void)
@@ -52,8 +52,8 @@ UINT16 BootFlag_Read(void)
 	UINT16 inverse_flag;
 
 	BootFlag_EnableAccess();
-	flag = RTC_ReadBackupRegister(RTC_BKP_DR1);
-	inverse_flag = RTC_ReadBackupRegister(RTC_BKP_DR2);
+	flag = (UINT16)RTC->BKP1R;
+	inverse_flag = (UINT16)RTC->BKP2R;
 	if ((UINT16)(flag ^ inverse_flag) != 0xFFFF)
 	{
 		return BOOT_FLAG_RESET_VALUE;
