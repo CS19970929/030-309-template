@@ -30,6 +30,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f0xx_it.h"
 #include "main.h"
+#include "Comm.h"
 /** @addtogroup STM32F0_Discovery_Peripheral_Examples
  * @{
  */

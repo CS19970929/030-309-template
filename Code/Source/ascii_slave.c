@@ -251,7 +251,7 @@ ProtocolParseResult AsciiParser_ConsumeByte(AsciiParser *parser, uint8_t byte)
     uint16_t length_field;
     uint16_t lenid;
 
-    if (parser->length >= MAX_FRAME_LEN)
+    if (parser->length >= ASCII_RX_FRAME_LEN)
     {
         AsciiParser_Reset(parser);
         return PROTO_PARSE_FRAME_INVALID;
@@ -291,7 +291,7 @@ ProtocolParseResult AsciiParser_ConsumeByte(AsciiParser *parser, uint8_t byte)
         }
 
         parser->expected_length = (uint16_t)(18 + lenid);
-        if (parser->expected_length > MAX_FRAME_LEN)
+        if (parser->expected_length > ASCII_RX_FRAME_LEN)
         {
             AsciiParser_Reset(parser);
             return PROTO_PARSE_FRAME_INVALID;

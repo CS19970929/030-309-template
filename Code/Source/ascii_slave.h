@@ -25,6 +25,7 @@
 #define PROTOCOL_VERSION        0x20
 #define SLAVE_ADDRESS           0x12
 #define MAX_FRAME_LEN           600
+#define ASCII_RX_FRAME_LEN      64
 #define CELL_MAX_NUM            16
 
 typedef struct {
@@ -80,7 +81,7 @@ typedef struct {
 } Battery_Charge_Dis_Info_T;
 
 typedef struct {
-    uint8_t buffer[MAX_FRAME_LEN];
+    uint8_t buffer[ASCII_RX_FRAME_LEN];
     uint16_t length;
     uint16_t expected_length;
 } AsciiParser;
