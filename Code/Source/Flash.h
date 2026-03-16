@@ -39,6 +39,7 @@ UINT16 FlashReadOneHalfWord(UINT32 faddr);
 void BootFlag_Write(UINT16 flag);
 UINT16 BootFlag_Read(void);
 void BootFlag_Clear(void);
+FLASH_Status IapRequest_ArmLegacyFlag(void);
 void App_FlashUpdateDet(void);
 void Init_IAPAPP(void);
 

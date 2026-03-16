@@ -66,6 +66,14 @@ void BootFlag_Clear(void)
 {
 	BootFlag_Write(BOOT_FLAG_RESET_VALUE);
 }
+
+FLASH_Status IapRequest_ArmLegacyFlag(void)
+{
+	// Shipped boards still run a bootloader that only checks FLASH_ADDR_UPDATE_FLAG.
+	// Keep this legacy Flash handshake until the bootloader protocol is upgraded.
+	return FlashWriteOneHalfWord(FLASH_ADDR_UPDATE_FLAG, FLASH_TO_IAP_VALUE);
+}
+
 void App_FlashUpdateDet(void)
 {
 	if (1 == u8FlashUpdateFlag)
