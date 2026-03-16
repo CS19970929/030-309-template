@@ -152,3 +152,29 @@ To close the remaining gap, `COMM_RX_RING_SIZE` was reduced further from `64` to
 
 - After changing `EEPROM_VALUE_BEGIN_FLAG`, the first download should complete parameter rebuild and continue startup in the same boot.
 - The debugger should no longer stop on the artificial reset path caused by EEPROM reinitialization.
+
+## Flash Layout Overlap Root Cause
+
+### Confirmed Cause of the HardFault
+
+- The application is linked from `0x08001C00`.
+- The previous linker limit allowed the APP region to grow to `0x08010000`.
+- The project also reserves the top 4 KB of Flash for runtime storage:
+  - `0x0800F000` current offset value
+  - `0x0800F400` sleep/flag data
+  - `0x0800F800` update flag
+  - `0x0800FC00` sleep flag
+- The current map shows that APP content had already been placed inside the reserved page at `0x0800F000`.
+  - Example: `g_comm_platform_ops` was linked at `0x0800F058`.
+- `DataLoad_CurrentCali_startup()` writes `FLASH_ADDR_SH367309_VALUE`, and `FlashWriteOneHalfWord()` erases the entire Flash page before programming one half-word.
+- This means the first-boot calibration path erased part of the application image itself, which directly explains the observed HardFault after changing `EEPROM_VALUE_BEGIN_FLAG`.
+
+### Fix Applied
+
+- Reduced the APP linker region in `CommomSH367309_16series_030C8T6_C.uvprojx` from `0xE400` to `0xD400`.
+- This keeps the linked APP below `0x0800F000` and protects the reserved runtime Flash pages from being occupied by code/RO data.
+
+### Impact
+
+- This is the correct structural fix for the HardFault.
+- If the current APP no longer links after this change, that failure is expected and correct: it means the code size had already exceeded the safe APP space and must be reduced or the Flash data layout must be redesigned.
