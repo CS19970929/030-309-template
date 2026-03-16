@@ -60,6 +60,40 @@ Because both USART1 and USART2 are enabled, this RAM cost was effectively double
   - moved Modbus service context to a shared static workspace
   - updated RX reset/dispatch logic to match the new shared parser storage
 
+### Review-driven hardening
+
+- `Code/Source/ascii_slave.c`
+  - clamped `battery_num` to `CELL_MAX_NUM` before copying barcode fields
+  - added explicit TX buffer capacity checks in `Build_Response_Frame`
+  - updated ASCII handlers to pass output capacity through the call chain
+- `Code/Source/modbus_service.c`
+  - added response length validation before copying `AckLenth` into the TX buffer
+  - added the missing standard header for `memcpy`
+- `Code/Source/ascii_slave.h`
+  - updated API signatures so frame builders/handlers receive output capacity explicitly
+- `Code/Source/modbus_service.h`
+  - updated API signature to include output capacity
+
+### Transport / platform decoupling
+
+- `Code/Source/Comm.h`
+  - added `CommPlatformOps` for critical section control, timing, RS485 direction control, and event hooks
+  - added `CommPortConfig` for UART, GPIO, IRQ, and baud-rate configuration
+- `Code/Source/Comm.c`
+  - changed transport code to consume board services through `CommPlatformOps`
+  - moved port-specific UART/pin settings into `CommPortConfig`
+  - isolated default STM32F0 behavior in a set of local default callbacks
+- `Code/Source/modbus_proto.h`
+  - added a protocol-only header for Modbus parser constants
+- `Code/Source/modbus_rtu_parser.h`
+  - removed direct dependency on `Sci_Upper.h`
+  - switched parser buffer sizing and function-code checks to protocol-only constants
+- `Code/Source/modbus_rtu_parser.c`
+  - updated parsing logic to use the new protocol-only constants
+- `Code/Source/Sci_Upper.h`
+  - added the explicit base-type include required for standalone compilation
+  - included `modbus_proto.h` so legacy Modbus symbols remain available
+
 ## Linker Result Progress
 
 Observed progression during this fix:
@@ -74,10 +108,18 @@ To close the remaining gap, `COMM_RX_RING_SIZE` was reduced further from `64` to
 
 - compile-time symbol errors are fixed
 - communication module source files compile successfully
-- last change intended to clear the final 16-byte RAM overflow has been applied
-- full rebuild verification after the final ring-buffer adjustment still needs to be confirmed in Keil
+- Keil full build now succeeds
+- latest reported image size:
+  - `Code=38508`
+  - `RO-data=2576`
+  - `RW-data=1260`
+  - `ZI-data=6932`
+- current build result:
+  - `0 Error(s), 47 Warning(s)`
 
 ## Notes
 
 - This was primarily a header hygiene and RAM budgeting issue, not a protocol logic regression.
 - If RAM pressure returns in future changes, inspect `comm.o(.bss)` first because it is currently one of the largest contributors in `RW_IRAM1`.
+- The recent decrease in `Code` size is expected. It comes from removing duplicate data paths, simplifying control flow, and allowing the linker to drop more unused split sections.
+- The transport layer is more portable than before, but it is not fully board-agnostic yet. The next clean step would be moving the default STM32F0 platform callbacks out of `Comm.c` into a dedicated `comm_porting_stm32f0.*` pair.

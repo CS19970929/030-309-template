@@ -94,13 +94,20 @@ uint8_t Parse_LENGTH_Field(uint16_t length_field, uint16_t *lenid)
     return (uint8_t)(lchksum_rx == Calc_LCHKSUM(*lenid));
 }
 
-uint16_t Build_Response_Frame(uint8_t *tx_buf, uint8_t ver, uint8_t adr, uint8_t rtn, uint8_t *info_data, uint16_t info_hex_len)
+uint16_t Build_Response_Frame(uint8_t *tx_buf, uint16_t tx_capacity, uint8_t ver, uint8_t adr, uint8_t rtn, const uint8_t *info_data, uint16_t info_hex_len)
 {
     uint16_t idx;
     uint16_t lenid;
     uint16_t length_field;
     uint16_t chksum;
     uint16_t i;
+    uint16_t frame_len;
+
+    frame_len = (uint16_t)(18U + (uint16_t)(info_hex_len * 2U));
+    if ((tx_buf == NULL) || (frame_len > tx_capacity))
+    {
+        return 0;
+    }
 
     idx = 0;
     tx_buf[idx++] = SOI;
@@ -141,6 +148,7 @@ static uint16_t Ascii_BuildBaseInfo(uint8_t *tx_buf)
     uint8_t info_buf[MAX_FRAME_LEN];
     uint16_t idx;
     uint16_t i;
+    uint16_t battery_count;
 
     BmsComm_GetBaseInfo(&info);
 
@@ -151,15 +159,20 @@ static uint16_t Ascii_BuildBaseInfo(uint8_t *tx_buf)
     idx += sizeof(info.manufactory_name);
     memcpy(&info_buf[idx], info.software_ver, sizeof(info.software_ver));
     idx += sizeof(info.software_ver);
-    info_buf[idx++] = info.battery_num;
+    battery_count = info.battery_num;
+    if (battery_count > CELL_MAX_NUM)
+    {
+        battery_count = CELL_MAX_NUM;
+    }
+    info_buf[idx++] = (uint8_t)battery_count;
 
-    for (i = 0; i < info.battery_num; ++i)
+    for (i = 0; i < battery_count; ++i)
     {
         memcpy(&info_buf[idx], info.battery_barcode[i], sizeof(info.battery_barcode[i]));
         idx += sizeof(info.battery_barcode[i]);
     }
 
-    return Build_Response_Frame(tx_buf, PROTOCOL_VERSION, SLAVE_ADDRESS, RTN_OK, info_buf, idx);
+    return Build_Response_Frame(tx_buf, MAX_FRAME_LEN, PROTOCOL_VERSION, SLAVE_ADDRESS, RTN_OK, info_buf, idx);
 }
 
 static uint16_t Ascii_BuildAnalogData(uint8_t *tx_buf)
@@ -207,7 +220,7 @@ static uint16_t Ascii_BuildAnalogData(uint8_t *tx_buf)
 
 #undef APPEND_U16
 
-    return Build_Response_Frame(tx_buf, PROTOCOL_VERSION, SLAVE_ADDRESS, RTN_OK, info_buf, idx);
+    return Build_Response_Frame(tx_buf, MAX_FRAME_LEN, PROTOCOL_VERSION, SLAVE_ADDRESS, RTN_OK, info_buf, idx);
 }
 
 static uint16_t Ascii_BuildAlarmInfo(uint8_t *tx_buf)
@@ -221,7 +234,7 @@ static uint16_t Ascii_BuildAlarmInfo(uint8_t *tx_buf)
     info_buf[2] = data.system_protect1;
     info_buf[3] = data.system_protect2;
 
-    return Build_Response_Frame(tx_buf, PROTOCOL_VERSION, SLAVE_ADDRESS, RTN_OK, info_buf, sizeof(info_buf));
+    return Build_Response_Frame(tx_buf, MAX_FRAME_LEN, PROTOCOL_VERSION, SLAVE_ADDRESS, RTN_OK, info_buf, sizeof(info_buf));
 }
 
 static uint16_t Ascii_BuildChargeDisInfo(uint8_t *tx_buf)
@@ -243,7 +256,7 @@ static uint16_t Ascii_BuildChargeDisInfo(uint8_t *tx_buf)
     info_buf[idx++] = (uint8_t)data.max_discharge_current;
     info_buf[idx++] = data.charge_dis_status;
 
-    return Build_Response_Frame(tx_buf, PROTOCOL_VERSION, SLAVE_ADDRESS, RTN_OK, info_buf, idx);
+    return Build_Response_Frame(tx_buf, MAX_FRAME_LEN, PROTOCOL_VERSION, SLAVE_ADDRESS, RTN_OK, info_buf, idx);
 }
 
 ProtocolParseResult AsciiParser_ConsumeByte(AsciiParser *parser, uint8_t byte)
@@ -317,7 +330,7 @@ ProtocolParseResult AsciiParser_ConsumeByte(AsciiParser *parser, uint8_t byte)
     return PROTO_PARSE_IN_PROGRESS;
 }
 
-uint16_t Ascii_HandleFrame(const uint8_t *rx_buf, uint16_t rx_len, uint8_t *tx_buf)
+uint16_t Ascii_HandleFrame(const uint8_t *rx_buf, uint16_t rx_len, uint8_t *tx_buf, uint16_t tx_capacity)
 {
     uint8_t ver;
     uint8_t adr;
@@ -339,7 +352,7 @@ uint16_t Ascii_HandleFrame(const uint8_t *rx_buf, uint16_t rx_len, uint8_t *tx_b
         (Ascii_To_Hex(rx_buf[5]) == 0xFF) || (Ascii_To_Hex(rx_buf[6]) == 0xFF) ||
         (Ascii_To_Hex(rx_buf[7]) == 0xFF) || (Ascii_To_Hex(rx_buf[8]) == 0xFF))
     {
-        return Build_Response_Frame(tx_buf, PROTOCOL_VERSION, SLAVE_ADDRESS, RTN_FORMAT_ERROR, NULL, 0);
+        return Build_Response_Frame(tx_buf, tx_capacity, PROTOCOL_VERSION, SLAVE_ADDRESS, RTN_FORMAT_ERROR, NULL, 0);
     }
 
     ver = (uint8_t)((Ascii_To_Hex(rx_buf[1]) << 4) | Ascii_To_Hex(rx_buf[2]));
@@ -353,28 +366,28 @@ uint16_t Ascii_HandleFrame(const uint8_t *rx_buf, uint16_t rx_len, uint8_t *tx_b
 
     if (ver != PROTOCOL_VERSION)
     {
-        return Build_Response_Frame(tx_buf, PROTOCOL_VERSION, SLAVE_ADDRESS, RTN_VER_ERROR, NULL, 0);
+        return Build_Response_Frame(tx_buf, tx_capacity, PROTOCOL_VERSION, SLAVE_ADDRESS, RTN_VER_ERROR, NULL, 0);
     }
 
     if (adr != SLAVE_ADDRESS)
     {
-        return Build_Response_Frame(tx_buf, PROTOCOL_VERSION, SLAVE_ADDRESS, RTN_ADR_ERROR, NULL, 0);
+        return Build_Response_Frame(tx_buf, tx_capacity, PROTOCOL_VERSION, SLAVE_ADDRESS, RTN_ADR_ERROR, NULL, 0);
     }
 
     if (cid1 != CID1_BAT_DATA)
     {
-        return Build_Response_Frame(tx_buf, PROTOCOL_VERSION, SLAVE_ADDRESS, RTN_CID2_INVALID, NULL, 0);
+        return Build_Response_Frame(tx_buf, tx_capacity, PROTOCOL_VERSION, SLAVE_ADDRESS, RTN_CID2_INVALID, NULL, 0);
     }
 
     if (Parse_LENGTH_Field(length_field, &lenid) == 0)
     {
-        return Build_Response_Frame(tx_buf, PROTOCOL_VERSION, SLAVE_ADDRESS, RTN_LCHKSUM_ERROR, NULL, 0);
+        return Build_Response_Frame(tx_buf, tx_capacity, PROTOCOL_VERSION, SLAVE_ADDRESS, RTN_LCHKSUM_ERROR, NULL, 0);
     }
 
     expect_len = (uint16_t)(18 + lenid);
     if (rx_len != expect_len)
     {
-        return Build_Response_Frame(tx_buf, PROTOCOL_VERSION, SLAVE_ADDRESS, RTN_FORMAT_ERROR, NULL, 0);
+        return Build_Response_Frame(tx_buf, tx_capacity, PROTOCOL_VERSION, SLAVE_ADDRESS, RTN_FORMAT_ERROR, NULL, 0);
     }
 
     chksum_rx = (uint16_t)((Ascii_To_Hex(rx_buf[13 + lenid]) << 12) |
@@ -384,7 +397,7 @@ uint16_t Ascii_HandleFrame(const uint8_t *rx_buf, uint16_t rx_len, uint8_t *tx_b
     chksum_calc = Calc_CHKSUM((uint8_t *)&rx_buf[1], (uint16_t)(12 + lenid));
     if (chksum_rx != chksum_calc)
     {
-        return Build_Response_Frame(tx_buf, PROTOCOL_VERSION, SLAVE_ADDRESS, RTN_CHKSUM_ERROR, NULL, 0);
+        return Build_Response_Frame(tx_buf, tx_capacity, PROTOCOL_VERSION, SLAVE_ADDRESS, RTN_CHKSUM_ERROR, NULL, 0);
     }
 
     switch (cid2)
@@ -398,6 +411,6 @@ uint16_t Ascii_HandleFrame(const uint8_t *rx_buf, uint16_t rx_len, uint8_t *tx_b
     case CMD_GET_CHARGE_DIS_INFO:
         return Ascii_BuildChargeDisInfo(tx_buf);
     default:
-        return Build_Response_Frame(tx_buf, PROTOCOL_VERSION, SLAVE_ADDRESS, RTN_CID2_INVALID, NULL, 0);
+        return Build_Response_Frame(tx_buf, tx_capacity, PROTOCOL_VERSION, SLAVE_ADDRESS, RTN_CID2_INVALID, NULL, 0);
     }
 }

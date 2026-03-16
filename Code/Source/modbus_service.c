@@ -1,11 +1,12 @@
 #include "modbus_service.h"
+#include <string.h>
 
 void Modbus_ServiceInit(struct RS485MSG *msg)
 {
     Sci_DataInit(msg);
 }
 
-uint16_t Modbus_ServiceHandleFrame(struct RS485MSG *msg, const uint8_t *frame, uint16_t frame_len, uint8_t *tx_buf)
+uint16_t Modbus_ServiceHandleFrame(struct RS485MSG *msg, const uint8_t *frame, uint16_t frame_len, uint8_t *tx_buf, uint16_t tx_capacity)
 {
     uint16_t i;
 
@@ -37,6 +38,10 @@ uint16_t Modbus_ServiceHandleFrame(struct RS485MSG *msg, const uint8_t *frame, u
     }
 
     Sci_ModbusService_Execute(msg);
+    if ((msg->AckLenth == 0) || (msg->AckLenth > RS485_MAX_BUFFER_SIZE) || (msg->AckLenth > tx_capacity))
+    {
+        return 0;
+    }
     memcpy(tx_buf, msg->u16Buffer, msg->AckLenth);
     return msg->AckLenth;
 }

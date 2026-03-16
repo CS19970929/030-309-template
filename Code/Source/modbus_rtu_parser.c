@@ -8,7 +8,7 @@ void ModbusRtuParser_Reset(ModbusRtuParser *parser)
 
 ProtocolParseResult ModbusRtuParser_ConsumeByte(ModbusRtuParser *parser, uint8_t byte)
 {
-    if (parser->length >= RS485_MAX_BUFFER_SIZE)
+    if (parser->length >= MODBUS_MAX_ADU_SIZE)
     {
         ModbusRtuParser_Reset(parser);
         return PROTO_PARSE_FRAME_INVALID;
@@ -18,7 +18,7 @@ ProtocolParseResult ModbusRtuParser_ConsumeByte(ModbusRtuParser *parser, uint8_t
 
     if (parser->length == 1)
     {
-        if ((byte != RS485_SLAVE_ADDR) && (byte != RS485_BROADCAST_ADDR))
+        if ((byte != MODBUS_SLAVE_ADDR) && (byte != MODBUS_BROADCAST_ADDR))
         {
             ModbusRtuParser_Reset(parser);
             return PROTO_PARSE_FRAME_INVALID;
@@ -30,11 +30,11 @@ ProtocolParseResult ModbusRtuParser_ConsumeByte(ModbusRtuParser *parser, uint8_t
     {
         switch (parser->buffer[1])
         {
-        case RS485_CMD_READ_REGS:
-        case RS485_CMD_WRITE_REG:
+        case MODBUS_FC_READ_REGS:
+        case MODBUS_FC_WRITE_REG:
             parser->expected_length = 8;
             break;
-        case RS485_CMD_WRITE_REGS:
+        case MODBUS_FC_WRITE_REGS:
             parser->expected_length = 0;
             break;
         default:
@@ -43,7 +43,7 @@ ProtocolParseResult ModbusRtuParser_ConsumeByte(ModbusRtuParser *parser, uint8_t
         }
     }
 
-    if ((parser->buffer[1] == RS485_CMD_WRITE_REGS) && (parser->length == 7))
+    if ((parser->buffer[1] == MODBUS_FC_WRITE_REGS) && (parser->length == 7))
     {
         parser->expected_length = (uint16_t)(9 + parser->buffer[6]);
     }

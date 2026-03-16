@@ -2,7 +2,7 @@
 #define MODBUS_RTU_PARSER_H
 
 #include "stm32f0xx.h"
-#include "Sci_Upper.h"
+#include "modbus_proto.h"
 
 typedef enum {
     PROTO_PARSE_IN_PROGRESS = 0,
@@ -11,7 +11,7 @@ typedef enum {
 } ProtocolParseResult;
 
 typedef struct {
-    uint8_t buffer[RS485_MAX_BUFFER_SIZE];
+    uint8_t buffer[MODBUS_MAX_ADU_SIZE];
     uint16_t length;
     uint16_t expected_length;
 } ModbusRtuParser;

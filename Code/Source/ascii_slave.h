@@ -88,7 +88,7 @@ typedef struct {
 
 void AsciiParser_Reset(AsciiParser *parser);
 ProtocolParseResult AsciiParser_ConsumeByte(AsciiParser *parser, uint8_t byte);
-uint16_t Ascii_HandleFrame(const uint8_t *rx_buf, uint16_t rx_len, uint8_t *tx_buf);
+uint16_t Ascii_HandleFrame(const uint8_t *rx_buf, uint16_t rx_len, uint8_t *tx_buf, uint16_t tx_capacity);
 
 uint8_t Hex_To_Ascii(uint8_t hex);
 uint8_t Ascii_To_Hex(uint8_t ascii);
@@ -97,6 +97,6 @@ uint8_t Calc_LCHKSUM(uint16_t lenid);
 uint16_t Calc_CHKSUM(uint8_t *data, uint16_t len);
 uint16_t Build_LENGTH_Field(uint16_t lenid);
 uint8_t Parse_LENGTH_Field(uint16_t length_field, uint16_t *lenid);
-uint16_t Build_Response_Frame(uint8_t *tx_buf, uint8_t ver, uint8_t adr, uint8_t rtn, uint8_t *info_data, uint16_t info_hex_len);
+uint16_t Build_Response_Frame(uint8_t *tx_buf, uint16_t tx_capacity, uint8_t ver, uint8_t adr, uint8_t rtn, const uint8_t *info_data, uint16_t info_hex_len);
 
 #endif

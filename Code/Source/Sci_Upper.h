@@ -1,13 +1,12 @@
 #ifndef SCI_H
 #define SCI_H
 
+#include "stm32f0xx.h"
 #include "DataDeal.h"
+#include "modbus_proto.h"
 
-#define	RS485_BROADCAST_ADDR		(( UINT8 ) 0x00 )
-#define	RS485_SLAVE_ADDR			(( UINT8 ) 0x01 )
 
 #define	SCI_TX_BUF_LEN			251   	//日志记录导致提升为250
-#define RS485_MAX_BUFFER_SIZE 	251		//
 
 //485 cmd type
 enum RS485_CMD_E {
