@@ -1,4 +1,5 @@
 #include "main.h"
+#include "Comm.h"
 
 UINT8 g_u8SCITxBuff[SCI_TX_BUF_LEN];
 

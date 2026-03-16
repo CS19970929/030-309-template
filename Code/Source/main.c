@@ -1,4 +1,5 @@
 #include "main.h"
+#include "Comm.h"
 #include "bsp.h"
 #include "Time_Triggered.h"
 

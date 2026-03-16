@@ -1,7 +1,8 @@
 #ifndef MODBUS_RTU_PARSER_H
 #define MODBUS_RTU_PARSER_H
 
-#include "main.h"
+#include "stm32f0xx.h"
+#include "Sci_Upper.h"
 
 typedef enum {
     PROTO_PARSE_IN_PROGRESS = 0,

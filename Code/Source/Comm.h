@@ -1,10 +1,11 @@
 #ifndef COMM_H
 #define COMM_H
 
-#include "main.h"
+#include "stm32f0xx.h"
+#include "Sci_Upper.h"
 #include "ascii_slave.h"
-#include "modbus_rtu_parser.h"
 
+/* Keep this header self-contained. Do not include main.h here. */
 typedef enum {
     PROTO_NONE = 0,
     PROTO_MODBUS_RTU,

@@ -33,8 +33,8 @@
 
 #include "conf.h"
 #include "bsp.h"
-#include "Comm.h"
 
+/* Source files that use Comm_* must include Comm.h directly. */
 #define APPLICATION_ADDRESS     (uint32_t)0x08001C00
 #define UPDNLMT16(Var,Max,Min)	{(Var)=((Var)>=(Max))?(Max):(Var);(Var)=((Var)<=(Min))?(Min):(Var);}
 #define S2U(x)   (*((volatile UINT16*)(&(x))))
