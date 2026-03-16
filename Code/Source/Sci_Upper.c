@@ -1014,20 +1014,42 @@ void Sci_WrRegs_0x10_Balance(struct RS485MSG *s)
 	UINT8 i;
 	UINT16 u16WrRegNum;
 	u16WrRegNum = s->u16Buffer[5] + (s->u16Buffer[4] << 8);
-	if (u16WrRegNum == 8)
+	if ((u16WrRegNum >= 1) && (u16WrRegNum <= 8))
 	{
-		for (i = 0; i < 8; ++i)
+		for (i = 0; i < u16WrRegNum; ++i)
 		{
 			*(&OtherElement.u16Balance_OpenVoltage + i) = (UINT16)(s->u16Buffer[2 * i + 8] + (s->u16Buffer[2 * i + 7] << 8));
 		}
 		u32E2P_OtherElement1_WriteFlag |= EE_FLAG_OTHER1_BALANCE_OV;
-		u32E2P_OtherElement1_WriteFlag |= EE_FLAG_OTHER1_BALANCE_OW;
-		u32E2P_OtherElement1_WriteFlag |= EE_FLAG_OTHER1_BALANCE_CW1;
-		u32E2P_OtherElement1_WriteFlag |= EE_FLAG_OTHER1_BALANCE_CW2;
-		u32E2P_OtherElement1_WriteFlag |= EE_FLAG_OTHER1_OPENTIME_ODD;
-		u32E2P_OtherElement1_WriteFlag |= EE_FLAG_OTHER1_OPENTIME_EVEN;
-		u32E2P_OtherElement1_WriteFlag |= EE_FLAG_OTHER1_OPENTIME_MOS;
-		u32E2P_OtherElement1_WriteFlag |= EE_FLAG_OTHER1_RES;
+		if (u16WrRegNum > 1)
+		{
+			u32E2P_OtherElement1_WriteFlag |= EE_FLAG_OTHER1_BALANCE_OW;
+		}
+		if (u16WrRegNum > 2)
+		{
+			u32E2P_OtherElement1_WriteFlag |= EE_FLAG_OTHER1_BALANCE_CW1;
+		}
+		if (u16WrRegNum > 3)
+		{
+			u32E2P_OtherElement1_WriteFlag |= EE_FLAG_OTHER1_BALANCE_CW2;
+		}
+		if (u16WrRegNum > 4)
+		{
+			u32E2P_OtherElement1_WriteFlag |= EE_FLAG_OTHER1_OPENTIME_ODD;
+		}
+		if (u16WrRegNum > 5)
+		{
+			u32E2P_OtherElement1_WriteFlag |= EE_FLAG_OTHER1_OPENTIME_EVEN;
+		}
+		if (u16WrRegNum > 6)
+		{
+			u32E2P_OtherElement1_WriteFlag |= EE_FLAG_OTHER1_OPENTIME_MOS;
+		}
+		if (u16WrRegNum > 7)
+		{
+			u32E2P_OtherElement1_WriteFlag |= EE_FLAG_OTHER1_RES;
+		}
+		AFE_PARAM_WRITE_Flag = 1;
 	}
 	else
 	{

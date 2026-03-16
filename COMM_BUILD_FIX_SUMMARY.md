@@ -218,6 +218,46 @@ To close the remaining gap, `COMM_RX_RING_SIZE` was reduced further from `64` to
 - Keep `FLASH_ADDR_UPDATE_FLAG` reserved for the old APP-to-IAP upgrade request.
 - Keep the APP link boundary below the top reserved Flash pages.
 - Remove every other runtime Flash dependency from the APP side:
+
+## Balance Strategy Simplification
+
+### Goal
+
+- Stop using the MCU-driven external balancing state machine.
+- Use the SH367309 internal balance threshold register instead.
+- Keep Modbus write access for the balance voltage.
+
+### Implementation
+
+- `Code/Source/Cell_balance.c`
+  - removed the previous odd/even轮切 and per-cell software decision logic
+  - reduced the module to a compatibility stub so existing symbols remain available
+- `Code/Source/main.c`
+  - removed the scheduled `App_CellBalance` task
+  - removed the temporary serial TX test block that had been left in the main loop
+- `Code/Source/SH367309_DataDeal.c`
+  - `Refresh_Parameters()` now forces `BAL = 0`, which selects SH367309 internal balance control
+  - `BALV` is now derived from `OtherElement.u16Balance_OpenVoltage`
+  - when software balance function is disabled, `BALV` is forced to `0xFF` so internal balancing is effectively disabled
+- `Code/Source/Sci_Upper.c`
+  - `Sci_WrRegs_0x10_Balance()` still uses the existing Modbus balance register block
+  - the handler now accepts writes of 1 to 8 registers
+  - after updating the balance parameters, it sets `AFE_PARAM_WRITE_Flag = 1` so the new threshold is pushed into AFE configuration
+- `Code/Source/SH367309_Func.c`
+  - balance status fields are updated from the AFE balance register readback path
+
+### Modbus Compatibility
+
+- Existing balance parameter address `RS485_CMD_ADDR_BALANCE_OV (0x2300)` is kept.
+- Old tools that still write the original 8-register balance block remain compatible.
+- New tools can write only the first register if they only need the balance start voltage.
+
+### Effect
+
+- Balance voltage is now controlled by the AFE `BALV` register using the device formula:
+  - `BALV register value * 20 mV`
+- The old MCU-side static-balance timing/window logic is no longer used at runtime.
+- This reduces code size and removes one of the larger application-side software state machines, which is helpful after shrinking the safe APP region to `0xD400`.
   - sleep flags moved to RTC backup domain
   - RTC wake marker removed from internal Flash
   - current offset moved to external EEPROM

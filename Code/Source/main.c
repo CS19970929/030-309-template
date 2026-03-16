@@ -45,14 +45,7 @@ int main(void)
 		App_E2promDeal();
 		App_FlashUpdateDet();
 		App_ProID_Deal();
-		// bsp_DelayMS(3000);
-		if (bsp_CheckTimer(2))
-		{
-			extern CommPortContext g_comm_port1;
-			// Comm_PortStartTx(&g_comm_port1, &g_comm_port1.tx_buf, 10);
-			static const uint8_t test_data[10] = {0x55, 0xAA, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x0D, 0x0A};
-			Comm_PortStartTx(&g_comm_port1, test_data, 10);
-		}
+
 #ifdef wdog_enable
 		Feed_IWatchDog;
 #endif
@@ -157,7 +150,6 @@ void InitDevice(void)
 	SCH_Add_Task(App_SOC, 5, 200);
 	SCH_Add_Task(App_LogRecord, 6, 1000);
 	SCH_Add_Task(App_SleepDeal, 7, 1000);
-	SCH_Add_Task(App_CellBalance, 8, 1000);
 #ifdef __FUNC__HEAT__
 	SCH_Add_Task(App_Heat_Cool_Ctrl, 9, 1000);
 #endif // DEBUG

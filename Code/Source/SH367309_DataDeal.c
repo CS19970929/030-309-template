@@ -59,8 +59,22 @@ void Refresh_Parameters(void)
 	g_u32CS_Res_AFE = ((UINT32)OtherElement.u16Sys_CS_Res_Num * 1000) / OtherElement.u16Sys_CS_Res;
 
 	AFE_ROM_PARAMETERS_Struction.m00H_01H.CTLC = 3;
+	AFE_ROM_PARAMETERS_Struction.m00H_01H.BAL = 0;
 
 	AFE_ROM_PARAMETERS_Struction.m00H_01H.CN = OtherElement.u16Sys_SeriesNum % 16;
+	if (System_OnOFF_Func.bits.b1OnOFF_Balance)
+	{
+		temp = (OtherElement.u16Balance_OpenVoltage + 10) / 20;
+		if (temp > 0xFF)
+		{
+			temp = 0xFF;
+		}
+	}
+	else
+	{
+		temp = 0xFF;
+	}
+	AFE_ROM_PARAMETERS_Struction.m08H_09H.BALV = (UINT8)temp;
 
 	if (PRT_E2ROMParas.u16VcellOvp_Third > 3800)
 	{
