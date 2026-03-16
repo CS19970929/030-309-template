@@ -17,8 +17,8 @@ static void Comm_EnterCritical(void);
 static void Comm_ExitCritical(void);
 static int32_t Comm_GetRuntimeMs(void);
 static int32_t Comm_CheckElapsedMs(int32_t last_tick);
-static void Comm_SetRs485TxMode(void);
-static void Comm_SetRs485RxMode(void);
+static void Comm_SetRs485TxMode(CommPortContext *ctx);
+static void Comm_SetRs485RxMode(CommPortContext *ctx);
 static void Comm_DelayUs(uint32_t us);
 static void Comm_NotifyRxActivity(uint8_t port_id);
 static void Comm_NotifyTxComplete(void);
@@ -134,6 +134,7 @@ static void Comm_PortInit(CommPortContext *ctx, USART_TypeDef *instance, uint8_t
     {
         RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1, ENABLE);
         nvic_init.NVIC_IRQChannel = USART1_IRQn;
+        ctx->is_rs485 = 1U;
         GPIO_PinAFConfig(GPIOA, GPIO_PinSource9, GPIO_AF_1);
         GPIO_PinAFConfig(GPIOA, GPIO_PinSource10, GPIO_AF_1);
         gpio_init.GPIO_Pin = GPIO_Pin_9 | GPIO_Pin_10;
@@ -143,10 +144,11 @@ static void Comm_PortInit(CommPortContext *ctx, USART_TypeDef *instance, uint8_t
     {
         RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART2, ENABLE);
         nvic_init.NVIC_IRQChannel = USART2_IRQn;
+        ctx->is_rs485 = 0U;
         GPIO_PinAFConfig(GPIOA, GPIO_PinSource2, GPIO_AF_1);
         GPIO_PinAFConfig(GPIOA, GPIO_PinSource3, GPIO_AF_1);
         gpio_init.GPIO_Pin = GPIO_Pin_2 | GPIO_Pin_3;
-        usart_init.USART_BaudRate = 115200;
+        usart_init.USART_BaudRate = 19200;
     }
 
     nvic_init.NVIC_IRQChannelPriority = 0;
@@ -253,8 +255,11 @@ static void Comm_PortProcessTxSwitchback(CommPortContext *ctx)
         return;
     }
 
-    Comm_DelayUs(COMM_RS485_TURNAROUND_US);
-    Comm_SetRs485RxMode();
+    if (ctx->is_rs485 != 0U)
+    {
+        Comm_DelayUs(COMM_RS485_TURNAROUND_US);
+        Comm_SetRs485RxMode(ctx);
+    }
     ctx->tx_active = 0;
     ctx->tx_switchback_pending = 0;
     ctx->tx_len = 0;
@@ -455,8 +460,11 @@ void Comm_PortStartTx(CommPortContext *ctx, const uint8_t *data, uint16_t len)
     USART_ClearFlag(ctx->instance, USART_FLAG_TC);
     ctx->tx_switchback_pending = 0;
     ctx->tx_active = 1;
-    Comm_SetRs485TxMode();
-    Comm_DelayUs(COMM_RS485_TURNAROUND_US);
+    Comm_SetRs485TxMode(ctx);
+    if (ctx->is_rs485 != 0U)
+    {
+        Comm_DelayUs(COMM_RS485_TURNAROUND_US);
+    }
     USART_ITConfig(ctx->instance, USART_IT_TXE, ENABLE);
 }
 
@@ -480,14 +488,20 @@ static int32_t Comm_CheckElapsedMs(int32_t last_tick)
     return bsp_CheckRunTime(last_tick);
 }
 
-static void Comm_SetRs485TxMode(void)
+static void Comm_SetRs485TxMode(CommPortContext *ctx)
 {
-    TRANS_EN_485();
+    if (ctx->is_rs485 != 0U)
+    {
+        TRANS_EN_485();
+    }
 }
 
-static void Comm_SetRs485RxMode(void)
+static void Comm_SetRs485RxMode(CommPortContext *ctx)
 {
-    RECV_EN_485();
+    if (ctx->is_rs485 != 0U)
+    {
+        RECV_EN_485();
+    }
 }
 
 static void Comm_DelayUs(uint32_t us)

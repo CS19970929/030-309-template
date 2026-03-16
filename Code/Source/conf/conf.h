@@ -10,7 +10,7 @@
 
 // #define __ONLY_UPDATE_NO_REFREH_PARAM__
 
-// #define  wdog_enable
+#define  wdog_enable
 // #define __FUNC__HEAT__
 #define __LOAD_REMOVE_SHORT_FUNC__
 
