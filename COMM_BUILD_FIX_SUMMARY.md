@@ -258,6 +258,60 @@ To close the remaining gap, `COMM_RX_RING_SIZE` was reduced further from `64` to
   - `BALV register value * 20 mV`
 - The old MCU-side static-balance timing/window logic is no longer used at runtime.
 - This reduces code size and removes one of the larger application-side software state machines, which is helpful after shrinking the safe APP region to `0xD400`.
+
+## UART Architecture And Robustness
+
+### Current Direction
+
+- Keep the current interrupt-driven UART design.
+- Do not introduce DMA for the legacy-board branch.
+- Continue using:
+  - RX interrupt -> ring buffer
+  - main loop polling -> protocol parsing/dispatch
+  - TXE/TC interrupt -> frame transmission
+
+### Why Not DMA Here
+
+- The current project is code-size constrained.
+- The legacy-board branch prioritizes compatibility and risk control.
+- DMA would increase implementation and validation complexity without being necessary for the current Modbus/ASCII workload.
+
+### Improvements Applied
+
+- `Code/Source/Comm.c`
+  - moved RS485 TX-to-RX turnaround delay out of the `TC` interrupt path
+  - `TC` interrupt now only marks `tx_switchback_pending`
+  - actual turnaround delay and RX re-enable now happen in `Comm_PollAll()`
+- `Code/Source/Comm.c`
+  - split parser reset from ring-buffer flush
+  - protocol timeout and parser errors now reset only the active frame parser state
+  - ring flush is kept only for explicit RX reset cases such as TX start or ring overflow
+- `Code/Source/Comm.h`
+  - expanded UART error accounting to track:
+    - `overrun_count`
+    - `frame_error_count`
+    - `noise_error_count`
+    - `parity_error_count`
+    - `ring_overflow_count`
+- `Code/Source/Comm.c`
+  - hardware error handling now classifies and counts each UART error separately before resetting parser state
+
+### Expected Effect
+
+- No more `__delay_us()` inside the `TC` interrupt service path.
+- A bad frame is less likely to cause loss of already-buffered subsequent bytes.
+-现场诊断时可以区分：
+  - overrun
+  - framing
+  - noise
+  - parity
+  - ring overflow
+
+### Remaining Improvement That Is Still Worth Doing
+
+- RTU frame timeout is still a fixed `20 ms`.
+- A better implementation would derive timeout from baud rate or use UART idle/receiver-timeout hardware support.
+- This was left unchanged in this round to avoid broad behavioral changes on legacy boards.
   - sleep flags moved to RTC backup domain
   - RTC wake marker removed from internal Flash
   - current offset moved to external EEPROM
