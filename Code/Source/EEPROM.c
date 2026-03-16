@@ -614,25 +614,32 @@ void DataLoad_CurrentCali_startup(void)
 uint16_t curr_offset;
 UINT16 OffsetValue_CHG = 0;
 UINT16 OffsetValue_DSG = 0;
+
+static void LoadE2promRuntimeData(void)
+{
+	ReadEEPROM_ByteData_StartUp();
+
+	g_u32CS_Res_AFE = ((UINT32)OtherElement.u16Sys_CS_Res_Num * 1000) / OtherElement.u16Sys_CS_Res;
+	curr_offset = FlashReadOneHalfWord(FLASH_ADDR_SH367309_VALUE);
+	OffsetValue_CHG = 0;
+	OffsetValue_DSG = 0;
+
+	if ((curr_offset & 0x8000) == 0)
+	{
+		OffsetValue_CHG = (UINT32)curr_offset * 200 * g_u32CS_Res_AFE / (21470);
+	}
+	else
+	{
+		OffsetValue_DSG = (UINT32)((UINT16)(0xFFFF - curr_offset + 1)) * 200 * g_u32CS_Res_AFE / (21470); // mA
+	}
+}
+
 void InitData_E2prom(void)
 {
 #if !defined(__ONLY_UPDATE_NO_REFREH_PARAM__)
 	if (EEPROM_VALUE_BEGIN_FLAG == ReadEEPROM_Word_NoZone(EEPROM_ADDR_PASS))
 	{ // 第二次上电就会执行这个
-		ReadEEPROM_ByteData_StartUp();
-		{
-			g_u32CS_Res_AFE = ((UINT32)OtherElement.u16Sys_CS_Res_Num * 1000) / OtherElement.u16Sys_CS_Res;
-			curr_offset = FlashReadOneHalfWord(FLASH_ADDR_SH367309_VALUE);
-
-			if ((curr_offset & 0x8000) == 0)
-			{
-				OffsetValue_CHG = (UINT32)curr_offset * 200 * g_u32CS_Res_AFE / (21470);
-			}
-			else
-			{
-				OffsetValue_DSG = (UINT32)((UINT16)(0xFFFF - curr_offset + 1)) * 200 * g_u32CS_Res_AFE / (21470); // mA
-			}
-		}
+		LoadE2promRuntimeData();
 	}
 	else
 	{ // 第一次上电，用于量产
@@ -661,24 +668,10 @@ void InitData_E2prom(void)
 		DataLoad_CurrentCali_startup();
 
 		WriteEEPROM_Word_NoZone(EEPROM_ADDR_PASS, EEPROM_VALUE_BEGIN_FLAG); // 第一次上电初始化完成
-
-		MCU_RESET();
+		LoadE2promRuntimeData();
 	}
 #else
-	ReadEEPROM_ByteData_StartUp();
-	{
-		g_u32CS_Res_AFE = ((UINT32)OtherElement.u16Sys_CS_Res_Num * 1000) / OtherElement.u16Sys_CS_Res;
-		curr_offset = FlashReadOneHalfWord(FLASH_ADDR_SH367309_VALUE);
-
-		if ((curr_offset & 0x8000) == 0)
-		{
-			OffsetValue_CHG = (UINT32)curr_offset * 200 * g_u32CS_Res_AFE / (21470);
-		}
-		else
-		{
-			OffsetValue_DSG = (UINT32)((UINT16)(0xFFFF - curr_offset + 1)) * 200 * g_u32CS_Res_AFE / (21470); // mA
-		}
-	}
+	LoadE2promRuntimeData();
 #endif
 }
 

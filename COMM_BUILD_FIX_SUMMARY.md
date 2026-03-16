@@ -123,3 +123,32 @@ To close the remaining gap, `COMM_RX_RING_SIZE` was reduced further from `64` to
 - If RAM pressure returns in future changes, inspect `comm.o(.bss)` first because it is currently one of the largest contributors in `RW_IRAM1`.
 - The recent decrease in `Code` size is expected. It comes from removing duplicate data paths, simplifying control flow, and allowing the linker to drop more unused split sections.
 - The transport layer is more portable than before, but it is not fully board-agnostic yet. The next clean step would be moving the default STM32F0 platform callbacks out of `Comm.c` into a dedicated `comm_porting_stm32f0.*` pair.
+
+## EEPROM First-boot Reset Issue
+
+### Symptom
+
+- After changing `EEPROM_VALUE_BEGIN_FLAG` and downloading once, the target could stop in an invalid call stack state during the first boot under debug.
+- Downloading a second time made the board appear normal again.
+
+### Root Cause
+
+- `Code/Source/EEPROM.c::InitData_E2prom()` treats a changed `EEPROM_VALUE_BEGIN_FLAG` as a forced parameter reinitialization.
+- In that branch, after rebuilding EEPROM defaults, writing production defaults, updating AFE configuration, and storing the new pass flag, the code called `MCU_RESET()`.
+- This is not a normal runtime fault. It is a software-triggered reset during the very first startup after the flag changes.
+- Because the project also enables `_IAP` vector remapping in `Code/Source/Flash.c::Init_IAPAPP()`, the debugger can present that reset as a broken call stack or an apparent hang.
+- On the second download, the new flag already matches, so that reset path is skipped.
+
+### Fix
+
+- Added `LoadE2promRuntimeData()` in `Code/Source/EEPROM.c` to centralize:
+  - EEPROM runtime parameter loading
+  - shunt-resistor derived current scale calculation
+  - flash-stored current offset reload
+- Replaced the forced `MCU_RESET()` at the end of the first-boot initialization branch with a direct call to `LoadE2promRuntimeData()`.
+- Kept the EEPROM/AFE initialization behavior unchanged; only removed the extra software reset.
+
+### Expected Result
+
+- After changing `EEPROM_VALUE_BEGIN_FLAG`, the first download should complete parameter rebuild and continue startup in the same boot.
+- The debugger should no longer stop on the artificial reset path caused by EEPROM reinitialization.
