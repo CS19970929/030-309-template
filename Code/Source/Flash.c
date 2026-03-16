@@ -33,6 +33,39 @@ void Init_IAPAPP(void)
 #endif
 }
 
+static void BootFlag_EnableAccess(void)
+{
+	RCC_APB1PeriphClockCmd(RCC_APB1Periph_PWR, ENABLE);
+	PWR_BackupAccessCmd(ENABLE);
+}
+
+void BootFlag_Write(UINT16 flag)
+{
+	BootFlag_EnableAccess();
+	RTC_WriteBackupRegister(RTC_BKP_DR1, flag);
+	RTC_WriteBackupRegister(RTC_BKP_DR2, (UINT16)(~flag));
+}
+
+UINT16 BootFlag_Read(void)
+{
+	UINT16 flag;
+	UINT16 inverse_flag;
+
+	BootFlag_EnableAccess();
+	flag = RTC_ReadBackupRegister(RTC_BKP_DR1);
+	inverse_flag = RTC_ReadBackupRegister(RTC_BKP_DR2);
+	if ((UINT16)(flag ^ inverse_flag) != 0xFFFF)
+	{
+		return BOOT_FLAG_RESET_VALUE;
+	}
+
+	return flag;
+}
+
+void BootFlag_Clear(void)
+{
+	BootFlag_Write(BOOT_FLAG_RESET_VALUE);
+}
 void App_FlashUpdateDet(void)
 {
 	if (1 == u8FlashUpdateFlag)

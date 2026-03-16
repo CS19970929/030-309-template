@@ -15,7 +15,12 @@ UINT8 u8E2P_KB_WriteFlag = 0;
 
 UINT8 u8E2P_KB_WritePos = 0;
 
+#define EEPROM_ADDR_CURRENT_OFFSET_INV	((UINT16)0x3FF6)
+#define EEPROM_ADDR_CURRENT_OFFSET   	((UINT16)0x3FF8)
+
 void InitData_E2prom(void);
+static UINT8 WriteCurrentOffset_E2prom(UINT16 data);
+static UINT8 ReadCurrentOffset_E2prom(UINT16 *data);
 
 void IIC_Start_SEE(void)
 {
@@ -257,6 +262,32 @@ UINT8 WriteEEPROM_Word_NoZone(UINT16 addr, UINT16 data)
 		}
 	} while (tmp16 != data);
 	return result;
+}
+
+static UINT8 WriteCurrentOffset_E2prom(UINT16 data)
+{
+	UINT8 result = 0;
+
+	result |= WriteEEPROM_Word_NoZone(EEPROM_ADDR_CURRENT_OFFSET, data);
+	result |= WriteEEPROM_Word_NoZone(EEPROM_ADDR_CURRENT_OFFSET_INV, (UINT16)(~data));
+	return result;
+}
+
+static UINT8 ReadCurrentOffset_E2prom(UINT16 *data)
+{
+	UINT16 offset_value;
+	UINT16 offset_inverse;
+
+	offset_value = ReadEEPROM_Word_NoZone(EEPROM_ADDR_CURRENT_OFFSET);
+	offset_inverse = ReadEEPROM_Word_NoZone(EEPROM_ADDR_CURRENT_OFFSET_INV);
+	if ((UINT16)(offset_value ^ offset_inverse) != 0xFFFF)
+	{
+		*data = 0;
+		return 1;
+	}
+
+	*data = offset_value;
+	return 0;
 }
 
 void ReadEEPROM_ByteData_StartUp(void)
@@ -607,7 +638,7 @@ void DataLoad_CurrentCali_startup(void)
 	// step 2
 	{
 		// 如果是normal的休眠和唤醒，则需要再次保存最新的值。
-		FlashWriteOneHalfWord(FLASH_ADDR_SH367309_VALUE, su16_OffsetValue);
+		WriteCurrentOffset_E2prom(su16_OffsetValue);
 	}
 }
 
@@ -619,8 +650,22 @@ static void LoadE2promRuntimeData(void)
 {
 	ReadEEPROM_ByteData_StartUp();
 
+	UINT16 offset_value;
+
 	g_u32CS_Res_AFE = ((UINT32)OtherElement.u16Sys_CS_Res_Num * 1000) / OtherElement.u16Sys_CS_Res;
-	curr_offset = FlashReadOneHalfWord(FLASH_ADDR_SH367309_VALUE);
+	if (ReadCurrentOffset_E2prom(&offset_value) != 0)
+	{
+		offset_value = FlashReadOneHalfWord(FLASH_ADDR_SH367309_VALUE);
+		if (offset_value != 0xFFFF)
+		{
+			WriteCurrentOffset_E2prom(offset_value);
+		}
+		else
+		{
+			offset_value = 0;
+		}
+	}
+	curr_offset = offset_value;
 	OffsetValue_CHG = 0;
 	OffsetValue_DSG = 0;
 

@@ -178,3 +178,29 @@ To close the remaining gap, `COMM_RX_RING_SIZE` was reduced further from `64` to
 
 - This is the correct structural fix for the HardFault.
 - If the current APP no longer links after this change, that failure is expected and correct: it means the code size had already exceeded the safe APP space and must be reduced or the Flash data layout must be redesigned.
+
+## Runtime Flash Dependency Reduction
+
+### What Was Changed
+
+- Sleep mode handoff no longer writes `FLASH_ADDR_SLEEP_FLAG`.
+  - `SleepDeal.c` now uses RTC backup registers through `BootFlag_Write/Read/Clear`.
+- RTC alarm wakeup no longer writes `FLASH_ADDR_SH367309_FLAG`.
+  - The write in `RTC_IRQHandler()` was removed because it was only being used as a transient wake marker.
+- Current offset persistence no longer writes `FLASH_ADDR_SH367309_VALUE`.
+  - Offset is now stored in external EEPROM with a value/inverse pair for validation.
+  - On startup, the code first tries EEPROM.
+  - If EEPROM does not contain a valid offset, it falls back to the old Flash location once and migrates the value into EEPROM.
+
+### What Still Uses Internal Flash
+
+- IAP upgrade request still writes `FLASH_ADDR_UPDATE_FLAG`.
+- This was intentionally left unchanged in this repository because the Bootloader/IAP project that consumes the flag is not present here.
+- Migrating that flag to RTC backup registers is feasible, but it requires coordinated changes on both sides:
+  - APP write path
+  - Bootloader startup decision logic
+
+### Recommended Next Step For IAP
+
+- Add the same RTC-backup-based `BootFlag` protocol to the IAP project.
+- After the Bootloader is updated to read the backup register request, remove the remaining `FLASH_ADDR_UPDATE_FLAG` write from the APP.

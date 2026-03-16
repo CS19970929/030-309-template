@@ -364,22 +364,16 @@ void SleepDeal_Continue(void)
 	switch (s_u8SleepModeSelect)
 	{
 	case NORMAL_MODE:
-		if (FLASH_COMPLETE == FlashWriteOneHalfWord(FLASH_ADDR_SLEEP_FLAG, FLASH_NORMAL_SLEEP_VALUE))
-		{
-			u8FlashWriteOK_flag = 1;
-		}
+		BootFlag_Write(FLASH_NORMAL_SLEEP_VALUE);
+		u8FlashWriteOK_flag = 1;
 		break;
 	case HICCUP_MODE:
-		if (FLASH_COMPLETE == FlashWriteOneHalfWord(FLASH_ADDR_SLEEP_FLAG, FLASH_HICCUP_SLEEP_VALUE))
-		{
-			u8FlashWriteOK_flag = 1;
-		}
+		BootFlag_Write(FLASH_HICCUP_SLEEP_VALUE);
+		u8FlashWriteOK_flag = 1;
 		break;
 	case DEEP_MODE:
-		if (FLASH_COMPLETE == FlashWriteOneHalfWord(FLASH_ADDR_SLEEP_FLAG, FLASH_DEEP_SLEEP_VALUE))
-		{
-			u8FlashWriteOK_flag = 1;
-		}
+		BootFlag_Write(FLASH_DEEP_SLEEP_VALUE);
+		u8FlashWriteOK_flag = 1;
 		break;
 	default:
 		// 不调整引脚进入休眠，功耗会很大
@@ -941,43 +935,41 @@ void SleepDeal_Test(void)
 // 现在通过参数设置，高于1005为RTC休眠
 void IsSleepStartUp(void)
 {
-	switch (FlashReadOneHalfWord(FLASH_ADDR_SLEEP_FLAG))
+	UINT16 sleep_flag;
+
+	sleep_flag = BootFlag_Read();
+	switch (sleep_flag)
 	{
 	case FLASH_HICCUP_SLEEP_VALUE:
-		if (FLASH_COMPLETE == FlashWriteOneHalfWord(FLASH_ADDR_SLEEP_FLAG, FLASH_SLEEP_RESET_VALUE))
-		{
-			Init_RTC();
+		BootFlag_Clear();
+		Init_RTC();
 
-			IOstatus_RTCMode();
-			InitWakeUp_RTCMode();
-			Sys_StopMode();
-			// Sys_StandbyMode();
-			IORecover_RTCMode();
-		}
+		IOstatus_RTCMode();
+		InitWakeUp_RTCMode();
+		Sys_StopMode();
+		// Sys_StandbyMode();
+		IORecover_RTCMode();
 		break;
 	case FLASH_NORMAL_SLEEP_VALUE:
-		if (FLASH_COMPLETE == FlashWriteOneHalfWord(FLASH_ADDR_SLEEP_FLAG, FLASH_SLEEP_RESET_VALUE))
-		{
-			IOstatus_NormalMode();
-			InitWakeUp_NormalMode();
-			Sys_StopMode();
-			IORecover_NormalMode();
-		}
+		BootFlag_Clear();
+		IOstatus_NormalMode();
+		InitWakeUp_NormalMode();
+		Sys_StopMode();
+		IORecover_NormalMode();
 		break;
 	case FLASH_DEEP_SLEEP_VALUE:
-		if (FLASH_COMPLETE == FlashWriteOneHalfWord(FLASH_ADDR_SLEEP_FLAG, FLASH_SLEEP_RESET_VALUE))
-		{
-			IOstatus_DeepMode();
-			InitWakeUp_DeepMode();
-			// Sys_StandbyMode();		//不能掌控外部IO，弃用
-			Sys_StopMode();
-			IORecover_DeepMode();
-		}
+		BootFlag_Clear();
+		IOstatus_DeepMode();
+		InitWakeUp_DeepMode();
+		// Sys_StandbyMode();		//不能掌控外部IO，弃用
+		Sys_StopMode();
+		IORecover_DeepMode();
 		break;
 	case FLASH_SLEEP_RESET_VALUE:
 		// 不作处理
 		break;
 	default:
+		BootFlag_Clear();
 		break;
 	}
 }
