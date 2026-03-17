@@ -94,22 +94,6 @@ uint8_t Parse_LENGTH_Field(uint16_t length_field, uint16_t *lenid)
     return (uint8_t)(lchksum_rx == Calc_LCHKSUM(*lenid));
 }
 
-static uint16_t Append_Hex_Byte(uint8_t *tx_buf, uint16_t idx, uint8_t value)
-{
-    tx_buf[idx++] = Hex_To_Ascii((uint8_t)(value >> 4));
-    tx_buf[idx++] = Hex_To_Ascii((uint8_t)(value & 0x0F));
-    return idx;
-}
-
-static uint16_t Append_Hex_U16(uint8_t *tx_buf, uint16_t idx, uint16_t value)
-{
-    tx_buf[idx++] = Hex_To_Ascii((uint8_t)(value >> 12));
-    tx_buf[idx++] = Hex_To_Ascii((uint8_t)((value >> 8) & 0x0F));
-    tx_buf[idx++] = Hex_To_Ascii((uint8_t)((value >> 4) & 0x0F));
-    tx_buf[idx++] = Hex_To_Ascii((uint8_t)(value & 0x0F));
-    return idx;
-}
-
 static uint8_t Parse_Hex_Byte(const uint8_t *buf, uint16_t idx, uint8_t *value)
 {
     uint8_t high;
@@ -148,13 +132,31 @@ static uint8_t Parse_Hex_U16(const uint8_t *buf, uint16_t idx, uint16_t *value)
 
 uint16_t Build_Response_Frame(uint8_t *tx_buf, uint16_t tx_capacity, uint8_t ver, uint8_t adr, uint8_t rtn, const uint8_t *info_data, uint16_t info_hex_len)
 {
-    uint8_t header[4];
     uint16_t idx;
     uint16_t lenid;
     uint16_t length_field;
     uint16_t chksum;
     uint16_t i;
     uint16_t frame_len;
+    uint8_t value;
+
+#define APPEND_HEX_BYTE(v)            \
+    do                                \
+    {                                 \
+        value = (uint8_t)(v);         \
+        tx_buf[idx++] = Hex_To_Ascii((uint8_t)(value >> 4)); \
+        tx_buf[idx++] = Hex_To_Ascii((uint8_t)(value & 0x0F)); \
+    } while (0)
+
+#define APPEND_HEX_U16(v)             \
+    do                                \
+    {                                 \
+        chksum = (uint16_t)(v);       \
+        tx_buf[idx++] = Hex_To_Ascii((uint8_t)(chksum >> 12)); \
+        tx_buf[idx++] = Hex_To_Ascii((uint8_t)((chksum >> 8) & 0x0F)); \
+        tx_buf[idx++] = Hex_To_Ascii((uint8_t)((chksum >> 4) & 0x0F)); \
+        tx_buf[idx++] = Hex_To_Ascii((uint8_t)(chksum & 0x0F)); \
+    } while (0)
 
     frame_len = (uint16_t)(18U + (uint16_t)(info_hex_len * 2U));
     if ((tx_buf == NULL) || (frame_len > tx_capacity))
@@ -164,27 +166,27 @@ uint16_t Build_Response_Frame(uint8_t *tx_buf, uint16_t tx_capacity, uint8_t ver
 
     idx = 0;
     tx_buf[idx++] = SOI;
-    header[0] = ver;
-    header[1] = adr;
-    header[2] = CID1_BAT_DATA;
-    header[3] = rtn;
-    for (i = 0; i < sizeof(header); ++i)
-    {
-        idx = Append_Hex_Byte(tx_buf, idx, header[i]);
-    }
+    APPEND_HEX_BYTE(ver);
+    APPEND_HEX_BYTE(adr);
+    APPEND_HEX_BYTE(CID1_BAT_DATA);
+    APPEND_HEX_BYTE(rtn);
 
     lenid = (uint16_t)(info_hex_len * 2);
     length_field = Build_LENGTH_Field(lenid);
-    idx = Append_Hex_U16(tx_buf, idx, length_field);
+    APPEND_HEX_U16(length_field);
 
     for (i = 0; i < info_hex_len; ++i)
     {
-        idx = Append_Hex_Byte(tx_buf, idx, info_data[i]);
+        APPEND_HEX_BYTE(info_data[i]);
     }
 
     chksum = Calc_CHKSUM(&tx_buf[1], (uint16_t)(idx - 1));
-    idx = Append_Hex_U16(tx_buf, idx, chksum);
+    APPEND_HEX_U16(chksum);
     tx_buf[idx++] = EOI;
+
+#undef APPEND_HEX_U16
+#undef APPEND_HEX_BYTE
+
     return idx;
 }
 

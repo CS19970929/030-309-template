@@ -411,6 +411,17 @@
 - `ascii_slave.c` 的 `0x60/0x61/0x62/0x63` 应答打包改成直接调用 payload builder。
 - `Build_Response_Frame`、`Ascii_HandleFrame`、`AsciiParser_ConsumeByte` 中重复的 ASCII 十六进制拼装/解析收敛到公共 helper，减少重复展开。
 
+第二轮继续瘦身的处理：
+
+- `BmsComm_BuildAnalogPayload` 去掉大量 `AppendU16/AppendU8` 调用，改为局部顺序写缓冲区，减少函数调用开销。
+- `BmsComm_BuildAlarmPayload`、`BmsComm_BuildChargeDischargePayload` 同样改为直接写缓冲区。
+- `Build_Response_Frame` 继续收敛，只保留单函数内部的十六进制写入宏，不再保留仅被该函数使用的小 helper。
+
+本轮构建结果：
+
+- Keil 命令行构建已通过，`axf` 已生成。
+- 当前尺寸：`Code=50616 RO-data=2820 RW-data=1252 ZI-data=6812`
+
 暂未优先修改的高风险热点：
 
 - `SOC` 校正相关

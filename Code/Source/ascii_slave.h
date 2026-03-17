@@ -1,6 +1,8 @@
-#ifndef _ascii_slave_h_
-#define _ascii_slave_h_
-#include "main.h"
+#ifndef ASCII_SLAVE_H
+#define ASCII_SLAVE_H
+
+#include "stm32f0xx.h"
+#include "modbus_rtu_parser.h"
 
 /************************* 协议固定宏定义 *************************/
 // 帧首尾固定值
@@ -27,13 +29,15 @@
 // 从机配置
 #define PROTOCOL_VERSION        0x20       //协议版本号
 #define SLAVE_ADDRESS           0x12       // 本机从机地址（协议要求从2开始）
-#define MAX_FRAME_LEN           600        // 最大帧长度
+#define MAX_FRAME_LEN           350
+//#define MAX_FRAME_LEN           600        // 最大帧长度
+#define ASCII_RX_FRAME_LEN      64
 #define CELL_MAX_NUM            16         // 最大电芯数量（48V电池16串）
 // RS485控制引脚定义
-#define RS485_CTRL_PORT         GPIOA
-#define RS485_CTRL_PIN          LL_GPIO_PIN_8
-#define RS485_TX_ENABLE()       LL_GPIO_SetOutputPin(RS485_CTRL_PORT, RS485_CTRL_PIN)
-#define RS485_RX_ENABLE()       LL_GPIO_ResetOutputPin(RS485_CTRL_PORT, RS485_CTRL_PIN)
+//#define RS485_CTRL_PORT         GPIOA
+//#define RS485_CTRL_PIN          LL_GPIO_PIN_8
+//#define RS485_TX_ENABLE()       LL_GPIO_SetOutputPin(RS485_CTRL_PORT, RS485_CTRL_PIN)
+//#define RS485_RX_ENABLE()       LL_GPIO_ResetOutputPin(RS485_CTRL_PORT, RS485_CTRL_PIN)
 
 /************************* 数据结构体定义 *************************/
 
@@ -102,36 +106,23 @@ typedef struct {
     uint8_t  charge_dis_status;            // 充放电状态
 } Battery_Charge_Dis_Info_T;
 
-// 电池全局数据结构体
 typedef struct {
-    Battery_Base_Info_T     base_info;            // 设备基础信息
-    Battery_Analog_T        analog_data;          // 电芯与模拟量数据
-    Battery_Alarm_T         alarm_info;           // 告警状态信息
-    Battery_Charge_Dis_Info_T charge_dis_info;    // 充放电管理信息
-} Battery_Data_T;
+    uint8_t buffer[ASCII_RX_FRAME_LEN];
+    uint16_t length;
+    uint16_t expected_length;
+} AsciiParser;
 
-
-extern uint8_t uart_rx_buf[MAX_FRAME_LEN];
-extern uint16_t uart_rx_len;
-extern uint8_t frame_received_flag;
-extern Battery_Data_T g_battery_data;
+void AsciiParser_Reset(AsciiParser *parser);
+ProtocolParseResult AsciiParser_ConsumeByte(AsciiParser *parser, uint8_t byte);
+uint16_t Ascii_HandleFrame(const uint8_t *rx_buf, uint16_t rx_len, uint8_t *tx_buf, uint16_t tx_capacity);
 
 uint8_t Hex_To_Ascii(uint8_t hex);
 uint8_t Ascii_To_Hex(uint8_t ascii);
-uint8_t VerToHex(uint8_t * ver);
+uint8_t VerToHex(uint8_t *ver);
 uint8_t Calc_LCHKSUM(uint16_t lenid);
 uint16_t Calc_CHKSUM(uint8_t *data, uint16_t len);
 uint16_t Build_LENGTH_Field(uint16_t lenid);
 uint8_t Parse_LENGTH_Field(uint16_t length_field, uint16_t *lenid);
-uint16_t Build_Response_Frame(uint8_t *tx_buf, uint8_t ver, uint8_t adr, uint8_t rtn, uint8_t *info_data, uint16_t info_hex_len);
-uint16_t Cmd_Handle_Manufactory_Info(uint8_t *tx_buf);
-uint16_t Cmd_Handle_Analog_Value(uint8_t *tx_buf);
-uint16_t Cmd_Handle_Alarm_Info(uint8_t *tx_buf);
-uint16_t Cmd_Handle_Charge_Dis_Info(uint8_t *tx_buf);
-void Frame_Parse_Process(void);
-
-void Ascii_Send_Byte(uint8_t Modbus_byte,UART_TypeDef *UARTx);
-void Ascii_Send_NByte(uint8_t *buff,uint16_t len,UART_TypeDef *UARTx);
-
+uint16_t Build_Response_Frame(uint8_t *tx_buf, uint16_t tx_capacity, uint8_t ver, uint8_t adr, uint8_t rtn, const uint8_t *info_data, uint16_t info_hex_len);
 
 #endif
