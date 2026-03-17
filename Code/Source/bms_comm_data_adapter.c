@@ -309,7 +309,7 @@ uint16_t BmsComm_BuildAnalogPayload(uint8_t *info_buf, uint16_t capacity)
     idx = BmsComm_AppendU16List(info_buf, idx, capacity, analog_mid_u16, 2U);
     idx = BmsComm_AppendU16(info_buf, idx, capacity, g_stCellInfoReport.SocElement.u16Cycle_times);
     idx = BmsComm_AppendU8List(info_buf, idx, capacity, analog_soh_u8, 2U);
-    idx = BmsComm_AppendU16List(info_buf, idx, capacity, analog_tail_u16, 18U);
+    idx = BmsComm_AppendU16List(info_buf, idx, capacity, analog_tail_u16, 19U);
 
     return idx;
 }
