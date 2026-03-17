@@ -1,0 +1,4 @@
+interface:
+  display_name: "STM32 BMS Protocol Adapter"
+  short_description: "维护本项目的 Modbus、ASCII、PYLON 协议适配与字段映射。"
+  default_prompt: "Use $stm32-bms-protocol-adapter to update the communication protocol path, field mapping, and validation notes for this STM32 BMS firmware."

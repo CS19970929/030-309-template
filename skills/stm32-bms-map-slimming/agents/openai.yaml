@@ -1,0 +1,4 @@
+interface:
+  display_name: "STM32 BMS Map Slimming"
+  short_description: "基于 map 文件分析固件体积并优先做低风险瘦身。"
+  default_prompt: "Use $stm32-bms-map-slimming to analyze the firmware map, identify hot spots, and propose low-risk size reductions."

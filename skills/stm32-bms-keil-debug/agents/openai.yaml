@@ -1,0 +1,4 @@
+interface:
+  display_name: "STM32 BMS Keil Debug"
+  short_description: "处理本项目的 Keil、启动、IAP、下载与调试问题。"
+  default_prompt: "Use $stm32-bms-keil-debug to inspect Keil build, startup, flash update, and debug issues in this STM32 BMS project."

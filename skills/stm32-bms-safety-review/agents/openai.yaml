@@ -1,0 +1,4 @@
+interface:
+  display_name: "STM32 BMS Safety Review"
+  short_description: "审查保护、休眠、EEPROM、Flash 与通信改动的回归风险。"
+  default_prompt: "Use $stm32-bms-safety-review to review firmware changes for safety, persistence, startup, and communication regressions."
