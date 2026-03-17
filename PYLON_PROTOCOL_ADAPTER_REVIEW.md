@@ -429,3 +429,24 @@
 - MOS/继电器驱动状态机相关
 
 原因是这些模块虽然更大，但行为耦合重，若只为了腾出几十字节而改动，回归风险明显高于协议链路。
+
+## 11. 整机瘦身补充
+
+在继续看整机 `map` 后，本轮又补了一组和协议无关、但对 MCU 区占用更直接的优化：
+
+- 修正 [Comm.h](/E:/TODO/030%20+%20309/Code/Source/Comm.h) 中 `AsciiPearser` 拼写错误，恢复通信模块头文件一致性。
+- 重构 [Comm.h](/E:/TODO/030%20+%20309/Code/Source/Comm.h) 和 [Comm.c](/E:/TODO/030%20+%20309/Code/Source/Comm.c)：
+  - 删除 `CommRxState` 里重复的 `length/expected_length/protocol` 状态。
+  - 把 `ring_buf` 和 `tx_buf` 改成联合体复用同一块内存。
+  - 发送路径避免把已经位于发送缓冲区的数据再次 `memcpy` 回自己。
+  - 去掉 `Comm_PortResetRx()` 里重复的环形缓冲清空调用。
+
+这组修改的设计前提：
+
+- 发送过程中本来就关闭接收，且发送前会重置接收解析状态。
+- 因此 `ring_buf` 和 `tx_buf` 不会在同一时刻承担有效业务数据，可安全复用。
+
+这轮优化主要收益方向：
+
+- 明显降低 `CommPortContext` 的 `BSS` 占用。
+- 顺带减少部分通信公共路径的代码重复。

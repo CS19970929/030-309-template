@@ -17,15 +17,10 @@ typedef enum {
 #define COMM_ASCII_RX_TIMEOUT_MS    100
 #define COMM_RS485_TURNAROUND_US    100
 
-typedef struct {
-    uint16_t length;
-    uint16_t expected_length;
-    ProtocolType protocol;
-    union {
-        ModbusRtuParser modbus;
-        AsciiParser ascii;
-    } parser;
-} CommRxState;
+typedef union {
+    ModbusRtuParser modbus;
+    AsciiParser ascii;
+} CommParserState;
 
 typedef struct {
     USART_TypeDef *instance;
@@ -48,9 +43,11 @@ typedef struct {
     volatile int32_t last_rx_tick;
     volatile uint16_t rx_timeout_ms;
     volatile ProtocolType active_protocol;
-    uint8_t ring_buf[COMM_RX_RING_SIZE];
-    uint8_t tx_buf[MAX_FRAME_LEN];
-    CommRxState rx_state;
+    union {
+        uint8_t ring_buf[COMM_RX_RING_SIZE];
+        uint8_t tx_buf[MAX_FRAME_LEN];
+    } io_buf;
+    CommParserState parser;
 } CommPortContext;
 
 extern CommPortContext g_comm_port1;

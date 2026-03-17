@@ -46,7 +46,7 @@ static uint8_t Comm_RingPushByte(CommPortContext *ctx, uint8_t byte)
         return 0;
     }
 
-    ctx->ring_buf[ctx->ring_head] = byte;
+    ctx->io_buf.ring_buf[ctx->ring_head] = byte;
     ctx->ring_head = next_head;
     return 1;
 }
@@ -58,7 +58,7 @@ static uint8_t Comm_RingPopByte(CommPortContext *ctx, uint8_t *byte)
         return 0;
     }
 
-    *byte = ctx->ring_buf[ctx->ring_tail];
+    *byte = ctx->io_buf.ring_buf[ctx->ring_tail];
     ctx->ring_tail = Comm_RingNext(ctx->ring_tail);
     return 1;
 }
@@ -96,11 +96,8 @@ static void Comm_PortResetParser(CommPortContext *ctx)
     ctx->rx_timeout_ms = 0;
     ctx->ring_head = 0;
     ctx->ring_tail = 0;
-    ctx->rx_state.protocol = PROTO_NONE;
-    ctx->rx_state.length = 0;
-    ctx->rx_state.expected_length = 0;
-    AsciiParser_Reset(&ctx->rx_state.parser.ascii);
-    ModbusRtuParser_Reset(&ctx->rx_state.parser.modbus);
+    AsciiParser_Reset(&ctx->parser.ascii);
+    ModbusRtuParser_Reset(&ctx->parser.modbus);
     Comm_ExitCritical();
 }
 
@@ -115,7 +112,6 @@ static void Comm_PortFlushRxRing(CommPortContext *ctx)
 static void Comm_PortResetRx(CommPortContext *ctx)
 {
     Comm_PortResetParser(ctx);
-    Comm_PortFlushRxRing(ctx);
     Comm_PortDisableTxInterrupts(ctx);
 }
 
@@ -188,16 +184,14 @@ static void Comm_PortFeedByte(CommPortContext *ctx, uint8_t byte)
         if (byte == SOI)
         {
             ctx->active_protocol = PROTO_ASCII;
-            ctx->rx_state.protocol = PROTO_ASCII;
             ctx->rx_timeout_ms = COMM_ASCII_RX_TIMEOUT_MS;
-            AsciiParser_Reset(&ctx->rx_state.parser.ascii);
+            AsciiParser_Reset(&ctx->parser.ascii);
         }
         else if ((byte == MODBUS_SLAVE_ADDR) || (byte == MODBUS_BROADCAST_ADDR))
         {
             ctx->active_protocol = PROTO_MODBUS_RTU;
-            ctx->rx_state.protocol = PROTO_MODBUS_RTU;
             ctx->rx_timeout_ms = COMM_RTU_RX_TIMEOUT_MS;
-            ModbusRtuParser_Reset(&ctx->rx_state.parser.modbus);
+            ModbusRtuParser_Reset(&ctx->parser.modbus);
         }
         else
         {
@@ -207,10 +201,10 @@ static void Comm_PortFeedByte(CommPortContext *ctx, uint8_t byte)
 
     if (ctx->active_protocol == PROTO_ASCII)
     {
-        result = AsciiParser_ConsumeByte(&ctx->rx_state.parser.ascii, byte);
+        result = AsciiParser_ConsumeByte(&ctx->parser.ascii, byte);
         if (result == PROTO_PARSE_FRAME_READY)
         {
-            ctx->rx_len = ctx->rx_state.parser.ascii.length;
+            ctx->rx_len = ctx->parser.ascii.length;
             ctx->frame_ready_flag = 1;
         }
         else if (result == PROTO_PARSE_FRAME_INVALID)
@@ -220,10 +214,10 @@ static void Comm_PortFeedByte(CommPortContext *ctx, uint8_t byte)
     }
     else if (ctx->active_protocol == PROTO_MODBUS_RTU)
     {
-        result = ModbusRtuParser_ConsumeByte(&ctx->rx_state.parser.modbus, byte);
+        result = ModbusRtuParser_ConsumeByte(&ctx->parser.modbus, byte);
         if (result == PROTO_PARSE_FRAME_READY)
         {
-            ctx->rx_len = ctx->rx_state.parser.modbus.length;
+            ctx->rx_len = ctx->parser.modbus.length;
             ctx->frame_ready_flag = 1;
         }
         else if (result == PROTO_PARSE_FRAME_INVALID)
@@ -347,23 +341,22 @@ static void Comm_PortDispatch(CommPortContext *ctx)
 
     if (ctx->active_protocol == PROTO_ASCII)
     {
-        tx_len = Ascii_HandleFrame(ctx->rx_state.parser.ascii.buffer, ctx->rx_len, ctx->tx_buf, MAX_FRAME_LEN);
+        tx_len = Ascii_HandleFrame(ctx->parser.ascii.buffer, ctx->rx_len, ctx->io_buf.tx_buf, MAX_FRAME_LEN);
     }
     else if (ctx->active_protocol == PROTO_MODBUS_RTU)
     {
-        tx_len = Modbus_ServiceHandleFrame(&g_modbus_service_ctx, ctx->rx_state.parser.modbus.buffer, ctx->rx_len, ctx->tx_buf, MAX_FRAME_LEN);
+        tx_len = Modbus_ServiceHandleFrame(&g_modbus_service_ctx, ctx->parser.modbus.buffer, ctx->rx_len, ctx->io_buf.tx_buf, MAX_FRAME_LEN);
     }
 
     ctx->frame_ready_flag = 0;
     ctx->rx_len = 0;
     ctx->active_protocol = PROTO_NONE;
-    ctx->rx_state.protocol = PROTO_NONE;
-    AsciiParser_Reset(&ctx->rx_state.parser.ascii);
-    ModbusRtuParser_Reset(&ctx->rx_state.parser.modbus);
+    AsciiParser_Reset(&ctx->parser.ascii);
+    ModbusRtuParser_Reset(&ctx->parser.modbus);
 
     if (tx_len > 0)
     {
-        Comm_PortStartTx(ctx, ctx->tx_buf, tx_len);
+        Comm_PortStartTx(ctx, ctx->io_buf.tx_buf, tx_len);
     }
 }
 
@@ -403,7 +396,7 @@ void Comm_PortIrqHandler(CommPortContext *ctx)
     {
         if (ctx->tx_pos < ctx->tx_len)
         {
-            ctx->instance->TDR = ctx->tx_buf[ctx->tx_pos++];
+            ctx->instance->TDR = ctx->io_buf.tx_buf[ctx->tx_pos++];
         }
         else
         {
@@ -451,7 +444,10 @@ void Comm_PortStartTx(CommPortContext *ctx, const uint8_t *data, uint16_t len)
         return;
     }
 
-    memcpy(ctx->tx_buf, data, len);
+    if (data != ctx->io_buf.tx_buf)
+    {
+        memcpy(ctx->io_buf.tx_buf, data, len);
+    }
     ctx->tx_len = len;
     ctx->tx_pos = 0;
     Comm_PortResetRx(ctx);
