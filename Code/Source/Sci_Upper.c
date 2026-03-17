@@ -38,21 +38,51 @@ void Sci_WrReg_0x06_BMS_FunctionON(struct RS485MSG *s);
 void Sci_WrReg_0x06_BMS_FunctionOFF(struct RS485MSG *s);
 void Sci_WrReg_0x06_SetSocOnce(struct RS485MSG *s);
 
-void Sci_DataInit(struct RS485MSG *s)
+static UINT16 Sci_AppendU16(UINT8 *dst, UINT16 idx, UINT16 value)
+{
+	dst[idx++] = (UINT8)(value >> 8);
+	dst[idx++] = (UINT8)value;
+	return idx;
+}
+
+static UINT16 Sci_AppendBytes(UINT8 *dst, UINT16 idx, const UINT8 *src, UINT16 len)
 {
 	UINT16 i;
 
+	for (i = 0; i < len; ++i)
+	{
+		dst[idx++] = src[i];
+	}
+	return idx;
+}
+
+static UINT16 Sci_GetDisplayCurrent(void)
+{
+	if (g_stCellInfoReport.u16Ichg > 0)
+	{
+		return (UINT16)((g_stCellInfoReport.u16Ichg + 5005) / 10);
+	}
+
+	return (UINT16)((5000 - g_stCellInfoReport.u16IDischg) / 10);
+}
+
+static UINT16 Sci_FillDisplaySummary(UINT8 *dst, UINT16 idx)
+{
+	idx = Sci_AppendU16(dst, idx, 1U);
+	idx = Sci_AppendU16(dst, idx, (UINT16)((g_stCellInfoReport.u16VCellTotle + 50) / 100));
+	idx = Sci_AppendU16(dst, idx, Sci_GetDisplayCurrent());
+	idx = Sci_AppendU16(dst, idx, (UINT16)((g_stCellInfoReport.u16TempMax + 5) / 10));
+	idx = Sci_AppendU16(dst, idx, g_stCellInfoReport.SocElement.u16Soc);
+	return idx;
+}
+
+void Sci_DataInit(struct RS485MSG *s)
+{
 	s->ptr_no = 0;
 	s->csr = RS485_STA_IDLE;
 	s->enRs485CmdType = RS485_CMD_READ_REGS;
-	for (i = 0; i < RS485_MAX_BUFFER_SIZE; i++)
-	{
-		s->u16Buffer[i] = 0;
-	}
-	for (i = 0; i < SCI_TX_BUF_LEN; i++)
-	{
-		g_u8SCITxBuff[i] = 0;
-	}
+	memset(s->u16Buffer, 0, sizeof(s->u16Buffer));
+	memset(g_u8SCITxBuff, 0, sizeof(g_u8SCITxBuff));
 }
 
 void CRC_verify(struct RS485MSG *s)
@@ -328,32 +358,7 @@ void Sci_ACK_0x03_ReadRegs_LCD(struct RS485MSG *s, UINT8 t_u8BuffTemp[])
 	switch (s->u16RdRegStartAddr)
 	{
 	case 0: // LCD
-		u16SciTemp = 1;
-		t_u8BuffTemp[i++] = (u16SciTemp >> 8) & 0x00FF;
-		t_u8BuffTemp[i++] = u16SciTemp & 0x00FF;
-
-		u16SciTemp = (g_stCellInfoReport.u16VCellTotle + 50) / 100;
-		t_u8BuffTemp[i++] = (u16SciTemp >> 8) & 0x00FF;
-		t_u8BuffTemp[i++] = u16SciTemp & 0x00FF;
-
-		if (g_stCellInfoReport.u16Ichg > 0)
-		{
-			u16SciTemp = (g_stCellInfoReport.u16Ichg + 5005) / 10;
-		}
-		else
-		{
-			u16SciTemp = (5000 - g_stCellInfoReport.u16IDischg) / 10;
-		}
-		t_u8BuffTemp[i++] = (u16SciTemp >> 8) & 0x00FF;
-		t_u8BuffTemp[i++] = u16SciTemp & 0x00FF;
-
-		u16SciTemp = (g_stCellInfoReport.u16TempMax + 5) / 10;
-		t_u8BuffTemp[i++] = (u16SciTemp >> 8) & 0x00FF;
-		t_u8BuffTemp[i++] = u16SciTemp & 0x00FF;
-
-		u16SciTemp = g_stCellInfoReport.SocElement.u16Soc;
-		t_u8BuffTemp[i++] = (u16SciTemp >> 8) & 0x00FF;
-		t_u8BuffTemp[i++] = u16SciTemp & 0x00FF;
+		i = Sci_FillDisplaySummary(t_u8BuffTemp, i);
 		break;
 
 	case 1: // 上位机第三级保护，60+10=70个
@@ -378,18 +383,9 @@ void Sci_ACK_0x03_ReadRegs_LCD(struct RS485MSG *s, UINT8 t_u8BuffTemp[])
 		break;
 
 	case 2: // 序列号，硬件版本号，软件版本号
-		for (j = 0; j < PRODUCT_ID_LENGTH_MAX; j++)
-		{
-			t_u8BuffTemp[i++] = ProductionInfor.BMS_SerialNumber[j];
-		}
-		for (j = 0; j < PRODUCT_ID_LENGTH_MAX; j++)
-		{
-			t_u8BuffTemp[i++] = ProductionInfor.BMS_HardWareVersion[j];
-		}
-		for (j = 0; j < PRODUCT_ID_LENGTH_MAX; j++)
-		{
-			t_u8BuffTemp[i++] = ProductionInfor.BMS_SoftWareVersion[j];
-		}
+		i = Sci_AppendBytes(t_u8BuffTemp, i, ProductionInfor.BMS_SerialNumber, PRODUCT_ID_LENGTH_MAX);
+		i = Sci_AppendBytes(t_u8BuffTemp, i, ProductionInfor.BMS_HardWareVersion, PRODUCT_ID_LENGTH_MAX);
+		i = Sci_AppendBytes(t_u8BuffTemp, i, ProductionInfor.BMS_SoftWareVersion, PRODUCT_ID_LENGTH_MAX);
 		break;
 
 	case 3: // 三级安全状态
