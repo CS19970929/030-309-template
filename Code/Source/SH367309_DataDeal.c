@@ -22,6 +22,13 @@ extern UINT16 iSheldTemp_10K_NTC[141];
 #define DSG_CHG_OCP_DELAY_TIME 30 * 100 // 过流延时时间 (10ms单位)
 #define OFF 0
 #define ON 1
+#define AFE_CELL_OVP_SWITCH_THRESHOLD 3800
+#define AFE_CELL_OVP_HIGH_VALUE 4300
+#define AFE_CELL_OVP_HIGH_RCV 4200
+#define AFE_CELL_OVP_LOW_VALUE 3800
+#define AFE_CELL_OVP_LOW_RCV 3600
+#define AFE_CELL_UVP_VALUE 2000
+#define AFE_CELL_UVP_RCV 2200
 
 /* 找出要写入AFE寄存器的值：参数1：当前要写的值，参数2：AFE参数列表的地址 */
 int Choose_Right_Value(UINT16 cur_Value, const UINT16 *AFE_list)
@@ -37,15 +44,90 @@ int Choose_Right_Value(UINT16 cur_Value, const UINT16 *AFE_list)
 	return i;
 }
 
+static UINT16 Afe_EncodeCellOvpValue(UINT16 threshold_mv)
+{
+	return threshold_mv / 5;
+}
+
+static UINT16 Afe_EncodeCellUvpValue(UINT16 threshold_mv)
+{
+	return threshold_mv / 20;
+}
+
+static void Afe_SetCellOvpWindow(UINT16 protect_threshold_mv)
+{
+	UINT16 ov_value = AFE_CELL_OVP_LOW_VALUE;
+	UINT16 ov_recover = AFE_CELL_OVP_LOW_RCV;
+	UINT16 encoded_value = 0;
+	UINT16 encoded_recover = 0;
+
+	if (protect_threshold_mv > AFE_CELL_OVP_SWITCH_THRESHOLD)
+	{
+		ov_value = AFE_CELL_OVP_HIGH_VALUE;
+		ov_recover = AFE_CELL_OVP_HIGH_RCV;
+	}
+
+	encoded_value = Afe_EncodeCellOvpValue(ov_value);
+	encoded_recover = Afe_EncodeCellOvpValue(ov_recover);
+
+	AFE_ROM_PARAMETERS_Struction.m02H_03H.OVH = (encoded_value >> 8) & 0x3;
+	AFE_ROM_PARAMETERS_Struction.m02H_03H.OVL = encoded_value & 0x00FF;
+	AFE_ROM_PARAMETERS_Struction.m02H_03H.OVT = 0;
+
+	AFE_ROM_PARAMETERS_Struction.m04H_05H.OVRH = (encoded_recover >> 8) & 0x3;
+	AFE_ROM_PARAMETERS_Struction.m04H_05H.OVRL = encoded_recover & 0x00FF;
+	AFE_ROM_PARAMETERS_Struction.m04H_05H.UVT = 0;
+}
+
+static void Afe_SetCellUvpWindow(void)
+{
+	AFE_ROM_PARAMETERS_Struction.m06H_07H.UV = Afe_EncodeCellUvpValue(AFE_CELL_UVP_VALUE) & 0x00FF;
+	AFE_ROM_PARAMETERS_Struction.m06H_07H.UVR = Afe_EncodeCellUvpValue(AFE_CELL_UVP_RCV) & 0x00FF;
+}
+
+static void Afe_SetOverCurrentWindow(void)
+{
+	int temp = 0;
+
+	temp = PRT_E2ROMParas.u16IdsgOcp_Third * 100 / g_u32CS_Res_AFE; // 当前对应多少mv
+	AFE_ROM_PARAMETERS_Struction.m0CH_0DH.OCD1V = Choose_Right_Value(temp, AFE_OCD1V_OCCV);
+	temp = PRT_E2ROMParas.u16IdsgOcp_Filter * 10; // 当前对应多少ms
+	AFE_ROM_PARAMETERS_Struction.m0CH_0DH.OCD1T = Choose_Right_Value(temp, AFE_OCD1T);
+
+	temp = PRT_E2ROMParas.u16IchgOcp_Third * 100 / g_u32CS_Res_AFE; // 当前对应多少mv
+	AFE_ROM_PARAMETERS_Struction.m0EH_0FH.OCCV = Choose_Right_Value(temp, AFE_OCD1V_OCCV);
+	temp = PRT_E2ROMParas.u16IchgOcp_Filter * 10; // 当前对应多少ms
+	AFE_ROM_PARAMETERS_Struction.m0EH_0FH.OCCT = Choose_Right_Value(temp, AFE_OCCT_OCD2T);
+}
+
+static void Afe_LoadFixedTemperatureWindow(void)
+{
+	int i = 0;
+	int temp = 0;
+	static const UINT16 afe_temperature[8] = {
+		(70 + 40),
+		(60 + 40),
+		(-20 + 40),
+		(-10 + 40),
+		(80 + 40),
+		(70 + 40),
+		(-20 + 40),
+		(-15 + 40)};
+
+	for (i = 0; i < 8; i++)
+	{
+		temp = iSheldTemp_10K_NTC[afe_temperature[i]];
+		*(((UINT8 *)&AFE_ROM_PARAMETERS_Struction.m11H_19H) + i) = (UINT8)(((UINT32)temp << 9) / ((UINT32)SH367309_Reg_Store.TR_ResRef + temp));
+	}
+}
+
 // 全部数据刷新到AFE_ROM_PARAMETERS_Struction结构体里面
 // 一部分是默认的配置，从.h文件的#define里面来
 // 一部分是可修改的，AFE_Parameters_RS485_Struction里面来
 void Refresh_Parameters(void)
 {
-	int i = 0;
 	int temp = 0;
 	UINT8 TR = 0;
-	UINT16 AFE_TEMPERATURE[8] = {0}; // 温度，摄氏度+40，（0度的值为40）
 
 	// 读309的TR，顺便把AFE默认值配置传到AFE_ROM_PARAMETERS_Struction结构体(#define类型)。
 	if (MTPRead(0x19, 1, &TR))
@@ -76,60 +158,13 @@ void Refresh_Parameters(void)
 	// }
 	AFE_ROM_PARAMETERS_Struction.m08H_09H.BALV = (UINT8)temp;
 
-	if (PRT_E2ROMParas.u16VcellOvp_Third > 3800)
-	{
-		AFE_ROM_PARAMETERS_Struction.m02H_03H.OVH = ((4300 / 5) >> 8) & 0x3;
-		AFE_ROM_PARAMETERS_Struction.m02H_03H.OVL = (4300 / 5) & 0x00FF;
-	}
-	else
-	{
-		AFE_ROM_PARAMETERS_Struction.m02H_03H.OVH = ((3800 / 5) >> 8) & 0x3;
-		AFE_ROM_PARAMETERS_Struction.m02H_03H.OVL = (3800 / 5) & 0x00FF;
-	}
-	AFE_ROM_PARAMETERS_Struction.m02H_03H.OVT = 0;
-	if (PRT_E2ROMParas.u16VcellOvp_Third > 3800)
-	{
-		AFE_ROM_PARAMETERS_Struction.m04H_05H.OVRH = ((4200 / 5) >> 8) & 0x3;
-		AFE_ROM_PARAMETERS_Struction.m04H_05H.OVRL = (4200 / 5) & 0x00FF;
-	}
-	else
-	{
-		AFE_ROM_PARAMETERS_Struction.m04H_05H.OVRH = ((3600 / 5) >> 8) & 0x3;
-		AFE_ROM_PARAMETERS_Struction.m04H_05H.OVRL = (3600 / 5) & 0x00FF;
-	}
-
-	AFE_ROM_PARAMETERS_Struction.m04H_05H.UVT = 0;
-	AFE_ROM_PARAMETERS_Struction.m06H_07H.UV = (2000 / 20) & 0x00FF;
-	AFE_ROM_PARAMETERS_Struction.m06H_07H.UVR = (2200 / 20) & 0x00FF;
-
-	//todo 测试,待确认二级过流
-	temp = PRT_E2ROMParas.u16IdsgOcp_Third * 100 / g_u32CS_Res_AFE; // 当前对应多少mv
-	AFE_ROM_PARAMETERS_Struction.m0CH_0DH.OCD1V = Choose_Right_Value(temp, AFE_OCD1V_OCCV);
-	temp = PRT_E2ROMParas.u16IdsgOcp_Filter * 10; // 当前对应多少ms
-	AFE_ROM_PARAMETERS_Struction.m0CH_0DH.OCD1T = Choose_Right_Value(temp, AFE_OCD1T);
-
-	temp = PRT_E2ROMParas.u16IchgOcp_Third * 100 / g_u32CS_Res_AFE; // 当前对应多少mv
-	AFE_ROM_PARAMETERS_Struction.m0EH_0FH.OCCV = Choose_Right_Value(temp, AFE_OCD1V_OCCV);
-	temp = PRT_E2ROMParas.u16IchgOcp_Filter * 10; // 当前对应多少ms
-	AFE_ROM_PARAMETERS_Struction.m0EH_0FH.OCCT = Choose_Right_Value(temp, AFE_OCCT_OCD2T);
+	Afe_SetCellOvpWindow(PRT_E2ROMParas.u16VcellOvp_Third);
+	Afe_SetCellUvpWindow();
+	Afe_SetOverCurrentWindow();
 
 	//todo 待确认
 	InitShortCur();
-
-	AFE_TEMPERATURE[0] = (70 + 40);		 /* 充电高温保护 */
-	AFE_TEMPERATURE[1] = (60 + 40);	 /* 充电高温保护恢复 */
-	AFE_TEMPERATURE[2] = (-20 + 40);		 /* 充电低温保护 */
-	AFE_TEMPERATURE[3] = (-10 + 40);	 /* 充电低温保护恢复 */
-	AFE_TEMPERATURE[4] = (80 + 40);	 /* 放电高温保护 */
-	AFE_TEMPERATURE[5] = (70 + 40); /* 放电高温保护恢复 */
-	AFE_TEMPERATURE[6] = (-20 + 40);	 /* 放电低温保护 */
-	AFE_TEMPERATURE[7] = (-15 + 40); /* 放电低温保护恢复 */
-
-	for (i = 0; i < 8; i++)
-	{
-		temp = iSheldTemp_10K_NTC[AFE_TEMPERATURE[i]];
-		*(((UINT8 *)&AFE_ROM_PARAMETERS_Struction.m11H_19H) + i) = (UINT8)(((UINT32)temp << 9) / ((UINT32)SH367309_Reg_Store.TR_ResRef + temp));
-	}
+	Afe_LoadFixedTemperatureWindow();
 }
 
 /* 每次数据改变都读取rom参数比较一下，那个参数改变就写入那=哪个 */

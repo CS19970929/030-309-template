@@ -504,9 +504,7 @@ void test_Autocurrent_cycle(void)
 void App_AFEGet(void)
 {
 
-	if (u32E2P_Pro_VolCur_WriteFlag != 0 || u32E2P_Pro_Temp_WriteFlag != 0 || u32E2P_Pro_Other_WriteFlag != 0 
-	|| u32E2P_OtherElement1_WriteFlag != 0 || u32E2P_RTC_Element_WriteFlag != 0 || u8E2P_SocTable_WriteFlag != 0 
-	|| u8E2P_CopperLoss_WriteFlag != 0 || u8E2P_KB_WriteFlag != 0)
+	if (App_HasPendingEepromWrite())
 	{
 		return;
 	}

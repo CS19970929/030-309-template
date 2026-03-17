@@ -18,9 +18,29 @@ UINT8 u8E2P_KB_WritePos = 0;
 #define EEPROM_ADDR_CURRENT_OFFSET_INV	((UINT16)0x3FF6)
 #define EEPROM_ADDR_CURRENT_OFFSET   	((UINT16)0x3FF8)
 
+typedef struct
+{
+	UINT32 *write_flag;
+	UINT32 valid_mask;
+	const UINT16 *addr_tbl;
+	const UINT16 *src;
+	UINT16 count;
+} EepromWordWriteGroup;
+
+typedef UINT8 (*EepromPendingWriter)(void);
+
 void InitData_E2prom(void);
 static UINT8 WriteCurrentOffset_E2prom(UINT16 data);
 static UINT8 ReadCurrentOffset_E2prom(UINT16 *data);
+static void ReportEepromStoreErrorIfNeeded(void);
+static void LoadWordArrayWithRangeCheck(UINT16 *dst, const UINT16 *addr_tbl, const UINT16 *min_tbl, const UINT16 *max_tbl, UINT16 count);
+static void ResetWordArrayToDefault(UINT16 *dst, const UINT16 *default_tbl, UINT16 count);
+static UINT8 WriteNextDirtyWord(UINT32 *write_flag, UINT32 valid_mask, const UINT16 *addr_tbl, const UINT16 *src, UINT16 count);
+static UINT8 WriteNextDirtyWordGroup(const EepromWordWriteGroup *group);
+static UINT8 WritePendingKbData(void);
+static UINT8 WritePendingProtectOrConfigData(void);
+static UINT8 WritePendingEventRecordReset(void);
+static UINT8 HasPendingEepromWrite(void);
 
 void IIC_Start_SEE(void)
 {
@@ -290,14 +310,139 @@ static UINT8 ReadCurrentOffset_E2prom(UINT16 *data)
 	return 0;
 }
 
-void ReadEEPROM_ByteData_StartUp(void)
+static void ReportEepromStoreErrorIfNeeded(void)
+{
+	if (0 == System_ErrFlag.u8ErrFlag_Com_EEPROM)
+	{
+		System_ERROR_UserCallback(ERROR_EEPROM_STORE);
+	}
+}
+
+static void LoadWordArrayWithRangeCheck(UINT16 *dst, const UINT16 *addr_tbl, const UINT16 *min_tbl, const UINT16 *max_tbl, UINT16 count)
 {
 	UINT16 i;
-	// UINT16  j;
-	UINT16 t_u16RdTemp;
-	INT16 t_i16RdTemp;
-	UINT16 t_u16TempMax, t_u16TempMin;
+	UINT16 rd_temp;
 
+	for (i = 0; i < count; ++i)
+	{
+		rd_temp = ReadEEPROM_Word_NoZone(addr_tbl[i]);
+		dst[i] = rd_temp;
+		if ((rd_temp < min_tbl[i]) || (rd_temp > max_tbl[i]))
+		{
+			ReportEepromStoreErrorIfNeeded();
+		}
+	}
+}
+
+static void ResetWordArrayToDefault(UINT16 *dst, const UINT16 *default_tbl, UINT16 count)
+{
+	UINT16 i;
+
+	for (i = 0; i < count; ++i)
+	{
+		dst[i] = default_tbl[i];
+	}
+}
+
+static UINT8 WriteNextDirtyWord(UINT32 *write_flag, UINT32 valid_mask, const UINT16 *addr_tbl, const UINT16 *src, UINT16 count)
+{
+	UINT16 i;
+
+	if ((*write_flag & valid_mask) == 0)
+	{
+		return 0;
+	}
+
+	for (i = 0; i < count; ++i)
+	{
+		UINT32 bit = ((UINT32)1u << i);
+		if ((*write_flag & bit) != 0)
+		{
+			WriteEEPROM_Word_NoZone(addr_tbl[i], src[i]);
+			*write_flag &= ~bit;
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
+static UINT8 WriteNextDirtyWordGroup(const EepromWordWriteGroup *group)
+{
+	return WriteNextDirtyWord(group->write_flag, group->valid_mask, group->addr_tbl, group->src, group->count);
+}
+
+static UINT8 HasPendingEepromWrite(void)
+{
+	return (u8E2P_KB_WriteFlag || u32E2P_Pro_VolCur_WriteFlag || u32E2P_Pro_Temp_WriteFlag ||
+			u32E2P_Pro_Other_WriteFlag || u8E2P_SocTable_WriteFlag || u8E2P_CopperLoss_WriteFlag ||
+			u32E2P_RTC_Element_WriteFlag || u32E2P_OtherElement1_WriteFlag || u32E2P_HeatCool_WriteFlag);
+}
+
+UINT8 App_HasPendingEepromWrite(void)
+{
+	return HasPendingEepromWrite();
+}
+
+static UINT8 WritePendingKbData(void)
+{
+	if (u8E2P_KB_WriteFlag == 0)
+	{
+		return 0;
+	}
+
+	WriteEEPROM_Word_NoZone((E2P_ADDR_START_CALIB_K + (u8E2P_KB_WritePos << 1)), g_u16CalibCoefK[u8E2P_KB_WritePos]);
+	WriteEEPROM_Word_NoZone((E2P_ADDR_START_CALIB_B + (u8E2P_KB_WritePos << 1)), g_i16CalibCoefB[u8E2P_KB_WritePos]);
+	++u8E2P_KB_WritePos;
+	--u8E2P_KB_WriteFlag;
+	return 1;
+}
+
+static UINT8 WritePendingProtectOrConfigData(void)
+{
+	const struct PRT_E2ROM_PARAS PrtE2paras_Pos = E2P_ADDR_E2POS_PROTECT;
+	const struct OTHER_ELEMENT OtherCanAdd_Pos = E2P_ADDR_E2POS_OTHER_ELEMENT1;
+	const struct HEAT_COOL_ELEMENT HeatCoolEle_Pos = E2P_ADDR_E2POS_HEAT_COOL;
+	const EepromWordWriteGroup groups[] = {
+		{&u32E2P_Pro_VolCur_WriteFlag, E2P_PARA_ALL_VOLCUR_PROTECT, (const UINT16 *)&PrtE2paras_Pos.u16VcellOvp_First, (const UINT16 *)&PRT_E2ROMParas.u16VcellOvp_First, E2P_PARA_NUM_VOLCUR_PROTECT},
+		{&u32E2P_Pro_Temp_WriteFlag, E2P_PARA_ALL_TEM_PROTECT, (const UINT16 *)&PrtE2paras_Pos.u16TChgOTp_First, (const UINT16 *)&PRT_E2ROMParas.u16TChgOTp_First, E2P_PARA_NUM_TEM_PROTECT},
+		{&u32E2P_Pro_Other_WriteFlag, E2P_PARA_ALL_OTHER_PROTECT, (const UINT16 *)&PrtE2paras_Pos.u16VdeltaOvp_First, (const UINT16 *)&PRT_E2ROMParas.u16VdeltaOvp_First, E2P_PARA_NUM_OTHER_PROTECT},
+		{&u32E2P_OtherElement1_WriteFlag, E2P_PARA_ALL_OTHER_ELEMENT1, (const UINT16 *)&OtherCanAdd_Pos.u16Balance_OpenVoltage, (const UINT16 *)&OtherElement.u16Balance_OpenVoltage, E2P_PARA_NUM_OTHER_ELEMENT1},
+		{&u32E2P_HeatCool_WriteFlag, E2P_PARA_ALL_HEAT_COOL_ELE, (const UINT16 *)&HeatCoolEle_Pos.u16Heat_OpenTemp, (const UINT16 *)&Heat_Cool_Element.u16Heat_OpenTemp, E2P_PARA_NUM_HEAT_COOL}};
+	UINT16 i;
+
+	for (i = 0; i < (sizeof(groups) / sizeof(groups[0])); ++i)
+	{
+		if (WriteNextDirtyWordGroup(&groups[i]))
+		{
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
+static UINT8 WritePendingEventRecordReset(void)
+{
+	UINT8 u8temp;
+
+	if (gu8_Reset_EventRecord == 0)
+	{
+		return 0;
+	}
+
+	u8temp = 100 - gu8_Reset_EventRecord;
+	WriteEEPROM_Word_NoZone(E2P_ADDR_START_EVENT_RECORD + (u8temp << 1), 0);
+	gu8_Reset_EventRecord--;
+	if (gu8_Reset_EventRecord == 1)
+	{
+		WriteEEPROM_Word_NoZone(E2P_ADDR_E2POS_EVENT_POINT, 0);
+	}
+	return 1;
+}
+
+void ReadEEPROM_ByteData_StartUp(void)
+{
 	const struct PRT_E2ROM_PARAS PrtE2paras_Min = E2P_PROTECT_MIN_PRT;
 	const struct PRT_E2ROM_PARAS PrtE2paras_Max = E2P_PROTECT_MAX_PRT;
 	const struct PRT_E2ROM_PARAS PrtE2paras_Pos = E2P_ADDR_E2POS_PROTECT;
@@ -309,92 +454,44 @@ void ReadEEPROM_ByteData_StartUp(void)
 	const struct HEAT_COOL_ELEMENT HeatCoolEle_Max = HeatCoolElement_Max;
 	const struct HEAT_COOL_ELEMENT HeatCoolEle_Min = HeatCoolElement_Min;
 	const struct HEAT_COOL_ELEMENT HeatCoolEle_Pos = E2P_ADDR_E2POS_HEAT_COOL;
+	UINT16 i;
+	UINT16 rd_temp;
+	INT16 rd_temp_signed;
 
-	for (i = 0; i < E2P_PARA_NUM_PROTECT; ++i)
-	{ // 保护点
-		t_u16RdTemp = ReadEEPROM_Word_NoZone((UINT16) * (&PrtE2paras_Pos.u16VcellOvp_First + i));
-		t_u16TempMax = (*(&PrtE2paras_Max.u16VcellOvp_First + i));
-		t_u16TempMin = (*(&PrtE2paras_Min.u16VcellOvp_First + i));
-		*(&PRT_E2ROMParas.u16VcellOvp_First + i) = t_u16RdTemp;
-		if ((t_u16RdTemp >= t_u16TempMin) && (t_u16RdTemp <= t_u16TempMax))
-		{
-		}
-		else
-		{
-			if (0 == System_ErrFlag.u8ErrFlag_Com_EEPROM)
-			{ // 这样其实不太好，最好的办法是把ReadEEPROM_Word_WithZone()这个函数改造以下
-				// g_st_SysStatusFlag.bits.b1EepromErr = 1;		//重新改造了一下这个函数，最后失败告终，不改好过改
-				System_ERROR_UserCallback(ERROR_EEPROM_STORE); // 只要确保通讯没问题，就是这个错误。
-			}
-		}
-	}
+	LoadWordArrayWithRangeCheck((UINT16 *)&PRT_E2ROMParas.u16VcellOvp_First,
+								(const UINT16 *)&PrtE2paras_Pos.u16VcellOvp_First,
+								(const UINT16 *)&PrtE2paras_Min.u16VcellOvp_First,
+								(const UINT16 *)&PrtE2paras_Max.u16VcellOvp_First,
+								E2P_PARA_NUM_PROTECT);
 
 	for (i = 0; i < E2P_PARA_NUM_CALIB_K; ++i)
-	{ // K值
-		t_u16RdTemp = ReadEEPROM_Word_NoZone(E2P_ADDR_START_CALIB_K + (i << 1));
-		g_u16CalibCoefK[i] = t_u16RdTemp;
-		if ((t_u16RdTemp >= SYSKMIN) && (t_u16RdTemp <= SYSKMAX))
+	{
+		rd_temp = ReadEEPROM_Word_NoZone(E2P_ADDR_START_CALIB_K + (i << 1));
+		g_u16CalibCoefK[i] = rd_temp;
+		if ((rd_temp < SYSKMIN) || (rd_temp > SYSKMAX))
 		{
-		}
-		else
-		{
-			if (0 == System_ErrFlag.u8ErrFlag_Com_EEPROM)
-			{
-				System_ERROR_UserCallback(ERROR_EEPROM_STORE);
-			}
+			ReportEepromStoreErrorIfNeeded();
 		}
 
-		t_i16RdTemp = ReadEEPROM_Word_NoZone(E2P_ADDR_START_CALIB_B + (i << 1));
-		g_i16CalibCoefB[i] = t_i16RdTemp; // B值
-		if ((t_i16RdTemp >= SYSBMIN) && (t_i16RdTemp <= SYSBMAX))
+		rd_temp_signed = (INT16)ReadEEPROM_Word_NoZone(E2P_ADDR_START_CALIB_B + (i << 1));
+		g_i16CalibCoefB[i] = rd_temp_signed;
+		if ((rd_temp_signed < SYSBMIN) || (rd_temp_signed > SYSBMAX))
 		{
-		}
-		else
-		{
-			if (0 == System_ErrFlag.u8ErrFlag_Com_EEPROM)
-			{
-				System_ERROR_UserCallback(ERROR_EEPROM_STORE);
-			}
+			ReportEepromStoreErrorIfNeeded();
 		}
 	}
 
-	for (i = 0; i < E2P_PARA_NUM_OTHER_ELEMENT1; ++i)
-	{ // Other_CanAdd
-		t_u16RdTemp = ReadEEPROM_Word_NoZone((UINT16) * (&OtherElement_to_Pos.u16Balance_OpenVoltage + i));
-		t_u16TempMax = (*(&OtherElement_to_Max.u16Balance_OpenVoltage + i));
-		t_u16TempMin = (*(&OtherElement_to_Min.u16Balance_OpenVoltage + i));
-		*(&OtherElement.u16Balance_OpenVoltage + i) = t_u16RdTemp;
-		if ((t_u16RdTemp >= t_u16TempMin) && (t_u16RdTemp <= t_u16TempMax))
-		{
-		}
-		else
-		{
-			if (0 == System_ErrFlag.u8ErrFlag_Com_EEPROM)
-			{
-				// g_st_SysStatusFlag.bits.b1EepromErr = 1;
-				System_ERROR_UserCallback(ERROR_EEPROM_STORE);
-			}
-		}
-	}
+	LoadWordArrayWithRangeCheck((UINT16 *)&OtherElement.u16Balance_OpenVoltage,
+								(const UINT16 *)&OtherElement_to_Pos.u16Balance_OpenVoltage,
+								(const UINT16 *)&OtherElement_to_Min.u16Balance_OpenVoltage,
+								(const UINT16 *)&OtherElement_to_Max.u16Balance_OpenVoltage,
+								E2P_PARA_NUM_OTHER_ELEMENT1);
 
-	for (i = 0; i < E2P_PARA_NUM_HEAT_COOL; ++i)
-	{ // HeatCool_element
-		t_u16RdTemp = ReadEEPROM_Word_NoZone((UINT16) * (&HeatCoolEle_Pos.u16Heat_OpenTemp + i));
-		t_u16TempMax = (*(&HeatCoolEle_Max.u16Heat_OpenTemp + i));
-		t_u16TempMin = (*(&HeatCoolEle_Min.u16Heat_OpenTemp + i));
-		*(&Heat_Cool_Element.u16Heat_OpenTemp + i) = t_u16RdTemp;
-		if ((t_u16RdTemp >= t_u16TempMin) && (t_u16RdTemp <= t_u16TempMax))
-		{
-		}
-		else
-		{
-			if (0 == System_ErrFlag.u8ErrFlag_Com_EEPROM)
-			{
-				// g_st_SysStatusFlag.bits.b1EepromErr = 1;
-				System_ERROR_UserCallback(ERROR_EEPROM_STORE);
-			}
-		}
-	}
+	LoadWordArrayWithRangeCheck((UINT16 *)&Heat_Cool_Element.u16Heat_OpenTemp,
+								(const UINT16 *)&HeatCoolEle_Pos.u16Heat_OpenTemp,
+								(const UINT16 *)&HeatCoolEle_Min.u16Heat_OpenTemp,
+								(const UINT16 *)&HeatCoolEle_Max.u16Heat_OpenTemp,
+								E2P_PARA_NUM_HEAT_COOL);
 
 	ReadEEPROM_AFE_Parameters();
 	ReadEEPROM_EventRecord_Parameters();
@@ -418,26 +515,23 @@ void EEPROM_ResetData_AllToDefault(void)
 	u8E2P_KB_WritePos = 0;
 
 	// Protect
-	for (i = 0; i < E2P_PARA_NUM_PROTECT; ++i)
-	{
-		*(&PRT_E2ROMParas.u16VcellOvp_First + i) = *(&PrtE2PARAS_Default.u16VcellOvp_First + i);
-	}
+	ResetWordArrayToDefault((UINT16 *)&PRT_E2ROMParas.u16VcellOvp_First,
+							(const UINT16 *)&PrtE2PARAS_Default.u16VcellOvp_First,
+							E2P_PARA_NUM_PROTECT);
 	u32E2P_Pro_VolCur_WriteFlag = E2P_PARA_ALL_VOLCUR_PROTECT;
 	u32E2P_Pro_Temp_WriteFlag = E2P_PARA_ALL_TEM_PROTECT;
 	u32E2P_Pro_Other_WriteFlag = E2P_PARA_ALL_OTHER_PROTECT;
 
 	// Other_CanAdd_element
-	for (i = 0; i < E2P_PARA_NUM_OTHER_ELEMENT1; ++i)
-	{
-		*(&OtherElement.u16Balance_OpenVoltage + i) = *(&OtherElement_Default.u16Balance_OpenVoltage + i);
-	}
+	ResetWordArrayToDefault((UINT16 *)&OtherElement.u16Balance_OpenVoltage,
+							(const UINT16 *)&OtherElement_Default.u16Balance_OpenVoltage,
+							E2P_PARA_NUM_OTHER_ELEMENT1);
 	u32E2P_OtherElement1_WriteFlag = E2P_PARA_ALL_OTHER_ELEMENT1;
 
 	// HeatCool_element
-	for (i = 0; i < E2P_PARA_NUM_HEAT_COOL; ++i)
-	{
-		*(&Heat_Cool_Element.u16Heat_OpenTemp + i) = *(&HeatCoolEle_Default.u16Heat_OpenTemp + i);
-	}
+	ResetWordArrayToDefault((UINT16 *)&Heat_Cool_Element.u16Heat_OpenTemp,
+							(const UINT16 *)&HeatCoolEle_Default.u16Heat_OpenTemp,
+							E2P_PARA_NUM_HEAT_COOL);
 	u32E2P_HeatCool_WriteFlag = E2P_PARA_ALL_HEAT_COOL_ELE;
 }
 
@@ -453,97 +547,17 @@ void EEPROM_ResetData_OtherToDefault(void)
 // Sci命令表中，因为STM8的缘故，决定全部从通讯中移出来写
 void WriteEEPROM_ByteData_Circle(void)
 {
-	UINT8 i = 0;
-	UINT8 u8temp;
+	const EepromPendingWriter writers[] = {
+		WritePendingKbData,
+		WritePendingProtectOrConfigData,
+		WritePendingEventRecordReset};
+	UINT16 i;
 
-	const struct PRT_E2ROM_PARAS PrtE2paras_Pos = E2P_ADDR_E2POS_PROTECT;
-	const struct OTHER_ELEMENT OtherCanAdd_Pos = E2P_ADDR_E2POS_OTHER_ELEMENT1;
-	// const struct RTC_ELEMENT RTC_Element_Pos = E2P_ADDR_E2POS_RTC;
-	const struct HEAT_COOL_ELEMENT HeatCoolEle_Pos = E2P_ADDR_E2POS_HEAT_COOL;
-
-	if (u8E2P_KB_WriteFlag)
-	{ // 完美KB值操作，既可全部写一遍，也可以单独写其中一对KB值
-		WriteEEPROM_Word_NoZone((E2P_ADDR_START_CALIB_K + (u8E2P_KB_WritePos << 1)), g_u16CalibCoefK[u8E2P_KB_WritePos]);
-		WriteEEPROM_Word_NoZone((E2P_ADDR_START_CALIB_B + (u8E2P_KB_WritePos << 1)), g_i16CalibCoefB[u8E2P_KB_WritePos]);
-		++u8E2P_KB_WritePos; // 如果u8E2P_KB_WriteFlag=0，则Pos就算错也没用，别的地方想修改KB值的话，这两者必须同时操作。
-		--u8E2P_KB_WriteFlag;
-	}
-	else if (u32E2P_Pro_VolCur_WriteFlag & E2P_PARA_ALL_VOLCUR_PROTECT)
+	for (i = 0; i < (sizeof(writers) / sizeof(writers[0])); ++i)
 	{
-		while (i < E2P_PARA_ALL_VOLCUR_PROTECT)
+		if (writers[i]())
 		{
-			if ((u32E2P_Pro_VolCur_WriteFlag >> i) & 1)
-			{
-				WriteEEPROM_Word_NoZone((UINT16) * (&PrtE2paras_Pos.u16VcellOvp_First + i),
-										*(&PRT_E2ROMParas.u16VcellOvp_First + i));
-				u32E2P_Pro_VolCur_WriteFlag -= ((long)1 << i); // 按位操作，有一个减一个。
-				break;
-			}
-			i++;
-		}
-	}
-	else if (u32E2P_Pro_Temp_WriteFlag & E2P_PARA_ALL_TEM_PROTECT)
-	{
-		while (i < E2P_PARA_ALL_TEM_PROTECT)
-		{
-			if ((u32E2P_Pro_Temp_WriteFlag >> i) & 1)
-			{
-				WriteEEPROM_Word_NoZone((UINT16) * (&PrtE2paras_Pos.u16TChgOTp_First + i),
-										*(&PRT_E2ROMParas.u16TChgOTp_First + i));
-				u32E2P_Pro_Temp_WriteFlag -= ((long)1 << i);
-				break;
-			}
-			i++;
-		}
-	}
-	else if (u32E2P_Pro_Other_WriteFlag & E2P_PARA_ALL_OTHER_PROTECT)
-	{
-		while (i < E2P_PARA_ALL_OTHER_PROTECT)
-		{
-			if ((u32E2P_Pro_Other_WriteFlag >> i) & 1)
-			{
-				WriteEEPROM_Word_NoZone((UINT16) * (&PrtE2paras_Pos.u16VdeltaOvp_First + i),
-										*(&PRT_E2ROMParas.u16VdeltaOvp_First + i));
-				u32E2P_Pro_Other_WriteFlag -= ((long)1 << i);
-				break;
-			}
-			i++;
-		}
-	}
-	else if (u32E2P_OtherElement1_WriteFlag & E2P_PARA_ALL_OTHER_ELEMENT1)
-	{
-		while (i < E2P_PARA_ALL_OTHER_ELEMENT1)
-		{
-			if ((u32E2P_OtherElement1_WriteFlag >> i) & 1)
-			{
-				WriteEEPROM_Word_NoZone((UINT16) * (&OtherCanAdd_Pos.u16Balance_OpenVoltage + i),
-										*(&OtherElement.u16Balance_OpenVoltage + i));
-				u32E2P_OtherElement1_WriteFlag -= ((long)1 << i);
-				break;
-			}
-			i++;
-		}
-	}
-	else if (u32E2P_HeatCool_WriteFlag)
-	{
-		for (i = 0; i < E2P_PARA_NUM_HEAT_COOL; ++i)
-		{
-			if ((u32E2P_HeatCool_WriteFlag >> i) & 1)
-			{
-				WriteEEPROM_Word_NoZone((UINT16) * (&HeatCoolEle_Pos.u16Heat_OpenTemp + i), *(&Heat_Cool_Element.u16Heat_OpenTemp + i));
-				u32E2P_HeatCool_WriteFlag -= ((long)1 << i);
-				break;
-			}
-		}
-	}
-	else if (gu8_Reset_EventRecord)
-	{
-		u8temp = 100 - gu8_Reset_EventRecord;
-		WriteEEPROM_Word_NoZone(E2P_ADDR_START_EVENT_RECORD + (u8temp << 1), 0);
-		gu8_Reset_EventRecord--;
-		if (gu8_Reset_EventRecord == 1)
-		{
-			WriteEEPROM_Word_NoZone(E2P_ADDR_E2POS_EVENT_POINT, 0);
+			return;
 		}
 	}
 	/*
@@ -689,9 +703,7 @@ void InitData_E2prom(void)
 	else
 	{ // 第一次上电，用于量产
 		EEPROM_ResetData_AllToDefault();
-		while (u8E2P_KB_WriteFlag || u32E2P_Pro_VolCur_WriteFlag || u32E2P_Pro_Temp_WriteFlag ||
-			   u32E2P_Pro_Other_WriteFlag || u8E2P_SocTable_WriteFlag || u8E2P_CopperLoss_WriteFlag ||
-			   u32E2P_RTC_Element_WriteFlag || u32E2P_OtherElement1_WriteFlag || u32E2P_HeatCool_WriteFlag)
+		while (HasPendingEepromWrite())
 		{ // 0x2000,0x2100,0x2200,0x2300
 			WriteEEPROM_ByteData_Circle();
 		}
@@ -722,9 +734,7 @@ void InitData_E2prom(void)
 
 void App_E2promDeal(void)
 {
-	if (u8E2P_KB_WriteFlag || u32E2P_Pro_VolCur_WriteFlag || u32E2P_Pro_Temp_WriteFlag ||
-		u32E2P_Pro_Other_WriteFlag || u8E2P_SocTable_WriteFlag || u8E2P_CopperLoss_WriteFlag ||
-		u32E2P_RTC_Element_WriteFlag || u32E2P_OtherElement1_WriteFlag || u32E2P_HeatCool_WriteFlag)
+	if (HasPendingEepromWrite())
 	{ // 0x2000,0x2100,0x2200,0x2300
 		WriteEEPROM_ByteData_Circle();
 	}

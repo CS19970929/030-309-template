@@ -307,6 +307,7 @@ UINT8 WriteEEPROM_Word_NoZone(UINT16 addr, UINT16 data);
 
 void InitE2PROM(void);
 void App_E2promDeal(void);
+UINT8 App_HasPendingEepromWrite(void);
 
 void EEPROM_test(void);
 
@@ -315,4 +316,3 @@ extern UINT16 OffsetValue_CHG ;
 extern UINT16 OffsetValue_DSG;
 
 #endif	/* EEPROM_H */
-
