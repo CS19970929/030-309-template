@@ -94,8 +94,61 @@ uint8_t Parse_LENGTH_Field(uint16_t length_field, uint16_t *lenid)
     return (uint8_t)(lchksum_rx == Calc_LCHKSUM(*lenid));
 }
 
+static uint16_t Append_Hex_Byte(uint8_t *tx_buf, uint16_t idx, uint8_t value)
+{
+    tx_buf[idx++] = Hex_To_Ascii((uint8_t)(value >> 4));
+    tx_buf[idx++] = Hex_To_Ascii((uint8_t)(value & 0x0F));
+    return idx;
+}
+
+static uint16_t Append_Hex_U16(uint8_t *tx_buf, uint16_t idx, uint16_t value)
+{
+    tx_buf[idx++] = Hex_To_Ascii((uint8_t)(value >> 12));
+    tx_buf[idx++] = Hex_To_Ascii((uint8_t)((value >> 8) & 0x0F));
+    tx_buf[idx++] = Hex_To_Ascii((uint8_t)((value >> 4) & 0x0F));
+    tx_buf[idx++] = Hex_To_Ascii((uint8_t)(value & 0x0F));
+    return idx;
+}
+
+static uint8_t Parse_Hex_Byte(const uint8_t *buf, uint16_t idx, uint8_t *value)
+{
+    uint8_t high;
+    uint8_t low;
+
+    high = Ascii_To_Hex(buf[idx]);
+    low = Ascii_To_Hex(buf[idx + 1U]);
+    if ((high == 0xFFU) || (low == 0xFFU))
+    {
+        return 0U;
+    }
+
+    *value = (uint8_t)((high << 4) | low);
+    return 1U;
+}
+
+static uint8_t Parse_Hex_U16(const uint8_t *buf, uint16_t idx, uint16_t *value)
+{
+    uint8_t nibble0;
+    uint8_t nibble1;
+    uint8_t nibble2;
+    uint8_t nibble3;
+
+    nibble0 = Ascii_To_Hex(buf[idx]);
+    nibble1 = Ascii_To_Hex(buf[idx + 1U]);
+    nibble2 = Ascii_To_Hex(buf[idx + 2U]);
+    nibble3 = Ascii_To_Hex(buf[idx + 3U]);
+    if ((nibble0 == 0xFFU) || (nibble1 == 0xFFU) || (nibble2 == 0xFFU) || (nibble3 == 0xFFU))
+    {
+        return 0U;
+    }
+
+    *value = (uint16_t)((nibble0 << 12) | (nibble1 << 8) | (nibble2 << 4) | nibble3);
+    return 1U;
+}
+
 uint16_t Build_Response_Frame(uint8_t *tx_buf, uint16_t tx_capacity, uint8_t ver, uint8_t adr, uint8_t rtn, const uint8_t *info_data, uint16_t info_hex_len)
 {
+    uint8_t header[4];
     uint16_t idx;
     uint16_t lenid;
     uint16_t length_field;
@@ -111,150 +164,66 @@ uint16_t Build_Response_Frame(uint8_t *tx_buf, uint16_t tx_capacity, uint8_t ver
 
     idx = 0;
     tx_buf[idx++] = SOI;
-    tx_buf[idx++] = Hex_To_Ascii((uint8_t)(ver >> 4));
-    tx_buf[idx++] = Hex_To_Ascii((uint8_t)(ver & 0x0F));
-    tx_buf[idx++] = Hex_To_Ascii((uint8_t)(adr >> 4));
-    tx_buf[idx++] = Hex_To_Ascii((uint8_t)(adr & 0x0F));
-    tx_buf[idx++] = Hex_To_Ascii((uint8_t)(CID1_BAT_DATA >> 4));
-    tx_buf[idx++] = Hex_To_Ascii((uint8_t)(CID1_BAT_DATA & 0x0F));
-    tx_buf[idx++] = Hex_To_Ascii((uint8_t)(rtn >> 4));
-    tx_buf[idx++] = Hex_To_Ascii((uint8_t)(rtn & 0x0F));
+    header[0] = ver;
+    header[1] = adr;
+    header[2] = CID1_BAT_DATA;
+    header[3] = rtn;
+    for (i = 0; i < sizeof(header); ++i)
+    {
+        idx = Append_Hex_Byte(tx_buf, idx, header[i]);
+    }
 
     lenid = (uint16_t)(info_hex_len * 2);
     length_field = Build_LENGTH_Field(lenid);
-    tx_buf[idx++] = Hex_To_Ascii((uint8_t)(length_field >> 12));
-    tx_buf[idx++] = Hex_To_Ascii((uint8_t)((length_field >> 8) & 0x0F));
-    tx_buf[idx++] = Hex_To_Ascii((uint8_t)((length_field >> 4) & 0x0F));
-    tx_buf[idx++] = Hex_To_Ascii((uint8_t)(length_field & 0x0F));
+    idx = Append_Hex_U16(tx_buf, idx, length_field);
 
     for (i = 0; i < info_hex_len; ++i)
     {
-        tx_buf[idx++] = Hex_To_Ascii((uint8_t)(info_data[i] >> 4));
-        tx_buf[idx++] = Hex_To_Ascii((uint8_t)(info_data[i] & 0x0F));
+        idx = Append_Hex_Byte(tx_buf, idx, info_data[i]);
     }
 
     chksum = Calc_CHKSUM(&tx_buf[1], (uint16_t)(idx - 1));
-    tx_buf[idx++] = Hex_To_Ascii((uint8_t)(chksum >> 12));
-    tx_buf[idx++] = Hex_To_Ascii((uint8_t)((chksum >> 8) & 0x0F));
-    tx_buf[idx++] = Hex_To_Ascii((uint8_t)((chksum >> 4) & 0x0F));
-    tx_buf[idx++] = Hex_To_Ascii((uint8_t)(chksum & 0x0F));
+    idx = Append_Hex_U16(tx_buf, idx, chksum);
     tx_buf[idx++] = EOI;
     return idx;
 }
 
 static uint16_t Ascii_BuildBaseInfo(uint8_t *tx_buf)
 {
-    Battery_Base_Info_T info;
     uint8_t info_buf[MAX_FRAME_LEN];
     uint16_t idx;
-    uint16_t i;
-    uint16_t battery_count;
 
-    BmsComm_GetBaseInfo(&info);
-
-    idx = 0;
-    memcpy(&info_buf[idx], info.device_name, sizeof(info.device_name));
-    idx += sizeof(info.device_name);
-    memcpy(&info_buf[idx], info.manufactory_name, sizeof(info.manufactory_name));
-    idx += sizeof(info.manufactory_name);
-    memcpy(&info_buf[idx], info.software_ver, sizeof(info.software_ver));
-    idx += sizeof(info.software_ver);
-    battery_count = info.battery_num;
-    if (battery_count > CELL_MAX_NUM)
-    {
-        battery_count = CELL_MAX_NUM;
-    }
-    info_buf[idx++] = (uint8_t)battery_count;
-
-    for (i = 0; i < battery_count; ++i)
-    {
-        memcpy(&info_buf[idx], info.battery_barcode[i], sizeof(info.battery_barcode[i]));
-        idx += sizeof(info.battery_barcode[i]);
-    }
+    idx = BmsComm_BuildBaseInfoPayload(info_buf, sizeof(info_buf));
 
     return Build_Response_Frame(tx_buf, MAX_FRAME_LEN, PROTOCOL_VERSION, SLAVE_ADDRESS, RTN_OK, info_buf, idx);
 }
 
 static uint16_t Ascii_BuildAnalogData(uint8_t *tx_buf)
 {
-    Battery_Analog_T data;
     uint8_t info_buf[100];
     uint16_t idx;
 
-    BmsComm_GetAnalogData(&data);
-
-    idx = 0;
-#define APPEND_U16(v)                      \
-    do                                     \
-    {                                      \
-        info_buf[idx++] = (uint8_t)((v) >> 8); \
-        info_buf[idx++] = (uint8_t)(v);         \
-    } while (0)
-
-    APPEND_U16(data.pack_total_avg_voltage);
-    APPEND_U16((uint16_t)data.pack_total_current);
-    info_buf[idx++] = data.pack_soc;
-    APPEND_U16(data.pack_avg_cycle_count);
-    APPEND_U16(data.pack_max_cycle_count);
-    info_buf[idx++] = data.pack_avg_soh;
-    info_buf[idx++] = data.pack_min_soh;
-    APPEND_U16(data.cell_max_voltage);
-    APPEND_U16(data.cell_max_voltage_module);
-    APPEND_U16(data.cell_min_voltage);
-    APPEND_U16(data.cell_min_voltage_module);
-    APPEND_U16((uint16_t)data.cell_avg_temp);
-    APPEND_U16((uint16_t)data.cell_max_temp);
-    APPEND_U16(data.cell_max_temp_module);
-    APPEND_U16((uint16_t)data.cell_min_temp);
-    APPEND_U16(data.cell_min_temp_module);
-    APPEND_U16((uint16_t)data.mosfet_avg_temp);
-    APPEND_U16((uint16_t)data.mosfet_max_temp);
-    APPEND_U16(data.mosfet_max_temp_module);
-    APPEND_U16((uint16_t)data.mosfet_min_temp);
-    APPEND_U16(data.mosfet_min_temp_module);
-    APPEND_U16((uint16_t)data.bms_avg_temp);
-    APPEND_U16((uint16_t)data.bms_max_temp);
-    APPEND_U16(data.bms_max_temp_module);
-    APPEND_U16((uint16_t)data.bms_min_temp);
-    APPEND_U16(data.bms_min_temp_module);
-
-#undef APPEND_U16
+    idx = BmsComm_BuildAnalogPayload(info_buf, sizeof(info_buf));
 
     return Build_Response_Frame(tx_buf, MAX_FRAME_LEN, PROTOCOL_VERSION, SLAVE_ADDRESS, RTN_OK, info_buf, idx);
 }
 
 static uint16_t Ascii_BuildAlarmInfo(uint8_t *tx_buf)
 {
-    Battery_Alarm_T data;
     uint8_t info_buf[4];
+    uint16_t idx;
 
-    BmsComm_GetAlarmData(&data);
-    info_buf[0] = data.system_alarm1;
-    info_buf[1] = data.system_alarm2;
-    info_buf[2] = data.system_protect1;
-    info_buf[3] = data.system_protect2;
+    idx = BmsComm_BuildAlarmPayload(info_buf, sizeof(info_buf));
 
-    return Build_Response_Frame(tx_buf, MAX_FRAME_LEN, PROTOCOL_VERSION, SLAVE_ADDRESS, RTN_OK, info_buf, sizeof(info_buf));
+    return Build_Response_Frame(tx_buf, MAX_FRAME_LEN, PROTOCOL_VERSION, SLAVE_ADDRESS, RTN_OK, info_buf, idx);
 }
 
 static uint16_t Ascii_BuildChargeDisInfo(uint8_t *tx_buf)
 {
-    Battery_Charge_Dis_Info_T data;
     uint8_t info_buf[9];
     uint16_t idx;
 
-    BmsComm_GetChargeDischargeInfo(&data);
-
-    idx = 0;
-    info_buf[idx++] = (uint8_t)(data.charge_volt_limit >> 8);
-    info_buf[idx++] = (uint8_t)data.charge_volt_limit;
-    info_buf[idx++] = (uint8_t)(data.discharge_volt_limit >> 8);
-    info_buf[idx++] = (uint8_t)data.discharge_volt_limit;
-    info_buf[idx++] = (uint8_t)((uint16_t)data.max_charge_current >> 8);
-    info_buf[idx++] = (uint8_t)data.max_charge_current;
-    info_buf[idx++] = (uint8_t)((uint16_t)data.max_discharge_current >> 8);
-    info_buf[idx++] = (uint8_t)data.max_discharge_current;
-    info_buf[idx++] = data.charge_dis_status;
+    idx = BmsComm_BuildChargeDischargePayload(info_buf, sizeof(info_buf));
 
     return Build_Response_Frame(tx_buf, MAX_FRAME_LEN, PROTOCOL_VERSION, SLAVE_ADDRESS, RTN_OK, info_buf, idx);
 }
@@ -284,19 +253,11 @@ ProtocolParseResult AsciiParser_ConsumeByte(AsciiParser *parser, uint8_t byte)
 
     if (parser->expected_length == 0)
     {
-        if ((Ascii_To_Hex(parser->buffer[9]) == 0xFF) ||
-            (Ascii_To_Hex(parser->buffer[10]) == 0xFF) ||
-            (Ascii_To_Hex(parser->buffer[11]) == 0xFF) ||
-            (Ascii_To_Hex(parser->buffer[12]) == 0xFF))
+        if (Parse_Hex_U16(parser->buffer, 9U, &length_field) == 0U)
         {
             AsciiParser_Reset(parser);
             return PROTO_PARSE_FRAME_INVALID;
         }
-
-        length_field = (uint16_t)((Ascii_To_Hex(parser->buffer[9]) << 12) |
-                                  (Ascii_To_Hex(parser->buffer[10]) << 8) |
-                                  (Ascii_To_Hex(parser->buffer[11]) << 4) |
-                                  Ascii_To_Hex(parser->buffer[12]));
         if (Parse_LENGTH_Field(length_field, &lenid) == 0)
         {
             AsciiParser_Reset(parser);
@@ -347,22 +308,14 @@ uint16_t Ascii_HandleFrame(const uint8_t *rx_buf, uint16_t rx_len, uint8_t *tx_b
         return 0;
     }
 
-    if ((Ascii_To_Hex(rx_buf[1]) == 0xFF) || (Ascii_To_Hex(rx_buf[2]) == 0xFF) ||
-        (Ascii_To_Hex(rx_buf[3]) == 0xFF) || (Ascii_To_Hex(rx_buf[4]) == 0xFF) ||
-        (Ascii_To_Hex(rx_buf[5]) == 0xFF) || (Ascii_To_Hex(rx_buf[6]) == 0xFF) ||
-        (Ascii_To_Hex(rx_buf[7]) == 0xFF) || (Ascii_To_Hex(rx_buf[8]) == 0xFF))
+    if ((Parse_Hex_Byte(rx_buf, 1U, &ver) == 0U) ||
+        (Parse_Hex_Byte(rx_buf, 3U, &adr) == 0U) ||
+        (Parse_Hex_Byte(rx_buf, 5U, &cid1) == 0U) ||
+        (Parse_Hex_Byte(rx_buf, 7U, &cid2) == 0U) ||
+        (Parse_Hex_U16(rx_buf, 9U, &length_field) == 0U))
     {
         return Build_Response_Frame(tx_buf, tx_capacity, PROTOCOL_VERSION, SLAVE_ADDRESS, RTN_FORMAT_ERROR, NULL, 0);
     }
-
-    ver = (uint8_t)((Ascii_To_Hex(rx_buf[1]) << 4) | Ascii_To_Hex(rx_buf[2]));
-    adr = (uint8_t)((Ascii_To_Hex(rx_buf[3]) << 4) | Ascii_To_Hex(rx_buf[4]));
-    cid1 = (uint8_t)((Ascii_To_Hex(rx_buf[5]) << 4) | Ascii_To_Hex(rx_buf[6]));
-    cid2 = (uint8_t)((Ascii_To_Hex(rx_buf[7]) << 4) | Ascii_To_Hex(rx_buf[8]));
-    length_field = (uint16_t)((Ascii_To_Hex(rx_buf[9]) << 12) |
-                              (Ascii_To_Hex(rx_buf[10]) << 8) |
-                              (Ascii_To_Hex(rx_buf[11]) << 4) |
-                              Ascii_To_Hex(rx_buf[12]));
 
     if (ver != PROTOCOL_VERSION)
     {
@@ -390,10 +343,10 @@ uint16_t Ascii_HandleFrame(const uint8_t *rx_buf, uint16_t rx_len, uint8_t *tx_b
         return Build_Response_Frame(tx_buf, tx_capacity, PROTOCOL_VERSION, SLAVE_ADDRESS, RTN_FORMAT_ERROR, NULL, 0);
     }
 
-    chksum_rx = (uint16_t)((Ascii_To_Hex(rx_buf[13 + lenid]) << 12) |
-                           (Ascii_To_Hex(rx_buf[14 + lenid]) << 8) |
-                           (Ascii_To_Hex(rx_buf[15 + lenid]) << 4) |
-                           Ascii_To_Hex(rx_buf[16 + lenid]));
+    if (Parse_Hex_U16(rx_buf, (uint16_t)(13U + lenid), &chksum_rx) == 0U)
+    {
+        return Build_Response_Frame(tx_buf, tx_capacity, PROTOCOL_VERSION, SLAVE_ADDRESS, RTN_FORMAT_ERROR, NULL, 0);
+    }
     chksum_calc = Calc_CHKSUM((uint8_t *)&rx_buf[1], (uint16_t)(12 + lenid));
     if (chksum_rx != chksum_calc)
     {

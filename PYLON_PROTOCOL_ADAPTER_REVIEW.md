@@ -299,3 +299,122 @@
 - `0x61`：核心模拟量已按截图定义修正单位、精度与温度来源
 - `0x62`：已按截图位表完成报警/保护逐 bit 映射
 - `0x63`：限压、限流精度、充放电状态已按截图定义修正
+
+## 9. 当前协议字段对照表
+
+### 9.1 `0x61` 模拟量字段对照
+
+| 序号 | 协议字段 | 当前数据来源 | 内部单位 | 协议输出 |
+| --- | --- | --- | --- | --- |
+| 1 | 平均电压 | `g_stCellInfoReport.u16VCellTotle` | `0.01V` | 乘 `10` 后输出 `mV` |
+| 2 | 总电流 | `g_stCellInfoReport.u16Ichg / u16IDischg` | `A*10` | 充电为正、放电为负，再乘 `10` 输出 `0.01A` |
+| 3 | 平均 SOC | `g_stCellInfoReport.SocElement.u16Soc` | `%` | 直接输出 |
+| 4 | 平均循环次数 | `g_stCellInfoReport.SocElement.u16Cycle_times` | 次 | 直接输出 |
+| 5 | 最大循环次数 | `g_stCellInfoReport.SocElement.u16Cycle_times` | 次 | 当前与平均循环次数相同 |
+| 6 | 平均 SOH | `g_stCellInfoReport.SocElement.u16Soh` | `%` | 直接输出 |
+| 7 | 最小 SOH | `g_stCellInfoReport.SocElement.u16Soh` | `%` | 当前与平均 SOH 相同 |
+| 8 | 单芯最高电压 | `g_stCellInfoReport.u16VCellMax` | `mV` | 直接输出 |
+| 9 | 单芯最高电压模块/编号 | `g_stCellInfoReport.u16VCellMaxPosition` | 单体序号 | 编码为 `0x01xx` |
+| 10 | 单芯最低电压 | `g_stCellInfoReport.u16VCellMin` | `mV` | 直接输出 |
+| 11 | 单芯最低电压模块/编号 | `g_stCellInfoReport.u16VCellMinPosition` | 单体序号 | 编码为 `0x01xx` |
+| 12 | 单芯平均温度 | `u16Temperature[AFE1_TEMP1..AFE2_TEMP3]` | `(+40°C)*10` | 仅统计电芯温度，转 `0.1K` |
+| 13 | 单芯最高温度 | `u16Temperature[AFE1_TEMP1..AFE2_TEMP3]` | `(+40°C)*10` | 转 `0.1K` |
+| 14 | 单芯最高温度模块/编号 | 电芯温度最大值所在采样点 | 采样序号 | 编码为 `0x01xx` |
+| 15 | 单芯最低温度 | `u16Temperature[AFE1_TEMP1..AFE2_TEMP3]` | `(+40°C)*10` | 转 `0.1K` |
+| 16 | 单芯最低温度模块/编号 | 电芯温度最小值所在采样点 | 采样序号 | 编码为 `0x01xx` |
+| 17 | MOSFET 平均温度 | `u16Temperature[MOS_TEMP1]` | `(+40°C)*10` | 转 `0.1K` |
+| 18 | MOSFET 最高温度 | `u16Temperature[MOS_TEMP1]` | `(+40°C)*10` | 当前与平均温度相同 |
+| 19 | MOSFET 最高温度模块/编号 | 固定位置 | - | 当前输出 `0x0101` |
+| 20 | MOSFET 最低温度 | `u16Temperature[MOS_TEMP1]` | `(+40°C)*10` | 当前与平均温度相同 |
+| 21 | MOSFET 最低温度模块/编号 | 固定位置 | - | 当前输出 `0x0101` |
+| 22 | BMS 平均温度 | 无独立数据源 | - | 输出 `0xFFFF` |
+| 23 | BMS 最高温度 | 无独立数据源 | - | 输出 `0xFFFF` |
+| 24 | BMS 最高温度模块/编号 | 无独立数据源 | - | 输出 `0xFFFF` |
+| 25 | BMS 最低温度 | 无独立数据源 | - | 输出 `0xFFFF` |
+| 26 | BMS 最低温度模块/编号 | 无独立数据源 | - | 输出 `0xFFFF` |
+
+### 9.2 `0x62` 告警/保护字段对照
+
+#### Alarm1
+
+| Bit | 协议定义 | 当前来源 |
+| --- | --- | --- |
+| 7 | 模块总压高压 | `g_stCellInfoReport.unMdlFault_Second.bits.b1BatOvp` |
+| 6 | 模块总压低压 | `g_stCellInfoReport.unMdlFault_Second.bits.b1BatUvp` |
+| 5 | 单芯高压 | `g_stCellInfoReport.unMdlFault_Second.bits.b1CellOvp` |
+| 4 | 单芯低压 | `g_stCellInfoReport.unMdlFault_Second.bits.b1CellUvp` |
+| 3 | 单芯高温 | `b1CellChgOtp || b1CellDischgOtp` |
+| 2 | 单芯低温 | `b1CellChgUtp || b1CellDischgUtp` |
+| 1 | MOSFET 高温 | `b1TmosOtp` |
+| 0 | 单芯压差过大 | `b1VcellDeltaBig` |
+
+#### Alarm2
+
+| Bit | 协议定义 | 当前来源 |
+| --- | --- | --- |
+| 7 | 温差过大 | `g_stCellInfoReport.unMdlFault_Second.bits.b1TempDeltaBig` |
+| 6 | 充电过流告警 | `g_stCellInfoReport.unMdlFault_Second.bits.b1IchgOcp` |
+| 5 | 放电过流告警 | `g_stCellInfoReport.unMdlFault_Second.bits.b1IdischgOcp` |
+| 4 | 内部通信错误 | `SystemStatus.bits.b1Status_AFE1 == 0` |
+
+#### Protect1
+
+| Bit | 协议定义 | 当前来源 |
+| --- | --- | --- |
+| 7 | 模块总压过压 | `g_stCellInfoReport.unMdlFault_Third.bits.b1BatOvp` |
+| 6 | 模块总压欠压 | `g_stCellInfoReport.unMdlFault_Third.bits.b1BatUvp` |
+| 5 | 单芯过压 | `g_stCellInfoReport.unMdlFault_Third.bits.b1CellOvp` |
+| 4 | 单芯欠压 | `g_stCellInfoReport.unMdlFault_Third.bits.b1CellUvp` |
+| 3 | 单芯过温 | `b1CellChgOtp || b1CellDischgOtp` |
+| 2 | 单芯低温 | `b1CellChgUtp || b1CellDischgUtp` |
+| 1 | MOSFET 过温 | `b1TmosOtp` |
+
+#### Protect2
+
+| Bit | 协议定义 | 当前来源 |
+| --- | --- | --- |
+| 7 | 充电过流保护 | `g_stCellInfoReport.unMdlFault_Third.bits.b1IchgOcp` |
+| 6 | 放电过流保护 | `g_stCellInfoReport.unMdlFault_Third.bits.b1IdischgOcp` |
+| 4 | BMS error | `SystemStatus.bits.b1Status_AFE1 == 0` |
+
+### 9.3 `0x63` 充放电管理字段对照
+
+| 序号 | 协议字段 | 当前数据来源 | 内部单位 | 协议输出 |
+| --- | --- | --- | --- | --- |
+| 1 | 充电电压建议上限 | `OtherElement.u16Soc_V_100 * SeriesNum` | 单串 `mV` | 整包 `mV` |
+| 2 | 放电电压建议下限 | `OtherElement.u16Soc_V_0 * SeriesNum` | 单串 `mV` | 整包 `mV` |
+| 3 | 最大充电电流 | `OtherElement.u16CS_Cur_CHGmax` | `A*10` | 直接输出 `0.1A` |
+| 4 | 最大放电电流 | `OtherElement.u16CS_Cur_DSGmax` | `A*10` | 直接输出 `0.1A` |
+| 5 bit7 | Charge enable | `SystemStatus.bits.b1Status_MOS_CHG` | 开关状态 | 打开为 `1` |
+| 5 bit6 | Discharge enable | `SystemStatus.bits.b1Status_MOS_DSG` | 开关状态 | 打开为 `1` |
+| 5 bit5 | 立即充电 | 当前未实现 | - | 输出 `0` |
+| 5 bit4 | 满充请求 | 当前未实现 | - | 输出 `0` |
+
+## 10. map 瘦身分析
+
+基于当前 `CommomSH367309_16series_030C8T6_C.map`，对代码体积影响较大的热点主要有：
+
+- `iodrivers.o(i.MosCtrl_SameDoor_NoPreChg)`：`1130B`
+- `ascii_slave.o(i.Ascii_BuildAnalogData)`：`932B`
+- `socenhance.o(i.CorrectionTerminal_CV)`：`762B`
+- `sh367309_datadeal.o(i.Refresh_Parameters)`：`574B`
+- `sh367309_func.o(i.Fault_ChangeToMCU)`：`562B`
+- `io_control.o(i.RefreshData_Drivers)`：`516B`
+- `ascii_slave.o(i.Build_Response_Frame)`：`384B`
+- `sleepdeal.o(i.SleepDeal_Normal_L2)`：`366B`
+- `sleepdeal.o(i.SleepDeal_Continue)`：`326B`
+- `system_init.o(i.InitIO)`：`322B`
+
+本轮优先选择了低风险热点处理：
+
+- 协议适配层改为直接生成 `INFO` 负载，去掉 `Battery_*` 中间结构体和二次拷贝。
+- `ascii_slave.c` 的 `0x60/0x61/0x62/0x63` 应答打包改成直接调用 payload builder。
+- `Build_Response_Frame`、`Ascii_HandleFrame`、`AsciiParser_ConsumeByte` 中重复的 ASCII 十六进制拼装/解析收敛到公共 helper，减少重复展开。
+
+暂未优先修改的高风险热点：
+
+- `SOC` 校正相关
+- 休眠状态机相关
+- MOS/继电器驱动状态机相关
+
+原因是这些模块虽然更大，但行为耦合重，若只为了腾出几十字节而改动，回归风险明显高于协议链路。

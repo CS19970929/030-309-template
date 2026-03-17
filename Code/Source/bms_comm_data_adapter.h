@@ -4,9 +4,9 @@
 #include "main.h"
 #include "ascii_slave.h"
 
-void BmsComm_GetBaseInfo(Battery_Base_Info_T *info);
-void BmsComm_GetAnalogData(Battery_Analog_T *data);
-void BmsComm_GetAlarmData(Battery_Alarm_T *data);
-void BmsComm_GetChargeDischargeInfo(Battery_Charge_Dis_Info_T *data);
+uint16_t BmsComm_BuildBaseInfoPayload(uint8_t *info_buf, uint16_t capacity);
+uint16_t BmsComm_BuildAnalogPayload(uint8_t *info_buf, uint16_t capacity);
+uint16_t BmsComm_BuildAlarmPayload(uint8_t *info_buf, uint16_t capacity);
+uint16_t BmsComm_BuildChargeDischargePayload(uint8_t *info_buf, uint16_t capacity);
 
 #endif
