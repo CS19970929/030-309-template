@@ -138,14 +138,14 @@ struct OTHER_ELEMENT {
 #define  BMS_SOFTWARE_VERDION_DEFAULT   "MOT-WH-001"  //32
 #define  BMS_SERIAL_NUMBER_DEFAULT  	"MOT-WH-001"
 
-#define SNum 			8
+#define SNum 			16
 
 // #define TERNARYLI		//��Ԫ﮵�أ���ѡ�?
 #define LIFEPO			//������﮵�أ���ѡ�?
 
 
 #define CS_Res			2
-#define CS_Res_Num		15
+#define CS_Res_Num		20
 
 #define CS_Cur_CHGmax	((INT32)CS_Res_Num*1250/CS_Res-10)
 #define CS_Cur_DSGmax	CS_Cur_CHGmax

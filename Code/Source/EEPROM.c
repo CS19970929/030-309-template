@@ -701,16 +701,16 @@ void InitData_E2prom(void)
 
 		soc_factory_param_init_first();
 
-		// bool ret = false;
-		// do
-		// {
-		// 	initAFE1_IIC();
-		// 	AFE_IsReady();
-		// 	AFE_PARAM_WRITE_Flag = 1;
-		// 	ret = SH367309_UpdataAfeConfig();
+		bool ret = false;
+		do
+		{
+			initAFE1_IIC();
+			AFE_IsReady();
+			AFE_PARAM_WRITE_Flag = 1;
+			ret = SH367309_UpdataAfeConfig();
 
-		// } while (ret == false);
-		// DataLoad_CurrentCali_startup();
+		} while (ret == false);
+		DataLoad_CurrentCali_startup();
 
 		WriteEEPROM_Word_NoZone(EEPROM_ADDR_PASS, EEPROM_VALUE_BEGIN_FLAG); // 第一次上电初始化完成
 		LoadE2promRuntimeData();

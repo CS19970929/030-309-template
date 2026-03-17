@@ -210,9 +210,9 @@ uint16_t BmsComm_BuildAnalogPayload(uint8_t *info_buf, uint16_t capacity)
     int16_t pack_current;
     uint16_t analog_prefix_u16[2];
     uint8_t analog_mid_u8[1];
-    uint16_t analog_mid_u16[1];
+    uint16_t analog_mid_u16[2];
     uint8_t analog_soh_u8[2];
-    uint16_t analog_tail_u16[18];
+    uint16_t analog_tail_u16[19];
 
     if (capacity < 51U)
     {
@@ -276,9 +276,10 @@ uint16_t BmsComm_BuildAnalogPayload(uint8_t *info_buf, uint16_t capacity)
     }
 
     analog_prefix_u16[0] = BmsComm_SaturateU16((uint32_t)g_stCellInfoReport.u16VCellTotle * 10UL);
-    analog_prefix_u16[1] = (uint16_t)(pack_current * 10);
+    analog_prefix_u16[1] = (uint16_t)(pack_current * 100);
     analog_mid_u8[0] = (uint8_t)g_stCellInfoReport.SocElement.u16Soc;
     analog_mid_u16[0] = g_stCellInfoReport.SocElement.u16Cycle_times;
+    analog_mid_u16[1] = g_stCellInfoReport.SocElement.u16Cycle_times;
     analog_soh_u8[0] = (uint8_t)g_stCellInfoReport.SocElement.u16Soh;
     analog_soh_u8[1] = (uint8_t)g_stCellInfoReport.SocElement.u16Soh;
 
@@ -300,11 +301,12 @@ uint16_t BmsComm_BuildAnalogPayload(uint8_t *info_buf, uint16_t capacity)
     analog_tail_u16[15] = 0xFFFFU;
     analog_tail_u16[16] = 0xFFFFU;
     analog_tail_u16[17] = 0xFFFFU;
+    analog_tail_u16[18] = 0xFFFFU;
 
     idx = 0U;
     idx = BmsComm_AppendU16List(info_buf, idx, capacity, analog_prefix_u16, 2U);
     idx = BmsComm_AppendU8List(info_buf, idx, capacity, analog_mid_u8, 1U);
-    idx = BmsComm_AppendU16List(info_buf, idx, capacity, analog_mid_u16, 1U);
+    idx = BmsComm_AppendU16List(info_buf, idx, capacity, analog_mid_u16, 2U);
     idx = BmsComm_AppendU16(info_buf, idx, capacity, g_stCellInfoReport.SocElement.u16Cycle_times);
     idx = BmsComm_AppendU8List(info_buf, idx, capacity, analog_soh_u8, 2U);
     idx = BmsComm_AppendU16List(info_buf, idx, capacity, analog_tail_u16, 18U);
@@ -326,7 +328,8 @@ uint16_t BmsComm_BuildAlarmPayload(uint8_t *info_buf, uint16_t capacity)
 
     alarm_fault = g_stCellInfoReport.unMdlFault_Second;
     protect_fault = g_stCellInfoReport.unMdlFault_Third;
-    bms_error = (uint8_t)((SystemStatus.bits.b1StartUpBMS != 0U) && (SystemStatus.bits.b1Status_AFE1 == 0U));
+    // bms_error = (uint8_t)((SystemStatus.bits.b1StartUpBMS != 0U) && (SystemStatus.bits.b1Status_AFE1 == 0U));
+    bms_error = (uint8_t)((SystemStatus.bits.b1Status_AFE1 == 0U));
 
     idx = 0U;
     idx = BmsComm_AppendU8(info_buf, idx, capacity, (uint8_t)((alarm_fault.bits.b1BatOvp << 7) |
@@ -348,9 +351,9 @@ uint16_t BmsComm_BuildAlarmPayload(uint8_t *info_buf, uint16_t capacity)
                                                                (((protect_fault.bits.b1CellChgOtp != 0U) || (protect_fault.bits.b1CellDischgOtp != 0U)) << 3) |
                                                                (((protect_fault.bits.b1CellChgUtp != 0U) || (protect_fault.bits.b1CellDischgUtp != 0U)) << 2) |
                                                                (protect_fault.bits.b1TmosOtp << 1)));
-    idx = BmsComm_AppendU8(info_buf, idx, capacity, (uint8_t)((protect_fault.bits.b1IchgOcp << 7) |
-                                                               (protect_fault.bits.b1IdischgOcp << 6) |
-                                                               (bms_error << 4)));
+    idx = BmsComm_AppendU8(info_buf, idx, capacity, (uint8_t)((protect_fault.bits.b1IchgOcp << 6) |
+                                                               (protect_fault.bits.b1IdischgOcp << 5) |
+                                                               (bms_error << 3)));
 
     return idx;
 }
@@ -374,8 +377,8 @@ uint16_t BmsComm_BuildChargeDischargePayload(uint8_t *info_buf, uint16_t capacit
     idx = 0U;
     idx = BmsComm_AppendU16(info_buf, idx, capacity, charge_volt_limit);
     idx = BmsComm_AppendU16(info_buf, idx, capacity, discharge_volt_limit);
-    idx = BmsComm_AppendU16(info_buf, idx, capacity, OtherElement.u16CS_Cur_CHGmax);
-    idx = BmsComm_AppendU16(info_buf, idx, capacity, OtherElement.u16CS_Cur_DSGmax);
+    idx = BmsComm_AppendU16(info_buf, idx, capacity, PRT_E2ROMParas.u16IchgOcp_Second / 10);
+    idx = BmsComm_AppendU16(info_buf, idx, capacity, PRT_E2ROMParas.u16IdsgOcp_Second / 10);
     idx = BmsComm_AppendU8(info_buf, idx, capacity, BmsComm_GetChargeDischargeStatus());
 
     return idx;
