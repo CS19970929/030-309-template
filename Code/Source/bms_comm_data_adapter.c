@@ -1,5 +1,83 @@
 #include "bms_comm_data_adapter.h"
 
+static uint16_t BmsComm_EncodePylonLocation(uint16_t point_index)
+{
+    uint16_t point;
+
+    point = point_index;
+    if (point == 0U)
+    {
+        point = 1U;
+    }
+    if (point > 0x00FFU)
+    {
+        point = 0x00FFU;
+    }
+
+    return (uint16_t)(0x0100U | point);
+}
+
+static uint16_t BmsComm_EncodePylonTemperature(int16_t temp_c_x10)
+{
+    int32_t temp_k_x10;
+
+    temp_k_x10 = (int32_t)temp_c_x10 + 2730;
+    if (temp_k_x10 < 0)
+    {
+        temp_k_x10 = 0;
+    }
+    if (temp_k_x10 > 0xFFFF)
+    {
+        temp_k_x10 = 0xFFFF;
+    }
+
+    return (uint16_t)temp_k_x10;
+}
+
+static uint16_t BmsComm_EncodePylonCurrent(int16_t current_a_x10)
+{
+    int32_t current_offset_x100;
+
+    current_offset_x100 = 30000 + ((int32_t)current_a_x10 * 10);
+    if (current_offset_x100 < 0)
+    {
+        current_offset_x100 = 0;
+    }
+    if (current_offset_x100 > 0xFFFF)
+    {
+        current_offset_x100 = 0xFFFF;
+    }
+
+    return (uint16_t)current_offset_x100;
+}
+
+static uint16_t BmsComm_SaturateU16(uint32_t value)
+{
+    if (value > 0xFFFFUL)
+    {
+        return 0xFFFFU;
+    }
+
+    return (uint16_t)value;
+}
+
+static uint8_t BmsComm_GetChargeDischargeStatus(void)
+{
+    uint8_t status;
+
+    status = 0;
+    if (SystemStatus.bits.b1Status_MOS_CHG != 0U)
+    {
+        status |= 0x80U;
+    }
+    if (SystemStatus.bits.b1Status_MOS_DSG != 0U)
+    {
+        status |= 0x40U;
+    }
+
+    return status;
+}
+
 static void BmsComm_CopyAsciiField(uint8_t *dst, uint16_t dst_len, const uint8_t *src, uint16_t src_len)
 {
     uint16_t i;
@@ -52,7 +130,7 @@ void BmsComm_GetAnalogData(Battery_Analog_T *data)
     avg_temp = (int16_t)((((int32_t)g_stCellInfoReport.u16TempMax + (int32_t)g_stCellInfoReport.u16TempMin) / 2) - 400);
 
     data->pack_total_avg_voltage = g_stCellInfoReport.u16VCellTotle;
-    data->pack_total_current = pack_current;
+    data->pack_total_current = (int16_t)BmsComm_EncodePylonCurrent(pack_current);
     data->pack_soc = (uint8_t)g_stCellInfoReport.SocElement.u16Soc;
     data->pack_avg_cycle_count = g_stCellInfoReport.SocElement.u16Cycle_times;
     data->pack_max_cycle_count = g_stCellInfoReport.SocElement.u16Cycle_times;
@@ -60,27 +138,27 @@ void BmsComm_GetAnalogData(Battery_Analog_T *data)
     data->pack_min_soh = (uint8_t)g_stCellInfoReport.SocElement.u16Soh;
 
     data->cell_max_voltage = g_stCellInfoReport.u16VCellMax;
-    data->cell_max_voltage_module = g_stCellInfoReport.u16VCellMaxPosition;
+    data->cell_max_voltage_module = BmsComm_EncodePylonLocation(g_stCellInfoReport.u16VCellMaxPosition);
     data->cell_min_voltage = g_stCellInfoReport.u16VCellMin;
-    data->cell_min_voltage_module = g_stCellInfoReport.u16VCellMinPosition;
+    data->cell_min_voltage_module = BmsComm_EncodePylonLocation(g_stCellInfoReport.u16VCellMinPosition);
 
-    data->cell_avg_temp = avg_temp;
-    data->cell_max_temp = (int16_t)g_stCellInfoReport.u16TempMax - 400;
-    data->cell_max_temp_module = 1;
-    data->cell_min_temp = (int16_t)g_stCellInfoReport.u16TempMin - 400;
-    data->cell_min_temp_module = 1;
+    data->cell_avg_temp = (int16_t)BmsComm_EncodePylonTemperature(avg_temp);
+    data->cell_max_temp = (int16_t)BmsComm_EncodePylonTemperature((int16_t)g_stCellInfoReport.u16TempMax - 400);
+    data->cell_max_temp_module = BmsComm_EncodePylonLocation(1);
+    data->cell_min_temp = (int16_t)BmsComm_EncodePylonTemperature((int16_t)g_stCellInfoReport.u16TempMin - 400);
+    data->cell_min_temp_module = BmsComm_EncodePylonLocation(1);
 
-    data->mosfet_avg_temp = avg_temp;
+    data->mosfet_avg_temp = (int16_t)BmsComm_EncodePylonTemperature(avg_temp);
     data->mosfet_max_temp = data->cell_max_temp;
-    data->mosfet_max_temp_module = 1;
+    data->mosfet_max_temp_module = BmsComm_EncodePylonLocation(1);
     data->mosfet_min_temp = data->cell_min_temp;
-    data->mosfet_min_temp_module = 1;
+    data->mosfet_min_temp_module = BmsComm_EncodePylonLocation(1);
 
-    data->bms_avg_temp = avg_temp;
+    data->bms_avg_temp = (int16_t)BmsComm_EncodePylonTemperature(avg_temp);
     data->bms_max_temp = data->cell_max_temp;
-    data->bms_max_temp_module = 1;
+    data->bms_max_temp_module = BmsComm_EncodePylonLocation(1);
     data->bms_min_temp = data->cell_min_temp;
-    data->bms_min_temp_module = 1;
+    data->bms_min_temp_module = BmsComm_EncodePylonLocation(1);
 }
 
 void BmsComm_GetAlarmData(Battery_Alarm_T *data)
@@ -95,23 +173,14 @@ void BmsComm_GetAlarmData(Battery_Alarm_T *data)
 
 void BmsComm_GetChargeDischargeInfo(Battery_Charge_Dis_Info_T *data)
 {
+    uint32_t series_count;
+
     memset(data, 0, sizeof(*data));
 
-    data->charge_volt_limit = OtherElement.u16Soc_V_100;
-    data->discharge_volt_limit = OtherElement.u16Soc_V_0;
+    series_count = (SeriesNum > 0U) ? SeriesNum : 1U;
+    data->charge_volt_limit = BmsComm_SaturateU16((uint32_t)OtherElement.u16Soc_V_100 * series_count);
+    data->discharge_volt_limit = BmsComm_SaturateU16((uint32_t)OtherElement.u16Soc_V_0 * series_count);
     data->max_charge_current = (int16_t)(OtherElement.u16CS_Cur_CHGmax * 10);
     data->max_discharge_current = (int16_t)(OtherElement.u16CS_Cur_DSGmax * 10);
-
-    if (g_stCellInfoReport.u16Ichg > 0)
-    {
-        data->charge_dis_status = 0x80;
-    }
-    else if (g_stCellInfoReport.u16IDischg > 0)
-    {
-        data->charge_dis_status = 0x40;
-    }
-    else
-    {
-        data->charge_dis_status = 0x00;
-    }
+    data->charge_dis_status = BmsComm_GetChargeDischargeStatus();
 }
