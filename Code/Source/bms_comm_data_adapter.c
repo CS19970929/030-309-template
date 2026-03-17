@@ -60,6 +60,61 @@ static uint16_t BmsComm_AppendAsciiField(uint8_t *dst, uint16_t idx, uint16_t ca
     return (uint16_t)(idx + dst_len);
 }
 
+static uint16_t BmsComm_AppendU16(uint8_t *dst, uint16_t idx, uint16_t capacity, uint16_t value)
+{
+    if ((uint16_t)(idx + 2U) > capacity)
+    {
+        return 0U;
+    }
+
+    dst[idx] = (uint8_t)(value >> 8);
+    dst[idx + 1U] = (uint8_t)value;
+    return (uint16_t)(idx + 2U);
+}
+
+static uint16_t BmsComm_AppendU8(uint8_t *dst, uint16_t idx, uint16_t capacity, uint8_t value)
+{
+    if ((uint16_t)(idx + 1U) > capacity)
+    {
+        return 0U;
+    }
+
+    dst[idx] = value;
+    return (uint16_t)(idx + 1U);
+}
+
+static uint16_t BmsComm_AppendU16List(uint8_t *dst, uint16_t idx, uint16_t capacity, const uint16_t *values, uint8_t count)
+{
+    uint8_t i;
+
+    for (i = 0U; i < count; ++i)
+    {
+        idx = BmsComm_AppendU16(dst, idx, capacity, values[i]);
+        if (idx == 0U)
+        {
+            return 0U;
+        }
+    }
+
+    return idx;
+}
+
+static uint16_t BmsComm_AppendU8List(uint8_t *dst, uint16_t idx, uint16_t capacity, const uint8_t *values, uint8_t count)
+{
+    uint8_t i;
+
+    for (i = 0U; i < count; ++i)
+    {
+        idx = BmsComm_AppendU8(dst, idx, capacity, values[i]);
+        if (idx == 0U)
+        {
+            return 0U;
+        }
+    }
+
+    return idx;
+}
+
 static uint8_t BmsComm_GetChargeDischargeStatus(void)
 {
     uint8_t status;
@@ -116,7 +171,11 @@ uint16_t BmsComm_BuildBaseInfoPayload(uint8_t *info_buf, uint16_t capacity)
         return 0U;
     }
 
-    info_buf[idx++] = (uint8_t)battery_count;
+    idx = BmsComm_AppendU8(info_buf, idx, capacity, (uint8_t)battery_count);
+    if (idx == 0U)
+    {
+        return 0U;
+    }
 
     for (i = 0U; i < battery_count; ++i)
     {
@@ -149,24 +208,16 @@ uint16_t BmsComm_BuildAnalogPayload(uint8_t *info_buf, uint16_t capacity)
     uint8_t temp_min_index;
     uint32_t temp_sum;
     int16_t pack_current;
+    uint16_t analog_prefix_u16[2];
+    uint8_t analog_mid_u8[1];
+    uint16_t analog_mid_u16[1];
+    uint8_t analog_soh_u8[2];
+    uint16_t analog_tail_u16[18];
 
     if (capacity < 51U)
     {
         return 0U;
     }
-
-#define APPEND_U16(v)                  \
-    do                                 \
-    {                                  \
-        info_buf[idx++] = (uint8_t)((v) >> 8); \
-        info_buf[idx++] = (uint8_t)(v);        \
-    } while (0)
-
-#define APPEND_U8(v)   \
-    do                 \
-    {                  \
-        info_buf[idx++] = (uint8_t)(v); \
-    } while (0)
 
     pack_current = (g_stCellInfoReport.u16Ichg > 0U) ? (int16_t)g_stCellInfoReport.u16Ichg : (int16_t)(-((int16_t)g_stCellInfoReport.u16IDischg));
     temp_sum = 0UL;
@@ -224,36 +275,39 @@ uint16_t BmsComm_BuildAnalogPayload(uint8_t *info_buf, uint16_t capacity)
         mos_temp = BmsComm_EncodePylonTemperature((int16_t)temp_raw - 400);
     }
 
-    idx = 0U;
-    APPEND_U16(BmsComm_SaturateU16((uint32_t)g_stCellInfoReport.u16VCellTotle * 10UL));
-    APPEND_U16((uint16_t)(pack_current * 10));
-    APPEND_U8(g_stCellInfoReport.SocElement.u16Soc);
-    APPEND_U16(g_stCellInfoReport.SocElement.u16Cycle_times);
-    APPEND_U16(g_stCellInfoReport.SocElement.u16Cycle_times);
-    APPEND_U8(g_stCellInfoReport.SocElement.u16Soh);
-    APPEND_U8(g_stCellInfoReport.SocElement.u16Soh);
-    APPEND_U16(g_stCellInfoReport.u16VCellMax);
-    APPEND_U16(BmsComm_EncodePylonLocation(g_stCellInfoReport.u16VCellMaxPosition));
-    APPEND_U16(g_stCellInfoReport.u16VCellMin);
-    APPEND_U16(BmsComm_EncodePylonLocation(g_stCellInfoReport.u16VCellMinPosition));
-    APPEND_U16(cell_avg_temp);
-    APPEND_U16(cell_max_temp);
-    APPEND_U16(cell_max_location);
-    APPEND_U16(cell_min_temp);
-    APPEND_U16(cell_min_location);
-    APPEND_U16(mos_temp);
-    APPEND_U16(mos_temp);
-    APPEND_U16((mos_temp == 0xFFFFU) ? 0xFFFFU : 0x0101U);
-    APPEND_U16(mos_temp);
-    APPEND_U16((mos_temp == 0xFFFFU) ? 0xFFFFU : 0x0101U);
-    APPEND_U16(0xFFFFU);
-    APPEND_U16(0xFFFFU);
-    APPEND_U16(0xFFFFU);
-    APPEND_U16(0xFFFFU);
-    APPEND_U16(0xFFFFU);
+    analog_prefix_u16[0] = BmsComm_SaturateU16((uint32_t)g_stCellInfoReport.u16VCellTotle * 10UL);
+    analog_prefix_u16[1] = (uint16_t)(pack_current * 10);
+    analog_mid_u8[0] = (uint8_t)g_stCellInfoReport.SocElement.u16Soc;
+    analog_mid_u16[0] = g_stCellInfoReport.SocElement.u16Cycle_times;
+    analog_soh_u8[0] = (uint8_t)g_stCellInfoReport.SocElement.u16Soh;
+    analog_soh_u8[1] = (uint8_t)g_stCellInfoReport.SocElement.u16Soh;
 
-#undef APPEND_U8
-#undef APPEND_U16
+    analog_tail_u16[0] = g_stCellInfoReport.u16VCellMax;
+    analog_tail_u16[1] = BmsComm_EncodePylonLocation(g_stCellInfoReport.u16VCellMaxPosition);
+    analog_tail_u16[2] = g_stCellInfoReport.u16VCellMin;
+    analog_tail_u16[3] = BmsComm_EncodePylonLocation(g_stCellInfoReport.u16VCellMinPosition);
+    analog_tail_u16[4] = cell_avg_temp;
+    analog_tail_u16[5] = cell_max_temp;
+    analog_tail_u16[6] = cell_max_location;
+    analog_tail_u16[7] = cell_min_temp;
+    analog_tail_u16[8] = cell_min_location;
+    analog_tail_u16[9] = mos_temp;
+    analog_tail_u16[10] = mos_temp;
+    analog_tail_u16[11] = (mos_temp == 0xFFFFU) ? 0xFFFFU : 0x0101U;
+    analog_tail_u16[12] = mos_temp;
+    analog_tail_u16[13] = (mos_temp == 0xFFFFU) ? 0xFFFFU : 0x0101U;
+    analog_tail_u16[14] = 0xFFFFU;
+    analog_tail_u16[15] = 0xFFFFU;
+    analog_tail_u16[16] = 0xFFFFU;
+    analog_tail_u16[17] = 0xFFFFU;
+
+    idx = 0U;
+    idx = BmsComm_AppendU16List(info_buf, idx, capacity, analog_prefix_u16, 2U);
+    idx = BmsComm_AppendU8List(info_buf, idx, capacity, analog_mid_u8, 1U);
+    idx = BmsComm_AppendU16List(info_buf, idx, capacity, analog_mid_u16, 1U);
+    idx = BmsComm_AppendU16(info_buf, idx, capacity, g_stCellInfoReport.SocElement.u16Cycle_times);
+    idx = BmsComm_AppendU8List(info_buf, idx, capacity, analog_soh_u8, 2U);
+    idx = BmsComm_AppendU16List(info_buf, idx, capacity, analog_tail_u16, 18U);
 
     return idx;
 }
@@ -275,28 +329,28 @@ uint16_t BmsComm_BuildAlarmPayload(uint8_t *info_buf, uint16_t capacity)
     bms_error = (uint8_t)((SystemStatus.bits.b1StartUpBMS != 0U) && (SystemStatus.bits.b1Status_AFE1 == 0U));
 
     idx = 0U;
-    info_buf[idx++] = (uint8_t)((alarm_fault.bits.b1BatOvp << 7) |
-                                (alarm_fault.bits.b1BatUvp << 6) |
-                                (alarm_fault.bits.b1CellOvp << 5) |
-                                (alarm_fault.bits.b1CellUvp << 4) |
-                                (((alarm_fault.bits.b1CellChgOtp != 0U) || (alarm_fault.bits.b1CellDischgOtp != 0U)) << 3) |
-                                (((alarm_fault.bits.b1CellChgUtp != 0U) || (alarm_fault.bits.b1CellDischgUtp != 0U)) << 2) |
-                                (alarm_fault.bits.b1TmosOtp << 1) |
-                                alarm_fault.bits.b1VcellDeltaBig);
-    info_buf[idx++] = (uint8_t)((alarm_fault.bits.b1TempDeltaBig << 7) |
-                                (alarm_fault.bits.b1IchgOcp << 6) |
-                                (alarm_fault.bits.b1IdischgOcp << 5) |
-                                (bms_error << 4));
-    info_buf[idx++] = (uint8_t)((protect_fault.bits.b1BatOvp << 7) |
-                                (protect_fault.bits.b1BatUvp << 6) |
-                                (protect_fault.bits.b1CellOvp << 5) |
-                                (protect_fault.bits.b1CellUvp << 4) |
-                                (((protect_fault.bits.b1CellChgOtp != 0U) || (protect_fault.bits.b1CellDischgOtp != 0U)) << 3) |
-                                (((protect_fault.bits.b1CellChgUtp != 0U) || (protect_fault.bits.b1CellDischgUtp != 0U)) << 2) |
-                                (protect_fault.bits.b1TmosOtp << 1));
-    info_buf[idx++] = (uint8_t)((protect_fault.bits.b1IchgOcp << 7) |
-                                (protect_fault.bits.b1IdischgOcp << 6) |
-                                (bms_error << 4));
+    idx = BmsComm_AppendU8(info_buf, idx, capacity, (uint8_t)((alarm_fault.bits.b1BatOvp << 7) |
+                                                               (alarm_fault.bits.b1BatUvp << 6) |
+                                                               (alarm_fault.bits.b1CellOvp << 5) |
+                                                               (alarm_fault.bits.b1CellUvp << 4) |
+                                                               (((alarm_fault.bits.b1CellChgOtp != 0U) || (alarm_fault.bits.b1CellDischgOtp != 0U)) << 3) |
+                                                               (((alarm_fault.bits.b1CellChgUtp != 0U) || (alarm_fault.bits.b1CellDischgUtp != 0U)) << 2) |
+                                                               (alarm_fault.bits.b1TmosOtp << 1) |
+                                                               alarm_fault.bits.b1VcellDeltaBig));
+    idx = BmsComm_AppendU8(info_buf, idx, capacity, (uint8_t)((alarm_fault.bits.b1TempDeltaBig << 7) |
+                                                               (alarm_fault.bits.b1IchgOcp << 6) |
+                                                               (alarm_fault.bits.b1IdischgOcp << 5) |
+                                                               (bms_error << 4)));
+    idx = BmsComm_AppendU8(info_buf, idx, capacity, (uint8_t)((protect_fault.bits.b1BatOvp << 7) |
+                                                               (protect_fault.bits.b1BatUvp << 6) |
+                                                               (protect_fault.bits.b1CellOvp << 5) |
+                                                               (protect_fault.bits.b1CellUvp << 4) |
+                                                               (((protect_fault.bits.b1CellChgOtp != 0U) || (protect_fault.bits.b1CellDischgOtp != 0U)) << 3) |
+                                                               (((protect_fault.bits.b1CellChgUtp != 0U) || (protect_fault.bits.b1CellDischgUtp != 0U)) << 2) |
+                                                               (protect_fault.bits.b1TmosOtp << 1)));
+    idx = BmsComm_AppendU8(info_buf, idx, capacity, (uint8_t)((protect_fault.bits.b1IchgOcp << 7) |
+                                                               (protect_fault.bits.b1IdischgOcp << 6) |
+                                                               (bms_error << 4)));
 
     return idx;
 }
@@ -318,15 +372,11 @@ uint16_t BmsComm_BuildChargeDischargePayload(uint8_t *info_buf, uint16_t capacit
     discharge_volt_limit = BmsComm_SaturateU16((uint32_t)OtherElement.u16Soc_V_0 * series_count);
 
     idx = 0U;
-    info_buf[idx++] = (uint8_t)(charge_volt_limit >> 8);
-    info_buf[idx++] = (uint8_t)charge_volt_limit;
-    info_buf[idx++] = (uint8_t)(discharge_volt_limit >> 8);
-    info_buf[idx++] = (uint8_t)discharge_volt_limit;
-    info_buf[idx++] = (uint8_t)(OtherElement.u16CS_Cur_CHGmax >> 8);
-    info_buf[idx++] = (uint8_t)OtherElement.u16CS_Cur_CHGmax;
-    info_buf[idx++] = (uint8_t)(OtherElement.u16CS_Cur_DSGmax >> 8);
-    info_buf[idx++] = (uint8_t)OtherElement.u16CS_Cur_DSGmax;
-    info_buf[idx++] = BmsComm_GetChargeDischargeStatus();
+    idx = BmsComm_AppendU16(info_buf, idx, capacity, charge_volt_limit);
+    idx = BmsComm_AppendU16(info_buf, idx, capacity, discharge_volt_limit);
+    idx = BmsComm_AppendU16(info_buf, idx, capacity, OtherElement.u16CS_Cur_CHGmax);
+    idx = BmsComm_AppendU16(info_buf, idx, capacity, OtherElement.u16CS_Cur_DSGmax);
+    idx = BmsComm_AppendU8(info_buf, idx, capacity, BmsComm_GetChargeDischargeStatus());
 
     return idx;
 }
