@@ -85,11 +85,11 @@ tByte SCH_Add_Task(void (*pFuntion)(void),
 {
 	tByte index = 0; /*首先在队列中找到一个空隙，（如果有的话）*/
 	
-	while((SCH_task_G[index].pTask != 0) && (index <SCH_MAX_TASKS))
+	while((index < SCH_MAX_TASKS) && (SCH_task_G[index].pTask != 0))
 	{
 		index ++;		
 	}
-	if(index == SCH_MAX_TASKS)/*超过最大的任务数目 则返错误信息*/
+	if(index >= SCH_MAX_TASKS)/*超过最大的任务数目 则返错误信息*/
 	{
 		Error_code_G = ERROR_SCH_TOO_MANY_TASKS;/*设置全局错误变量*/
 		return SCH_MAX_TASKS;	
@@ -114,6 +114,11 @@ tByte SCH_Add_Task(void (*pFuntion)(void),
 tByte SCH_Task_Delete(tByte index)
 {
 	tByte Return_code;
+	if(index >= SCH_MAX_TASKS)
+	{
+		Error_code_G = ERROR_SCH_CANOT_DELETE_TASK;
+		return RETURN_ERROR;
+	}
 	
 	/*这里没有任务*/
 	if(SCH_task_G[index].pTask == 0)				   
@@ -149,7 +154,7 @@ void SCH_Dispatch_Tasks(void)
 	/*运行下一个任务，如果下一个任务准备就绪的话*/
 	for(index = 0; index < SCH_MAX_TASKS; index++)
 	{
-		if(SCH_task_G[index].RunMe >0)
+		if((SCH_task_G[index].RunMe > 0) && (SCH_task_G[index].pTask != 0))
 		{
 			/*执行任务 */
 			(*SCH_task_G[index].pTask)();    

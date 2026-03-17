@@ -200,6 +200,16 @@ UINT16 GetEndValue(const UINT16 *ptbl, UINT16 tblsize, UINT16 dat)
 
 UINT8 App_PubOPUPChk(SPUBOPUPCHK *t_sPubOPChk)
 {
+	if ((((UINT32)t_sPubOPChk) & 0x01U) != 0U)
+	{
+		return (0);
+	}
+
+	if ((t_sPubOPChk == 0) || (t_sPubOPChk->i16ChkCnt == 0))
+	{
+		return (0);
+	}
+
 	if ((t_sPubOPChk->u8FlagLogic > 1) || (t_sPubOPChk->u16OPValB < t_sPubOPChk->u16OPValS))
 	{
 		return (0); // 数值异常返回0
