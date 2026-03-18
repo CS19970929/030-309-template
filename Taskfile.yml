@@ -12,6 +12,11 @@ tasks:
     cmds:
       - task --list
 
+  doctor:
+    desc: 检查跨平台工具链是否齐备
+    cmds:
+      - "{{.PYTHON}} scripts/check_toolchain.py"
+
   init:
     desc: 初始化 Python 工具环境
     cmds:
@@ -19,12 +24,13 @@ tasks:
       - uv sync
 
   build:
-    desc: 预留的跨平台主构建入口
+    desc: 使用 CMake Preset 构建 STM32F030 固件
     cmds:
-      - '{{.PYTHON}} scripts/export_artifacts.py --source-root . --output artifacts/build-plan.json'
+      - "cmake --preset firmware-debug"
+      - "cmake --build --preset build-firmware-debug"
 
   rebuild:
-    desc: 清理后重新执行主构建入口
+    desc: 清理后重新执行固件构建
     cmds:
       - task: clean
       - task: build
@@ -50,6 +56,7 @@ tasks:
       - "{{.PYTHON}} scripts/new_project.py --help"
       - "{{.PYTHON}} scripts/analyze_map.py --help"
       - "{{.PYTHON}} scripts/debug_capture.py --help"
+      - "{{.PYTHON}} scripts/check_toolchain.py"
 
   map:
     desc: 分析 map 文件热点
