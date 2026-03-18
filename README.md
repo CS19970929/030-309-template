@@ -7,6 +7,8 @@
 - `task doctor`：检查当前机器缺哪些工具
 - `task init`：初始化 Python 工具环境
 - `task build`：走 CMake Preset 构建固件
+- `task sim-modbus`：运行 Modbus 解析主机侧自检
+- `task sim-replay`：回放 Modbus 帧并生成日志和 JSONL 快照
 - `task map`：生成 map 摘要
 - `task flash`：生成烧录命令计划
 - `task debug`：生成调试命令计划

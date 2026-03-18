@@ -130,6 +130,18 @@
       "problemMatcher": []
     },
     {
+      "label": "pc: host replay",
+      "type": "shell",
+      "command": "C:\\Users\\Administrator\\AppData\\Local\\Microsoft\\WinGet\\Links\\task.exe",
+      "args": [
+        "sim-replay"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
       "label": "mcu: build gcc release",
       "type": "shell",
       "command": "C:\\Users\\Administrator\\AppData\\Local\\Microsoft\\WinGet\\Links\\task.exe",

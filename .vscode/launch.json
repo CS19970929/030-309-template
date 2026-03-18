@@ -48,6 +48,28 @@
       "cwd": "${workspaceFolder}"
     },
     {
+      "name": "Host Replay: Modbus Parser",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/artifacts/cmake/host-sim-debug/host_sim/modbus_parser_host_replay.exe",
+      "args": [
+        "--input",
+        "host_sim/scenarios/modbus_frames.txt",
+        "--log",
+        "artifacts/host-sim/modbus-replay.log",
+        "--snapshot",
+        "artifacts/host-sim/modbus-replay.jsonl",
+        "--repeat",
+        "1"
+      ],
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "pc: host replay",
+      "stopAtEntry": false,
+      "console": "integratedTerminal",
+      "MIMode": "gdb",
+      "miDebuggerPath": "C:/qp/qtools/MinGW32/bin/gdb.exe"
+    },
+    {
       "name": "Cortex-Debug: STM32F030 (J-Link)",
       "type": "cortex-debug",
       "request": "launch",

@@ -7,6 +7,7 @@
 - Windows 上的 `Keil` 命令行构建可用
 - Windows 上的 `Python` 自动化脚本可用
 - Windows 上的 `host_sim` 主机侧仿真可用
+- Windows 上的 `host replay` 日志回放可用
 - Windows 上的 `GCC + CMake Release` 固件构建可用
 - `VS Code` 已提供常用任务入口
 - `J-Link` / `OpenOCD` 工具已安装，但真实连板调试还需要硬件接入
@@ -100,7 +101,22 @@ All host-side Modbus parser checks passed.
 
 - [modbus_parser_host_test.exe](E:/TODO/030%20+%20309/artifacts/cmake/host-sim-debug/host_sim/modbus_parser_host_test.exe)
 
-### 4. MCU: GCC + CMake Release 构建
+### 4. PC: 日志回放与快照
+
+已执行成功：
+
+```powershell
+task sim-replay
+```
+
+产物：
+
+- [modbus-replay.log](E:/TODO/030%20+%20309/artifacts/host-sim/modbus-replay.log)
+- [modbus-replay.jsonl](E:/TODO/030%20+%20309/artifacts/host-sim/modbus-replay.jsonl)
+- [modbus_frames.txt](E:/TODO/030%20+%20309/host_sim/scenarios/modbus_frames.txt)
+- [modbus_invalid_frames.txt](E:/TODO/030%20+%20309/host_sim/scenarios/modbus_invalid_frames.txt)
+
+### 5. MCU: GCC + CMake Release 构建
 
 已执行成功：
 
@@ -140,6 +156,7 @@ hex=aa6c
 py -3.12 scripts/check_toolchain.py
 task doctor
 task sim-modbus
+task sim-replay
 task build
 C:\Keil_v5\UV4\UV4.exe -b CommomSH367309_16series_030C8T6_C.uvprojx -j0
 ```
@@ -188,6 +205,7 @@ cmake --build --preset build-firmware-debug
 - `pc: flash plan`
 - `pc: debug plan`
 - `pc: host sim (cmake)`
+- `pc: host replay`
 - `mcu: build gcc release`
 - `mcu: build keil`
 - `mcu: open keil build log`

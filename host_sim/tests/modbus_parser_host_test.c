@@ -1,7 +1,7 @@
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+#include "app_log.h"
 #include "modbus_rtu_parser.h"
 
 static int run_case(const char *name, const UINT8 *data, UINT16 len, ProtocolParseResult expected)
@@ -24,11 +24,11 @@ static int run_case(const char *name, const UINT8 *data, UINT16 len, ProtocolPar
 
     if (result != expected)
     {
-        fprintf(stderr, "[FAIL] %s: expected %d, got %d\n", name, expected, result);
+        APP_LOG_ERROR("%s: expected %d, got %d", name, expected, result);
         return 1;
     }
 
-    printf("[PASS] %s\n", name);
+    APP_LOG_INFO("PASS %s", name);
     return 0;
 }
 
@@ -53,6 +53,6 @@ int main(void)
         return EXIT_FAILURE;
     }
 
-    printf("All host-side Modbus parser checks passed.\n");
+    APP_LOG_INFO("All host-side Modbus parser checks passed.");
     return EXIT_SUCCESS;
 }

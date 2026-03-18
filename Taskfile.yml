@@ -99,6 +99,13 @@ tasks:
       - '"{{.CMAKE}}" --build --preset build-host-sim-debug'
       - 'artifacts/cmake/host-sim-debug/host_sim/modbus_parser_host_test{{if eq OS "windows"}}.exe{{end}}'
 
+  sim-replay:
+    desc: 在 PC 上回放 Modbus 帧并生成日志与快照
+    cmds:
+      - '"{{.CMAKE}}" --preset host-sim-debug'
+      - '"{{.CMAKE}}" --build --preset build-host-sim-debug'
+      - 'artifacts/cmake/host-sim-debug/host_sim/modbus_parser_host_replay{{if eq OS "windows"}}.exe{{end}} --input host_sim/scenarios/modbus_frames.txt --log artifacts/host-sim/modbus-replay.log --snapshot artifacts/host-sim/modbus-replay.jsonl --repeat 1'
+
   new:
     desc: 基于模板生成新项目骨架
     cmds:

@@ -3,6 +3,10 @@
 
 #include <stdio.h>
 
+#if defined(BMS_HOST_SIM) && defined(APP_LOG_RUNTIME)
+#include "app_log_runtime.h"
+#endif
+
 #ifndef APP_LOG_LEVEL
 #define APP_LOG_LEVEL 3
 #endif
@@ -12,18 +16,26 @@
 #define APP_LOG_LEVEL_INFO 2
 #define APP_LOG_LEVEL_DEBUG 3
 
-#ifdef BMS_HOST_SIM
+#if defined(BMS_HOST_SIM) && defined(APP_LOG_RUNTIME)
+#define APP_LOG_PRINTF(...)         \
+    do                              \
+    {                               \
+        AppLogHost_Printf(__VA_ARGS__); \
+    } while (0)
+#elif defined(BMS_HOST_SIM)
 #define APP_LOG_STREAM stderr
 #else
 #define APP_LOG_STREAM stdout
 #endif
 
+#if !defined(APP_LOG_RUNTIME)
 #define APP_LOG_PRINTF(...)                    \
     do                                        \
     {                                         \
         fprintf(APP_LOG_STREAM, __VA_ARGS__); \
         fflush(APP_LOG_STREAM);               \
     } while (0)
+#endif
 
 #define APP_LOG_ERROR(fmt, ...)                                                         \
     do                                                                                  \
