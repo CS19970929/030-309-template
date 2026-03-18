@@ -65,11 +65,15 @@ task sim-protection-watch
 
 - `Cell OVP`
 - `Cell UVP`
+- `Bat OVP`
+- `Bat UVP`
 - `Charge OCP`
 - `Discharge OCP`
 - `Charge OTP`
 - `Discharge UTP`
 - `MOS OTP`
+- `Vdelta OVP`
+- `SOC low`
 
 输出包括：
 
@@ -83,11 +87,14 @@ task sim-protection-watch
 
 - `OVP second/third` 触发与恢复
 - `UVP second/third` 触发与恢复
+- `Bat OVP/UVP second/third` 触发与恢复
 - `Charge OCP second/third`
 - `Discharge OCP second/third`
 - `Charge OTP second/third`
 - `Discharge UTP second/third`
 - `MOS OTP second/third`
+- `Vdelta second/third` 触发与恢复
+- `SOC low second/third` 触发与恢复
 
 ## 当前边界
 

@@ -11,7 +11,9 @@ typedef struct
     uint32_t tick_ms;
     uint16_t cell_max_mv;
     uint16_t cell_min_mv;
+    uint16_t cell_delta_mv;
     uint16_t pack_mv;
+    uint16_t soc_pct_x10;
     int32_t charge_current_ma;
     int32_t discharge_current_ma;
     int16_t temp_chg_max_c_x10;

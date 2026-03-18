@@ -43,7 +43,8 @@ int AppSimSnapshot_ToJsonLine(const AppSimTraceSnapshot *snapshot, char *buffer,
         buffer,
         capacity,
         "{\"source\":\"%s\",\"cycle\":%lu,\"step\":%lu,\"result\":\"%s\","
-        "\"tick_ms\":%lu,\"cell_max_mv\":%u,\"cell_min_mv\":%u,\"pack_mv\":%u,"
+        "\"tick_ms\":%lu,\"cell_max_mv\":%u,\"cell_min_mv\":%u,\"cell_delta_mv\":%u,"
+        "\"pack_mv\":%u,\"soc_pct_x10\":%u,"
         "\"charge_current_ma\":%ld,\"discharge_current_ma\":%ld,"
         "\"temp_chg_max_c_x10\":%d,\"temp_dsg_min_c_x10\":%d,\"temp_mos_c_x10\":%d,"
         "\"charger_present\":%u,\"load_present\":%u,"
@@ -56,7 +57,9 @@ int AppSimSnapshot_ToJsonLine(const AppSimTraceSnapshot *snapshot, char *buffer,
         (unsigned long)snapshot->input.tick_ms,
         snapshot->input.cell_max_mv,
         snapshot->input.cell_min_mv,
+        snapshot->input.cell_delta_mv,
         snapshot->input.pack_mv,
+        snapshot->input.soc_pct_x10,
         (long)snapshot->input.charge_current_ma,
         (long)snapshot->input.discharge_current_ma,
         (int)snapshot->input.temp_chg_max_c_x10,

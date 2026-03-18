@@ -127,7 +127,9 @@ static int HostSim_ParseLine(const char *line, AppSimInputSnapshot *input)
     unsigned int tick_ms;
     unsigned int cell_max_mv;
     unsigned int cell_min_mv;
+    unsigned int cell_delta_mv;
     unsigned int pack_mv;
+    unsigned int soc_pct_x10;
     int charge_current_ma;
     int discharge_current_ma;
     int temp_chg_max_c_x10;
@@ -150,18 +152,20 @@ static int HostSim_ParseLine(const char *line, AppSimInputSnapshot *input)
     }
 
     if (sscanf(line,
-               " %u , %u , %u , %u , %d , %d , %d , %d , %d , %u , %u",
+               " %u , %u , %u , %u , %u , %u , %d , %d , %d , %d , %d , %u , %u",
                &tick_ms,
                &cell_max_mv,
                &cell_min_mv,
+               &cell_delta_mv,
                &pack_mv,
+               &soc_pct_x10,
                &charge_current_ma,
                &discharge_current_ma,
                &temp_chg_max_c_x10,
                &temp_dsg_min_c_x10,
                &temp_mos_c_x10,
                &charger_present,
-               &load_present) != 11)
+               &load_present) != 13)
     {
         return -1;
     }
@@ -170,7 +174,9 @@ static int HostSim_ParseLine(const char *line, AppSimInputSnapshot *input)
     input->tick_ms = tick_ms;
     input->cell_max_mv = (uint16_t)cell_max_mv;
     input->cell_min_mv = (uint16_t)cell_min_mv;
+    input->cell_delta_mv = (uint16_t)cell_delta_mv;
     input->pack_mv = (uint16_t)pack_mv;
+    input->soc_pct_x10 = (uint16_t)soc_pct_x10;
     input->charge_current_ma = charge_current_ma;
     input->discharge_current_ma = discharge_current_ma;
     input->temp_chg_max_c_x10 = (int16_t)temp_chg_max_c_x10;
