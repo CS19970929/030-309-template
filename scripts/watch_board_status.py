@@ -8,6 +8,7 @@ import re
 import socket
 import subprocess
 import sys
+import telnetlib
 import time
 from pathlib import Path
 from typing import Dict
@@ -77,38 +78,32 @@ def resolve_symbols(nm_tool: str, elf_path: Path) -> Dict[str, int]:
 
 
 class OpenOcdTelnet:
-    def __init__(self, sock: socket.socket):
-        self.sock = sock
+    def __init__(self, host: str, port: int):
+        self.telnet = telnetlib.Telnet(host, port, timeout=5)
         self._read_until_prompt()
 
     def _read_until_prompt(self) -> str:
-        data = bytearray()
-        while True:
-            chunk = self.sock.recv(4096)
-            if not chunk:
-                break
-            data.extend(chunk)
-            if TELNET_PROMPT in data:
-                break
-        return bytes(data).decode(errors="ignore")
+        data = self.telnet.read_until(TELNET_PROMPT, timeout=5)
+        return data.decode(errors="ignore")
 
     def command(self, text: str) -> str:
-        self.sock.sendall(text.encode() + b"\n")
+        self.telnet.write(text.encode() + b"\n")
         return self._read_until_prompt()
 
     def close(self) -> None:
         try:
-            self.sock.close()
-        except OSError:
+            self.telnet.close()
+        except Exception:
             pass
 
 
-def wait_for_port(port: int, timeout_s: float = 10.0) -> socket.socket:
+def wait_for_port(port: int, timeout_s: float = 10.0) -> bool:
     deadline = time.time() + timeout_s
     while time.time() < deadline:
         try:
             sock = socket.create_connection(("127.0.0.1", port), timeout=1.0)
-            return sock
+            sock.close()
+            return True
         except OSError:
             time.sleep(0.2)
     raise TimeoutError(f"等待 OpenOCD telnet 端口 {port} 超时")
@@ -119,6 +114,18 @@ def parse_mdw_word(output: str) -> int:
     if not match:
         raise RuntimeError(f"无法解析 mdw 输出: {output!r}")
     return int(match.group(1), 16)
+
+
+def read_mdw_with_retry(telnet: OpenOcdTelnet, address: int, attempts: int = 3) -> int:
+    last_output = ""
+    for _ in range(attempts):
+        output = telnet.command("mdw 0x%08X 1" % address)
+        last_output = output
+        try:
+            return parse_mdw_word(output)
+        except RuntimeError:
+            time.sleep(0.1)
+    raise RuntimeError("无法解析 mdw 输出: %r" % last_output)
 
 
 def parse_mdb_bytes(output: str) -> bytes:
@@ -162,21 +169,28 @@ def main() -> int:
         "tcl_port disabled",
     ]
 
-    proc = subprocess.Popen(
-        openocd_cmd,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        universal_newlines=True,
-    )
-
+    proc = None
+    started_local_openocd = False
     telnet = None
     start_time = time.time()
     last_update = None
     try:
-        sock = wait_for_port(4444)
-        telnet = OpenOcdTelnet(sock)
+        try:
+            telnet = OpenOcdTelnet("127.0.0.1", 4444)
+        except Exception:
+            proc = subprocess.Popen(
+                openocd_cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                universal_newlines=True,
+            )
+            wait_for_port(4444)
+            telnet = OpenOcdTelnet("127.0.0.1", 4444)
+            started_local_openocd = True
         telnet.command("init")
         telnet.command("reset run")
+        time.sleep(0.3)
+        telnet.command("")
 
         print("board watch start")
         print(f"json_addr=0x{symbols['g_app_runtime_monitor_json']:08X}")
@@ -191,15 +205,13 @@ def main() -> int:
                 if args.halt_sample:
                     telnet.command("halt")
 
-                update_text = telnet.command(f"mdw 0x{symbols['g_app_runtime_monitor_update_count']:08X} 1")
-                update_count = parse_mdw_word(update_text)
+                update_count = read_mdw_with_retry(telnet, symbols['g_app_runtime_monitor_update_count'])
 
                 if last_update is None:
                     last_update = update_count - 1 if update_count > 0 else 0xFFFFFFFF
 
                 if update_count != last_update:
-                    length_text = telnet.command(f"mdw 0x{symbols['g_app_runtime_monitor_json_length']:08X} 1")
-                    json_length = parse_mdw_word(length_text)
+                    json_length = read_mdw_with_retry(telnet, symbols['g_app_runtime_monitor_json_length'])
                     if 0 < json_length < 256:
                         json_text = telnet.command(
                             f"mdb 0x{symbols['g_app_runtime_monitor_json']:08X} {json_length}"
@@ -225,11 +237,12 @@ def main() -> int:
     finally:
         if telnet is not None:
             try:
-                telnet.command("shutdown")
+                if started_local_openocd:
+                    telnet.command("shutdown")
             except Exception:
                 pass
             telnet.close()
-        if proc.poll() is None:
+        if proc is not None and proc.poll() is None:
             proc.terminate()
             try:
                 proc.wait(timeout=5)
