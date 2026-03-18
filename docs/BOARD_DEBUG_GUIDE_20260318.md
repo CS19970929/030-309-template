@@ -78,6 +78,13 @@ For long-running replay:
 4. Choose:
    `Cortex-Debug: STM32F030 (ST-Link/OpenOCD)`
 
+Notes:
+
+- current board debugging uses `release` firmware with debug symbols
+- `Step Over` and `Step Into` are the primary actions to use at `main`
+- if you are stopped in the outermost frame, `Step Out` will report that `finish` is not meaningful
+- see [BOARD_DEBUG_SCENARIOS_20260318.md](E:/TODO/030%20+%20309/docs/BOARD_DEBUG_SCENARIOS_20260318.md)
+
 ### J-Link one-click debug
 
 1. Connect board by SWD
