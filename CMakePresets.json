@@ -30,15 +30,31 @@
                 "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/toolchains/arm-none-eabi-gcc.cmake"
             }
         }
-  ],
-  "buildPresets": [
+        ,
+        {
+            "name": "host-sim-debug",
+            "displayName": "Host Simulation Debug",
+            "description": "Native host-side simulation preset",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/artifacts/cmake/host-sim-debug",
+            "sourceDir": "${sourceDir}/host_sim",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug"
+            }
+        }
+    ],
+    "buildPresets": [
     {
       "name": "build-firmware-debug",
       "configurePreset": "firmware-debug"
     },
-    {
-      "name": "build-firmware-release",
-      "configurePreset": "firmware-release"
-    }
-  ]
+        {
+            "name": "build-firmware-release",
+            "configurePreset": "firmware-release"
+        },
+        {
+            "name": "build-host-sim-debug",
+            "configurePreset": "host-sim-debug"
+        }
+    ]
 }

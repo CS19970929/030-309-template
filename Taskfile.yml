@@ -79,6 +79,13 @@ tasks:
     cmds:
       - '{{.PYTHON}} scripts/debug_capture.py debug --probe "{{.PROBE}}" --artifact "{{.FIRMWARE_HEX}}" --output artifacts/debug-plan.md'
 
+  sim-modbus:
+    desc: 在 PC 上构建并运行 Modbus 解析主机侧仿真
+    cmds:
+      - "cmake --preset host-sim-debug"
+      - "cmake --build --preset build-host-sim-debug"
+      - "artifacts\\cmake\\host-sim-debug\\modbus_parser_host_test"
+
   new:
     desc: 基于模板生成新项目骨架
     cmds:

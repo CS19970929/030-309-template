@@ -51,6 +51,14 @@
 #define BSP_Printf		printf
 //#define BSP_	Printf(...)(ms);
 
+#include "app_log.h"
+#undef BSP_Printf
+#undef DEBUG_LINE
+#undef DEBUG_INFO
+#define BSP_Printf APP_LOG_PRINTF
+#define DEBUG_LINE() APP_LOG_DEBUG("line hit")
+#define DEBUG_INFO(fmt, ...) APP_LOG_DEBUG(fmt, ##__VA_ARGS__)
+
 #define ERROR_HANDLER()     Error_Handler(__FILE__, __LINE__)
 
 #define BSP_SET_GPIO_1(gpio, pin)   gpio->BSRR = pin
