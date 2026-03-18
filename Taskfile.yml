@@ -183,6 +183,42 @@ tasks:
       - '"{{.CMAKE}}" --build --preset build-host-sim-debug'
       - '{{.EXEC_PREFIX}}artifacts/cmake/host-sim-debug/host_sim/protection_host_replay{{if eq OS "windows"}}.exe{{end}} --input host_sim/scenarios/protection/protection_basic.csv --log artifacts/host-sim/protection-replay-watch.log --snapshot artifacts/host-sim/protection-replay-watch.jsonl'
 
+  sim-protection-ovp-uvp:
+    desc: 在 PC 上回放单体 OVP/UVP 保护场景
+    cmds:
+      - '"{{.CMAKE}}" --preset host-sim-debug'
+      - '"{{.CMAKE}}" --build --preset build-host-sim-debug'
+      - '{{.EXEC_PREFIX}}artifacts/cmake/host-sim-debug/host_sim/protection_host_replay{{if eq OS "windows"}}.exe{{end}} --input host_sim/scenarios/protection/protection_ovp_uvp.csv --log artifacts/host-sim/protection-ovp-uvp.log --snapshot artifacts/host-sim/protection-ovp-uvp.jsonl'
+
+  sim-protection-ocp:
+    desc: 在 PC 上回放充放电 OCP 保护场景
+    cmds:
+      - '"{{.CMAKE}}" --preset host-sim-debug'
+      - '"{{.CMAKE}}" --build --preset build-host-sim-debug'
+      - '{{.EXEC_PREFIX}}artifacts/cmake/host-sim-debug/host_sim/protection_host_replay{{if eq OS "windows"}}.exe{{end}} --input host_sim/scenarios/protection/protection_ocp.csv --log artifacts/host-sim/protection-ocp.log --snapshot artifacts/host-sim/protection-ocp.jsonl'
+
+  sim-protection-otp-utp:
+    desc: 在 PC 上回放温度保护场景
+    cmds:
+      - '"{{.CMAKE}}" --preset host-sim-debug'
+      - '"{{.CMAKE}}" --build --preset build-host-sim-debug'
+      - '{{.EXEC_PREFIX}}artifacts/cmake/host-sim-debug/host_sim/protection_host_replay{{if eq OS "windows"}}.exe{{end}} --input host_sim/scenarios/protection/protection_otp_utp.csv --log artifacts/host-sim/protection-otp-utp.log --snapshot artifacts/host-sim/protection-otp-utp.jsonl'
+
+  sim-protection-pack:
+    desc: 在 PC 上回放 pack 电压、压差和 SOC 保护场景
+    cmds:
+      - '"{{.CMAKE}}" --preset host-sim-debug'
+      - '"{{.CMAKE}}" --build --preset build-host-sim-debug'
+      - '{{.EXEC_PREFIX}}artifacts/cmake/host-sim-debug/host_sim/protection_host_replay{{if eq OS "windows"}}.exe{{end}} --input host_sim/scenarios/protection/protection_pack_soc_vdelta.csv --log artifacts/host-sim/protection-pack.log --snapshot artifacts/host-sim/protection-pack.jsonl'
+
+  sim-protection-suite:
+    desc: 在 PC 上顺序执行整套保护策略回归
+    cmds:
+      - task: sim-protection-ovp-uvp
+      - task: sim-protection-ocp
+      - task: sim-protection-otp-utp
+      - task: sim-protection-pack
+
   flash-stlink:
     desc: 使用 ST-Link + OpenOCD 烧录 GCC 生成的固件
     cmds:

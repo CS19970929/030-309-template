@@ -34,10 +34,36 @@ task sim-protection
 task sim-protection-watch
 ```
 
+按故障类型拆分回放：
+
+```bash
+task sim-protection-ovp-uvp
+task sim-protection-ocp
+task sim-protection-otp-utp
+task sim-protection-pack
+```
+
+顺序执行整套保护回归：
+
+```bash
+task sim-protection-suite
+```
+
 输出文件：
 
 - `artifacts/host-sim/protection-replay.log`
 - `artifacts/host-sim/protection-replay.jsonl`
+
+分场景产物：
+
+- `artifacts/host-sim/protection-ovp-uvp.log`
+- `artifacts/host-sim/protection-ovp-uvp.jsonl`
+- `artifacts/host-sim/protection-ocp.log`
+- `artifacts/host-sim/protection-ocp.jsonl`
+- `artifacts/host-sim/protection-otp-utp.log`
+- `artifacts/host-sim/protection-otp-utp.jsonl`
+- `artifacts/host-sim/protection-pack.log`
+- `artifacts/host-sim/protection-pack.jsonl`
 
 日志末尾会额外输出摘要：
 
@@ -58,6 +84,10 @@ task sim-protection-watch
 - [protection_sim.c](/Users/cs/Downloads/work/todo/030-309-template/host_sim/support/protection_sim.c)
 - [protection_host_replay.c](/Users/cs/Downloads/work/todo/030-309-template/host_sim/tools/protection_host_replay.c)
 - [protection_basic.csv](/Users/cs/Downloads/work/todo/030-309-template/host_sim/scenarios/protection/protection_basic.csv)
+- [protection_ovp_uvp.csv](/Users/cs/Downloads/work/todo/030-309-template/host_sim/scenarios/protection/protection_ovp_uvp.csv)
+- [protection_ocp.csv](/Users/cs/Downloads/work/todo/030-309-template/host_sim/scenarios/protection/protection_ocp.csv)
+- [protection_otp_utp.csv](/Users/cs/Downloads/work/todo/030-309-template/host_sim/scenarios/protection/protection_otp_utp.csv)
+- [protection_pack_soc_vdelta.csv](/Users/cs/Downloads/work/todo/030-309-template/host_sim/scenarios/protection/protection_pack_soc_vdelta.csv)
 
 ## 当前覆盖范围
 
@@ -103,6 +133,13 @@ task sim-protection-watch
 - 不直接改量产参数
 - 不直接把 `Fault.c` 整体搬进 `host_sim`
 - 不追求和真板一比一等价
+
+分场景设计的目的不是增加“例子”，而是为了让回归结果更容易定位：
+
+- `protection_ovp_uvp.csv` 聚焦单体电压
+- `protection_ocp.csv` 聚焦充放电过流
+- `protection_otp_utp.csv` 聚焦温度
+- `protection_pack_soc_vdelta.csv` 聚焦整包电压、压差和 `SOC`
 
 它的定位是：
 

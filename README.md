@@ -10,6 +10,7 @@
 - `task sim-modbus`：运行 Modbus 解析主机侧自检
 - `task sim-replay`：回放 Modbus 帧并生成日志和 JSONL 快照
 - `task sim-protection`：回放第一版保护策略场景并生成日志和 JSONL 快照
+- `task sim-protection-suite`：顺序执行整套保护策略回归
 - `task map`：生成 map 摘要
 - `task flash`：生成烧录命令计划
 - `task debug`：生成调试命令计划
