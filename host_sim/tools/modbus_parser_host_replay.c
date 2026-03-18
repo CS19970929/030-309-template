@@ -5,6 +5,7 @@
 
 #include "app_log.h"
 #include "app_log_runtime.h"
+#include "app_state_snapshot.h"
 #include "modbus_rtu_parser.h"
 
 #define HOST_SIM_MAX_LINE 512
@@ -142,27 +143,34 @@ static void write_snapshot(FILE *snapshot,
                            const ModbusRtuParser *parser,
                            ProtocolParseResult result)
 {
-    unsigned short i;
+    AppStateSnapshot state;
+    char json_line[512];
+    int written;
 
-    fprintf(snapshot,
-            "{\"cycle\":%d,\"line\":%d,\"result\":\"%s\",\"length\":%u,\"expected_length\":%u,\"frame\":\"",
-            cycle_index,
-            line_index,
-            result_name(result),
-            frame_len,
-            parser->expected_length);
+    AppSnapshot_Init(&state);
+    state.cycle = (uint32_t)cycle_index;
+    state.step = (uint32_t)line_index;
+    state.parser_length = parser->length;
+    state.expected_length = parser->expected_length;
+    state.series_num = 16U;
+    state.pack_voltage_mv = (uint32_t)(frame_len * 1000U);
+    state.pack_current_ma = (result == PROTO_PARSE_FRAME_READY) ? 2500 : 0;
+    state.temp_max_c_x10 = 265;
+    state.temp_min_c_x10 = 241;
+    state.soc_pct = 60U + (uint32_t)((line_index - 1) % 3);
+    state.soh_pct = 98U;
+    state.fault_flags = (result == PROTO_PARSE_FRAME_INVALID) ? 1U : 0U;
+    state.system_status = (result == PROTO_PARSE_FRAME_READY) ? 0x0000000EU : 0x00000002U;
+    AppSnapshot_SetText(state.source, sizeof(state.source), "host_modbus_replay");
+    AppSnapshot_SetText(state.result, sizeof(state.result), result_name(result));
+    AppSnapshot_SetFrameHex(&state, frame, frame_len);
 
-    for (i = 0U; i < frame_len; ++i)
+    written = AppSnapshot_ToJsonLine(&state, json_line, sizeof(json_line));
+    if (written > 0)
     {
-        fprintf(snapshot, "%02X", frame[i]);
-        if ((unsigned short)(i + 1U) < frame_len)
-        {
-            fputc(' ', snapshot);
-        }
+        fputs(json_line, snapshot);
+        fflush(snapshot);
     }
-
-    fprintf(snapshot, "\"}\n");
-    fflush(snapshot);
 }
 
 static int replay_frame(FILE *snapshot,

@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.20)
 project(host_sim_modbus C)
 
 set(HOST_SIM_COMMON_SOURCES
+    ../Code/Source/BSP/app_state_snapshot.c
     ../Code/Source/modbus_rtu_parser.c
     support/app_log_runtime.c
 )

@@ -113,6 +113,8 @@ task sim-replay
 
 - [modbus-replay.log](E:/TODO/030%20+%20309/artifacts/host-sim/modbus-replay.log)
 - [modbus-replay.jsonl](E:/TODO/030%20+%20309/artifacts/host-sim/modbus-replay.jsonl)
+- [app_state_snapshot.h](E:/TODO/030%20+%20309/Code/Source/BSP/app_state_snapshot.h)
+- [app_state_snapshot.c](E:/TODO/030%20+%20309/Code/Source/BSP/app_state_snapshot.c)
 - [modbus_frames.txt](E:/TODO/030%20+%20309/host_sim/scenarios/modbus_frames.txt)
 - [modbus_invalid_frames.txt](E:/TODO/030%20+%20309/host_sim/scenarios/modbus_invalid_frames.txt)
 

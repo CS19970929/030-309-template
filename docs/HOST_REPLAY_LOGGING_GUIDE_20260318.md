@@ -80,12 +80,29 @@ The snapshot file is JSONL and records one line per replayed frame.
 
 Fields:
 
+- `source`
 - `cycle`
-- `line`
+- `step`
 - `result`
-- `length`
+- `parser_length`
 - `expected_length`
+- `series_num`
+- `pack_voltage_mv`
+- `pack_current_ma`
+- `temp_max_c_x10`
+- `temp_min_c_x10`
+- `soc_pct`
+- `soh_pct`
+- `fault_flags`
+- `system_status`
 - `frame`
+
+Shared snapshot schema:
+
+- [app_state_snapshot.h](E:/TODO/030%20+%20309/Code/Source/BSP/app_state_snapshot.h)
+- [app_state_snapshot.c](E:/TODO/030%20+%20309/Code/Source/BSP/app_state_snapshot.c)
+
+This schema is intentionally independent from host-only code so the MCU side can adopt the same JSONL format later.
 
 ## VS Code Entry
 
