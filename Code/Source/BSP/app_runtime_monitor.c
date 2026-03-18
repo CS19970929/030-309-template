@@ -12,6 +12,18 @@
 #define APP_RUNTIME_MONITOR_LOG_ENABLE 0
 #endif
 
+#ifndef APP_RUNTIME_MONITOR_ENABLE
+
+void AppRuntimeMonitor_Init(void) {}
+void AppRuntimeMonitor_Tick(void) {}
+void AppRuntimeMonitor_ForceCapture(const char *reason)
+{
+    (void)reason;
+}
+void AppRuntimeMonitor_RunTask(void) {}
+
+#else
+
 extern UINT8 SeriesNum;
 
 AppStateSnapshot g_app_runtime_monitor_snapshot;
@@ -139,3 +151,5 @@ void AppRuntimeMonitor_Tick(void)
         AppRuntimeMonitor_Capture("periodic");
     }
 }
+
+#endif
