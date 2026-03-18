@@ -42,6 +42,8 @@ set(FIRMWARE_SOURCES
     "${PROJECT_ROOT}/Code/Source/modbus_service.c"
     "${PROJECT_ROOT}/Code/Source/BSP/bsp.c"
     "${PROJECT_ROOT}/Code/Source/BSP/bsp_timer.c"
+    "${PROJECT_ROOT}/Code/Source/BSP/app_state_snapshot.c"
+    "${PROJECT_ROOT}/Code/Source/BSP/app_runtime_monitor.c"
     "${PROJECT_ROOT}/Code/Source/BSP/Time_Triggered.c"
     "${PROJECT_ROOT}/Code/Source/NewFunc/LedBar.c"
     "${PROJECT_ROOT}/Code/Source/conf/conf.c"

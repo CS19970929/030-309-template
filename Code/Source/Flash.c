@@ -80,6 +80,10 @@ void App_FlashUpdateDet(void)
 	{
 		__delay_ms(10);
 		u8FlashUpdateFlag = 0;
+#ifdef APP_DEBUG_DISABLE_AUTO_SLEEP
+		u8FlashUpdateE2PROM = 0;
+		return;
+#endif
 		MCU_RESET();
 	}
 }

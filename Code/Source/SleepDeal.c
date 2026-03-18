@@ -935,6 +935,10 @@ void SleepDeal_Test(void)
 // 现在通过参数设置，高于1005为RTC休眠
 void IsSleepStartUp(void)
 {
+#ifdef APP_DEBUG_DISABLE_AUTO_SLEEP
+	BootFlag_Clear();
+	return;
+#endif
 	UINT16 sleep_flag;
 
 	sleep_flag = BootFlag_Read();

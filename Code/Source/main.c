@@ -2,6 +2,7 @@
 #include "Comm.h"
 #include "bsp.h"
 #include "Time_Triggered.h"
+#include "app_runtime_monitor.h"
 
 UINT8 SeriesNum = 16;
 
@@ -47,13 +48,16 @@ static const AppTaskConfig g_app_core_tasks[] = {
 	{App_AFEGet, 0, 200},
 	{App_WarnCtrl, 8, 10},
 	{App_AnlogCal, 2, 10},
-	{App_SOC, 5, 200},
+	{App_SOC, 5, 100},
 	{App_LogRecord, 6, 1000},
+	{AppRuntimeMonitor_RunTask, 11, 1000},
 };
 
 #ifndef _DEBUG_CODE
 static const AppTaskConfig g_app_release_tasks[] = {
+#ifndef APP_DEBUG_DISABLE_AUTO_SLEEP
 	{App_SleepDeal, 7, 1000},
+#endif
 #ifdef __FUNC__HEAT__
 	{App_Heat_Cool_Ctrl, 9, 1000},
 #endif
@@ -90,6 +94,7 @@ static void App_RunForegroundServices(void)
 	Feed_IWatchDog;
 #endif
 #endif
+
 }
 
 static void InitDevice(void)
@@ -129,6 +134,7 @@ static void App_InitPlatform(void)
 static void App_InitRuntimeState(void)
 {
 	Comm_InitAll();
+	AppRuntimeMonitor_Init();
 }
 
 static void App_ApplyPrechargeStartup(void)
@@ -191,5 +197,9 @@ UINT8 App_AFEshutdown(void)
 
 void InitSystemWakeUp(void)
 {
-	/* 保留当前唤醒时序接口，便于后续按硬件版本扩展。 */
+	/* 保留当前唤醒时序接口，便于后�?按硬件版�?扩展�? */
 }
+
+
+
+

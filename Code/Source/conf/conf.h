@@ -10,7 +10,7 @@
 
 // #define __ONLY_UPDATE_NO_REFREH_PARAM__
 
-#define  wdog_enable
+// #define  wdog_enable
 // #define __FUNC__HEAT__
 #define __LOAD_REMOVE_SHORT_FUNC__
 
@@ -18,12 +18,15 @@
 
 // #define __VIRTURE_CURRENT__
 
+// µ÷ÊÔ°åÉÏÁª»úÊ±¿ÉÁÙÊ±¹Ø±Õ×Ô¶¯ÐÝÃß£¬±ÜÃâÎÞ¿ª¹Ø³¡¾°·´¸´½øÈëÐÝÃß/»½ÐÑÁ÷³Ì¡£
+#define APP_DEBUG_DISABLE_AUTO_SLEEP
+
 #define log_i(...)       ((void)0);
 #define log_w(...)       ((void)0);
 
-#define EEPROM_VALUE_BEGIN_FLAG				0x0318		//Ä¬ï¿½ï¿½0x1133ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô¼ï¿½ï¿½ï¿½ÒªË¢Ò»ï¿½é£¬ï¿½ï¿½ï¿½Ô¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ù¸Ä»ï¿½0x1133
+#define EEPROM_VALUE_BEGIN_FLAG				0x0318		//Ä¬ï¿½ï¿½0x1133ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô¼ï¿½ï¿½ï¿½ÒªË¢Ò»ï¿½é£¬ï¿½ï¿½ï¿½Ô¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ù¸Ä»ï¿?x1133
 
-#define _DI_SWITCH_SYS_ONOFF	//DIï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+// #define _DI_SWITCH_SYS_ONOFF	//DIï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 //#define _DI_SWITCH_DSG_ONOFF	//DIï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ·Åµï¿½Ó´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½MOS
 // #define _DI_SWITCH_longKEY_ONOFF
 
