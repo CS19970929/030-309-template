@@ -17,6 +17,7 @@ typedef struct
     const char *log_path;
     const char *snapshot_path;
     int repeat_count;
+    int quiet_console;
 } ReplayOptions;
 
 static int parse_args(int argc, char *argv[], ReplayOptions *options)
@@ -27,6 +28,7 @@ static int parse_args(int argc, char *argv[], ReplayOptions *options)
     options->log_path = "artifacts/host-sim/modbus-replay.log";
     options->snapshot_path = "artifacts/host-sim/modbus-replay.jsonl";
     options->repeat_count = 1;
+    options->quiet_console = 0;
 
     for (i = 1; i < argc; ++i)
     {
@@ -50,10 +52,14 @@ static int parse_args(int argc, char *argv[], ReplayOptions *options)
                 options->repeat_count = 1;
             }
         }
+        else if (strcmp(argv[i], "--quiet-console") == 0)
+        {
+            options->quiet_console = 1;
+        }
         else
         {
             fprintf(stderr,
-                    "Usage: %s [--input path] [--log path] [--snapshot path] [--repeat n]\n",
+                    "Usage: %s [--input path] [--log path] [--snapshot path] [--repeat n] [--quiet-console]\n",
                     argv[0]);
             return 0;
         }
@@ -248,6 +254,7 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
+    AppLogHost_SetConsoleEnabled(!options.quiet_console);
     AppLogHost_Open(options.log_path);
     APP_LOG_INFO("host replay start input=%s snapshot=%s repeat=%d",
                  options.input_path,

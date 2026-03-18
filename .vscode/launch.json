@@ -70,6 +70,29 @@
       "miDebuggerPath": "C:/qp/qtools/MinGW32/bin/gdb.exe"
     },
     {
+      "name": "Host Replay: Modbus Parser (Long)",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/artifacts/cmake/host-sim-debug/host_sim/modbus_parser_host_replay.exe",
+      "args": [
+        "--input",
+        "host_sim/scenarios/modbus_frames.txt",
+        "--log",
+        "artifacts/host-sim/modbus-replay-long.log",
+        "--snapshot",
+        "artifacts/host-sim/modbus-replay-long.jsonl",
+        "--repeat",
+        "10000",
+        "--quiet-console"
+      ],
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "pc: host replay long",
+      "stopAtEntry": false,
+      "console": "integratedTerminal",
+      "MIMode": "gdb",
+      "miDebuggerPath": "C:/qp/qtools/MinGW32/bin/gdb.exe"
+    },
+    {
       "name": "Cortex-Debug: STM32F030 (J-Link)",
       "type": "cortex-debug",
       "request": "launch",
@@ -80,6 +103,25 @@
       "device": "STM32F030C8",
       "interface": "swd",
       "runToEntryPoint": "main"
+    },
+    {
+      "name": "Cortex-Debug: STM32F030 (ST-Link/OpenOCD)",
+      "type": "cortex-debug",
+      "request": "launch",
+      "servertype": "openocd",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "mcu: build gcc release",
+      "executable": "${workspaceFolder}/artifacts/cmake/firmware-release/firmware/CommomSH367309_16series_030C8T6_C.elf",
+      "configFiles": [
+        "interface/stlink.cfg",
+        "target/stm32f0x.cfg"
+      ],
+      "searchDir": [
+        "C:/Users/Administrator/AppData/Local/Microsoft/WinGet/Packages/xpack-dev-tools.openocd-xpack_Microsoft.Winget.Source_8wekyb3d8bbwe/xpack-openocd-0.12.0-7/openocd/scripts"
+      ],
+      "serverpath": "C:/Users/Administrator/AppData/Local/Microsoft/WinGet/Packages/xpack-dev-tools.openocd-xpack_Microsoft.Winget.Source_8wekyb3d8bbwe/xpack-openocd-0.12.0-7/bin/openocd.exe",
+      "runToEntryPoint": "main",
+      "svdFile": ""
     }
   ]
 }

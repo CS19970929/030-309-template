@@ -142,11 +142,35 @@
       "problemMatcher": []
     },
     {
+      "label": "pc: host replay long",
+      "type": "shell",
+      "command": "C:\\Users\\Administrator\\AppData\\Local\\Microsoft\\WinGet\\Links\\task.exe",
+      "args": [
+        "sim-replay-long"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
       "label": "mcu: build gcc release",
       "type": "shell",
       "command": "C:\\Users\\Administrator\\AppData\\Local\\Microsoft\\WinGet\\Links\\task.exe",
       "args": [
         "build"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "mcu: flash stlink",
+      "type": "shell",
+      "command": "C:\\Users\\Administrator\\AppData\\Local\\Microsoft\\WinGet\\Links\\task.exe",
+      "args": [
+        "flash-stlink"
       ],
       "options": {
         "cwd": "${workspaceFolder}"

@@ -13,6 +13,7 @@
 #endif
 
 static FILE *g_app_log_file = NULL;
+static int g_app_log_console_enabled = 1;
 
 int AppLogHost_EnsureParentDir(const char *file_path)
 {
@@ -75,13 +76,21 @@ void AppLogHost_Close(void)
     }
 }
 
+void AppLogHost_SetConsoleEnabled(int enabled)
+{
+    g_app_log_console_enabled = enabled ? 1 : 0;
+}
+
 void AppLogHost_VPrintf(const char *fmt, va_list args)
 {
     va_list file_args;
 
     va_copy(file_args, args);
-    vfprintf(stderr, fmt, args);
-    fflush(stderr);
+    if (g_app_log_console_enabled != 0)
+    {
+        vfprintf(stderr, fmt, args);
+        fflush(stderr);
+    }
 
     if (g_app_log_file != NULL)
     {

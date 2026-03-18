@@ -8,5 +8,6 @@ void AppLogHost_Close(void);
 void AppLogHost_Printf(const char *fmt, ...);
 void AppLogHost_VPrintf(const char *fmt, va_list args);
 int AppLogHost_EnsureParentDir(const char *file_path);
+void AppLogHost_SetConsoleEnabled(int enabled);
 
 #endif
