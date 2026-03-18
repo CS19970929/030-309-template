@@ -51,7 +51,7 @@
       "name": "Host Replay: Modbus Parser",
       "type": "cppdbg",
       "request": "launch",
-      "program": "${workspaceFolder}/artifacts/cmake/host-sim-debug/host_sim/modbus_parser_host_replay.exe",
+      "program": "${workspaceFolder}/artifacts/cmake/host-sim-debug/host_sim/modbus_parser_host_replay",
       "args": [
         "--input",
         "host_sim/scenarios/modbus_frames.txt",
@@ -66,14 +66,24 @@
       "preLaunchTask": "pc: host replay",
       "stopAtEntry": false,
       "console": "integratedTerminal",
-      "MIMode": "gdb",
-      "miDebuggerPath": "C:/qp/qtools/MinGW32/bin/gdb.exe"
+      "MIMode": "lldb",
+      "miDebuggerPath": "/usr/bin/lldb",
+      "osx": {
+        "program": "${workspaceFolder}/artifacts/cmake/host-sim-debug/host_sim/modbus_parser_host_replay",
+        "MIMode": "lldb",
+        "miDebuggerPath": "/usr/bin/lldb"
+      },
+      "windows": {
+        "program": "${workspaceFolder}/artifacts/cmake/host-sim-debug/host_sim/modbus_parser_host_replay.exe",
+        "MIMode": "gdb",
+        "miDebuggerPath": "C:/qp/qtools/MinGW32/bin/gdb.exe"
+      }
     },
     {
       "name": "Host Replay: Modbus Parser (Long)",
       "type": "cppdbg",
       "request": "launch",
-      "program": "${workspaceFolder}/artifacts/cmake/host-sim-debug/host_sim/modbus_parser_host_replay.exe",
+      "program": "${workspaceFolder}/artifacts/cmake/host-sim-debug/host_sim/modbus_parser_host_replay",
       "args": [
         "--input",
         "host_sim/scenarios/modbus_frames.txt",
@@ -89,14 +99,24 @@
       "preLaunchTask": "pc: host replay long",
       "stopAtEntry": false,
       "console": "integratedTerminal",
-      "MIMode": "gdb",
-      "miDebuggerPath": "C:/qp/qtools/MinGW32/bin/gdb.exe"
+      "MIMode": "lldb",
+      "miDebuggerPath": "/usr/bin/lldb",
+      "osx": {
+        "program": "${workspaceFolder}/artifacts/cmake/host-sim-debug/host_sim/modbus_parser_host_replay",
+        "MIMode": "lldb",
+        "miDebuggerPath": "/usr/bin/lldb"
+      },
+      "windows": {
+        "program": "${workspaceFolder}/artifacts/cmake/host-sim-debug/host_sim/modbus_parser_host_replay.exe",
+        "MIMode": "gdb",
+        "miDebuggerPath": "C:/qp/qtools/MinGW32/bin/gdb.exe"
+      }
     },
     {
       "name": "Host Replay: Modbus Parser (Watch)",
       "type": "cppdbg",
       "request": "launch",
-      "program": "${workspaceFolder}/artifacts/cmake/host-sim-debug/host_sim/modbus_parser_host_replay.exe",
+      "program": "${workspaceFolder}/artifacts/cmake/host-sim-debug/host_sim/modbus_parser_host_replay",
       "args": [
         "--input",
         "host_sim/scenarios/modbus_frames.txt",
@@ -111,14 +131,24 @@
       "preLaunchTask": "pc: host replay watch",
       "stopAtEntry": false,
       "console": "integratedTerminal",
-      "MIMode": "gdb",
-      "miDebuggerPath": "C:/qp/qtools/MinGW32/bin/gdb.exe"
+      "MIMode": "lldb",
+      "miDebuggerPath": "/usr/bin/lldb",
+      "osx": {
+        "program": "${workspaceFolder}/artifacts/cmake/host-sim-debug/host_sim/modbus_parser_host_replay",
+        "MIMode": "lldb",
+        "miDebuggerPath": "/usr/bin/lldb"
+      },
+      "windows": {
+        "program": "${workspaceFolder}/artifacts/cmake/host-sim-debug/host_sim/modbus_parser_host_replay.exe",
+        "MIMode": "gdb",
+        "miDebuggerPath": "C:/qp/qtools/MinGW32/bin/gdb.exe"
+      }
     },
     {
       "name": "Host Replay: Scheduler",
       "type": "cppdbg",
       "request": "launch",
-      "program": "${workspaceFolder}/artifacts/cmake/host-sim-debug/host_sim/scheduler_host_replay.exe",
+      "program": "${workspaceFolder}/artifacts/cmake/host-sim-debug/host_sim/scheduler_host_replay",
       "args": [
         "--ticks",
         "1000",
@@ -131,14 +161,24 @@
       "preLaunchTask": "pc: scheduler replay",
       "stopAtEntry": false,
       "console": "integratedTerminal",
-      "MIMode": "gdb",
-      "miDebuggerPath": "C:/qp/qtools/MinGW32/bin/gdb.exe"
+      "MIMode": "lldb",
+      "miDebuggerPath": "/usr/bin/lldb",
+      "osx": {
+        "program": "${workspaceFolder}/artifacts/cmake/host-sim-debug/host_sim/scheduler_host_replay",
+        "MIMode": "lldb",
+        "miDebuggerPath": "/usr/bin/lldb"
+      },
+      "windows": {
+        "program": "${workspaceFolder}/artifacts/cmake/host-sim-debug/host_sim/scheduler_host_replay.exe",
+        "MIMode": "gdb",
+        "miDebuggerPath": "C:/qp/qtools/MinGW32/bin/gdb.exe"
+      }
     },
     {
       "name": "Host Replay: Scheduler (Long)",
       "type": "cppdbg",
       "request": "launch",
-      "program": "${workspaceFolder}/artifacts/cmake/host-sim-debug/host_sim/scheduler_host_replay.exe",
+      "program": "${workspaceFolder}/artifacts/cmake/host-sim-debug/host_sim/scheduler_host_replay",
       "args": [
         "--ticks",
         "50000",
@@ -151,14 +191,24 @@
       "preLaunchTask": "pc: scheduler replay long",
       "stopAtEntry": false,
       "console": "integratedTerminal",
-      "MIMode": "gdb",
-      "miDebuggerPath": "C:/qp/qtools/MinGW32/bin/gdb.exe"
+      "MIMode": "lldb",
+      "miDebuggerPath": "/usr/bin/lldb",
+      "osx": {
+        "program": "${workspaceFolder}/artifacts/cmake/host-sim-debug/host_sim/scheduler_host_replay",
+        "MIMode": "lldb",
+        "miDebuggerPath": "/usr/bin/lldb"
+      },
+      "windows": {
+        "program": "${workspaceFolder}/artifacts/cmake/host-sim-debug/host_sim/scheduler_host_replay.exe",
+        "MIMode": "gdb",
+        "miDebuggerPath": "C:/qp/qtools/MinGW32/bin/gdb.exe"
+      }
     },
     {
       "name": "Host Replay: Scheduler (Watch)",
       "type": "cppdbg",
       "request": "launch",
-      "program": "${workspaceFolder}/artifacts/cmake/host-sim-debug/host_sim/scheduler_host_replay.exe",
+      "program": "${workspaceFolder}/artifacts/cmake/host-sim-debug/host_sim/scheduler_host_replay",
       "args": [
         "--ticks",
         "50000",
@@ -171,8 +221,18 @@
       "preLaunchTask": "pc: scheduler replay watch",
       "stopAtEntry": false,
       "console": "integratedTerminal",
-      "MIMode": "gdb",
-      "miDebuggerPath": "C:/qp/qtools/MinGW32/bin/gdb.exe"
+      "MIMode": "lldb",
+      "miDebuggerPath": "/usr/bin/lldb",
+      "osx": {
+        "program": "${workspaceFolder}/artifacts/cmake/host-sim-debug/host_sim/scheduler_host_replay",
+        "MIMode": "lldb",
+        "miDebuggerPath": "/usr/bin/lldb"
+      },
+      "windows": {
+        "program": "${workspaceFolder}/artifacts/cmake/host-sim-debug/host_sim/scheduler_host_replay.exe",
+        "MIMode": "gdb",
+        "miDebuggerPath": "C:/qp/qtools/MinGW32/bin/gdb.exe"
+      }
     },
     {
       "name": "Cortex-Debug: STM32F030 (J-Link)",
@@ -182,11 +242,14 @@
       "cwd": "${workspaceFolder}",
       "preLaunchTask": "mcu: build keil",
       "executable": "${workspaceFolder}/Objects/CommomSH367309_16series_030C8T6_C.axf",
-      "gdbPath": "C:/Program Files (x86)/Arm GNU Toolchain arm-none-eabi/14.2 rel1/bin/arm-none-eabi-gdb.exe",
+      "gdbPath": "${env:HOME}/.local/toolchains/arm-gnu-toolchain-15.2.rel1-darwin-arm64-arm-none-eabi/bin/arm-none-eabi-gdb",
       "device": "STM32F030C8",
       "interface": "swd",
       "runToEntryPoint": "main",
-      "showDevDebugOutput": "raw"
+      "showDevDebugOutput": "raw",
+      "windows": {
+        "gdbPath": "C:/Program Files (x86)/Arm GNU Toolchain arm-none-eabi/14.2 rel1/bin/arm-none-eabi-gdb.exe"
+      }
     },
     {
       "name": "Cortex-Debug: STM32F030 (ST-Link/OpenOCD)",
@@ -196,7 +259,7 @@
       "cwd": "${workspaceFolder}",
       "preLaunchTask": "mcu: build gcc release",
       "executable": "${workspaceFolder}/artifacts/cmake/firmware-release/firmware/CommomSH367309_16series_030C8T6_C.elf",
-      "gdbPath": "C:/Program Files (x86)/Arm GNU Toolchain arm-none-eabi/14.2 rel1/bin/arm-none-eabi-gdb.exe",
+      "gdbPath": "${env:HOME}/.local/toolchains/arm-gnu-toolchain-15.2.rel1-darwin-arm64-arm-none-eabi/bin/arm-none-eabi-gdb",
       "device": "STM32F030C8",
       "interface": "swd",
       "configFiles": [
@@ -204,12 +267,19 @@
         "target/stm32f0x.cfg"
       ],
       "searchDir": [
-        "C:/Users/Administrator/AppData/Local/Microsoft/WinGet/Packages/xpack-dev-tools.openocd-xpack_Microsoft.Winget.Source_8wekyb3d8bbwe/xpack-openocd-0.12.0-7/openocd/scripts"
+        "/opt/homebrew/share/openocd/scripts"
       ],
-      "serverpath": "C:/Users/Administrator/AppData/Local/Microsoft/WinGet/Packages/xpack-dev-tools.openocd-xpack_Microsoft.Winget.Source_8wekyb3d8bbwe/xpack-openocd-0.12.0-7/bin/openocd.exe",
+      "serverpath": "/opt/homebrew/bin/openocd",
       "runToEntryPoint": "main",
       "showDevDebugOutput": "raw",
-      "svdFile": ""
+      "svdFile": "",
+      "windows": {
+        "gdbPath": "C:/Program Files (x86)/Arm GNU Toolchain arm-none-eabi/14.2 rel1/bin/arm-none-eabi-gdb.exe",
+        "searchDir": [
+          "C:/Users/Administrator/AppData/Local/Microsoft/WinGet/Packages/xpack-dev-tools.openocd-xpack_Microsoft.Winget.Source_8wekyb3d8bbwe/xpack-openocd-0.12.0-7/openocd/scripts"
+        ],
+        "serverpath": "C:/Users/Administrator/AppData/Local/Microsoft/WinGet/Packages/xpack-dev-tools.openocd-xpack_Microsoft.Winget.Source_8wekyb3d8bbwe/xpack-openocd-0.12.0-7/bin/openocd.exe"
+      }
     },
     {
       "name": "Cortex-Debug: STM32F030 (ST-Link/OpenOCD, Optimized)",
@@ -219,7 +289,7 @@
       "cwd": "${workspaceFolder}",
       "preLaunchTask": "mcu: build gcc optimized",
       "executable": "${workspaceFolder}/artifacts/cmake/firmware-optimized/firmware/CommomSH367309_16series_030C8T6_C.elf",
-      "gdbPath": "C:/Program Files (x86)/Arm GNU Toolchain arm-none-eabi/14.2 rel1/bin/arm-none-eabi-gdb.exe",
+      "gdbPath": "${env:HOME}/.local/toolchains/arm-gnu-toolchain-15.2.rel1-darwin-arm64-arm-none-eabi/bin/arm-none-eabi-gdb",
       "device": "STM32F030C8",
       "interface": "swd",
       "configFiles": [
@@ -227,12 +297,19 @@
         "target/stm32f0x.cfg"
       ],
       "searchDir": [
-        "C:/Users/Administrator/AppData/Local/Microsoft/WinGet/Packages/xpack-dev-tools.openocd-xpack_Microsoft.Winget.Source_8wekyb3d8bbwe/xpack-openocd-0.12.0-7/openocd/scripts"
+        "/opt/homebrew/share/openocd/scripts"
       ],
-      "serverpath": "C:/Users/Administrator/AppData/Local/Microsoft/WinGet/Packages/xpack-dev-tools.openocd-xpack_Microsoft.Winget.Source_8wekyb3d8bbwe/xpack-openocd-0.12.0-7/bin/openocd.exe",
+      "serverpath": "/opt/homebrew/bin/openocd",
       "runToEntryPoint": "main",
       "showDevDebugOutput": "raw",
-      "svdFile": ""
+      "svdFile": "",
+      "windows": {
+        "gdbPath": "C:/Program Files (x86)/Arm GNU Toolchain arm-none-eabi/14.2 rel1/bin/arm-none-eabi-gdb.exe",
+        "searchDir": [
+          "C:/Users/Administrator/AppData/Local/Microsoft/WinGet/Packages/xpack-dev-tools.openocd-xpack_Microsoft.Winget.Source_8wekyb3d8bbwe/xpack-openocd-0.12.0-7/openocd/scripts"
+        ],
+        "serverpath": "C:/Users/Administrator/AppData/Local/Microsoft/WinGet/Packages/xpack-dev-tools.openocd-xpack_Microsoft.Winget.Source_8wekyb3d8bbwe/xpack-openocd-0.12.0-7/bin/openocd.exe"
+      }
     }
   ]
 }

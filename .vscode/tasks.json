@@ -4,47 +4,42 @@
     {
       "label": "pc: doctor",
       "type": "shell",
-      "command": "py",
+      "command": "task",
       "args": [
-        "-3.12",
-        "scripts/check_toolchain.py"
+        "doctor"
       ],
       "options": {
         "cwd": "${workspaceFolder}"
+      },
+      "windows": {
+        "command": "C:\\Users\\Administrator\\AppData\\Local\\Microsoft\\WinGet\\Links\\task.exe"
       },
       "problemMatcher": []
     },
     {
       "label": "pc: new project",
       "type": "shell",
-      "command": "py",
+      "command": "task",
       "args": [
-        "-3.12",
-        "scripts/new_project.py",
-        "--template",
-        "firmware-stm32f0",
-        "--project-name",
-        "demo-bms",
-        "--device-code",
-        "STM32F030C8",
-        "--protocol-variant",
-        "modbus",
-        "--customer-code",
-        "common",
-        "--output",
-        "templates/generated/demo-bms"
+        "new",
+        "PROJECT_NAME=demo-bms",
+        "DEVICE_CODE=STM32F030C8",
+        "PROTOCOL_VARIANT=modbus",
+        "CUSTOMER_CODE=common"
       ],
       "options": {
         "cwd": "${workspaceFolder}"
+      },
+      "windows": {
+        "command": "C:\\Users\\Administrator\\AppData\\Local\\Microsoft\\WinGet\\Links\\task.exe"
       },
       "problemMatcher": []
     },
     {
       "label": "pc: patch preview",
       "type": "shell",
-      "command": "py",
+      "command": "python3",
       "args": [
-        "-3.12",
         "scripts/patch_project.py",
         "--project-root",
         "templates/firmware-stm32f0",
@@ -55,89 +50,96 @@
       "options": {
         "cwd": "${workspaceFolder}"
       },
+      "windows": {
+        "command": "py",
+        "args": [
+          "-3.12",
+          "scripts/patch_project.py",
+          "--project-root",
+          "templates/firmware-stm32f0",
+          "--vars-file",
+          "templates/vars.sample.json",
+          "--check-only"
+        ]
+      },
       "problemMatcher": []
     },
     {
       "label": "pc: analyze map",
       "type": "shell",
-      "command": "py",
+      "command": "task",
       "args": [
-        "-3.12",
-        "scripts/analyze_map.py",
-        "--map",
-        "CommomSH367309_16series_030C8T6_C.map",
-        "--top",
-        "20",
-        "--json",
-        "artifacts/map-summary.json"
+        "map"
       ],
       "options": {
         "cwd": "${workspaceFolder}"
+      },
+      "windows": {
+        "command": "C:\\Users\\Administrator\\AppData\\Local\\Microsoft\\WinGet\\Links\\task.exe"
       },
       "problemMatcher": []
     },
     {
       "label": "pc: flash plan",
       "type": "shell",
-      "command": "py",
+      "command": "task",
       "args": [
-        "-3.12",
-        "scripts/debug_capture.py",
         "flash",
-        "--probe",
-        "jlink",
-        "--artifact",
-        "Objects/output.hex",
-        "--output",
-        "artifacts/flash-plan.md"
+        "PROBE=jlink",
+        "FIRMWARE_HEX=Objects/output.hex"
       ],
       "options": {
         "cwd": "${workspaceFolder}"
+      },
+      "windows": {
+        "command": "C:\\Users\\Administrator\\AppData\\Local\\Microsoft\\WinGet\\Links\\task.exe"
       },
       "problemMatcher": []
     },
     {
       "label": "pc: debug plan",
       "type": "shell",
-      "command": "py",
+      "command": "task",
       "args": [
-        "-3.12",
-        "scripts/debug_capture.py",
         "debug",
-        "--probe",
-        "openocd",
-        "--artifact",
-        "Objects/output.hex",
-        "--output",
-        "artifacts/debug-plan.md"
+        "PROBE=openocd",
+        "FIRMWARE_HEX=Objects/output.hex"
       ],
       "options": {
         "cwd": "${workspaceFolder}"
+      },
+      "windows": {
+        "command": "C:\\Users\\Administrator\\AppData\\Local\\Microsoft\\WinGet\\Links\\task.exe"
       },
       "problemMatcher": []
     },
     {
       "label": "pc: host sim (cmake)",
       "type": "shell",
-      "command": "C:\\Program Files\\CMake\\bin\\cmake.exe",
+      "command": "task",
       "args": [
-        "--preset",
-        "host-sim-debug"
+        "sim-modbus"
       ],
       "options": {
         "cwd": "${workspaceFolder}"
+      },
+      "windows": {
+        "command": "C:\\Users\\Administrator\\AppData\\Local\\Microsoft\\WinGet\\Links\\task.exe"
       },
       "problemMatcher": []
     },
     {
       "label": "pc: host replay",
       "type": "shell",
-      "command": "C:\\Users\\Administrator\\AppData\\Local\\Microsoft\\WinGet\\Links\\task.exe",
+      "command": "task",
       "args": [
         "sim-replay"
       ],
       "options": {
         "cwd": "${workspaceFolder}"
+      },
+      "windows": {
+        "command": "C:\\Users\\Administrator\\AppData\\Local\\Microsoft\\WinGet\\Links\\task.exe"
       },
       "group": {
         "kind": "test",
@@ -148,72 +150,90 @@
     {
       "label": "pc: host replay long",
       "type": "shell",
-      "command": "C:\\Users\\Administrator\\AppData\\Local\\Microsoft\\WinGet\\Links\\task.exe",
+      "command": "task",
       "args": [
         "sim-replay-long"
       ],
       "options": {
         "cwd": "${workspaceFolder}"
       },
+      "windows": {
+        "command": "C:\\Users\\Administrator\\AppData\\Local\\Microsoft\\WinGet\\Links\\task.exe"
+      },
       "problemMatcher": []
     },
     {
       "label": "pc: host replay watch",
       "type": "shell",
-      "command": "C:\\Users\\Administrator\\AppData\\Local\\Microsoft\\WinGet\\Links\\task.exe",
+      "command": "task",
       "args": [
         "sim-replay-watch"
       ],
       "options": {
         "cwd": "${workspaceFolder}"
       },
+      "windows": {
+        "command": "C:\\Users\\Administrator\\AppData\\Local\\Microsoft\\WinGet\\Links\\task.exe"
+      },
       "problemMatcher": []
     },
     {
       "label": "pc: scheduler replay",
       "type": "shell",
-      "command": "C:\\Users\\Administrator\\AppData\\Local\\Microsoft\\WinGet\\Links\\task.exe",
+      "command": "task",
       "args": [
         "sim-scheduler"
       ],
       "options": {
         "cwd": "${workspaceFolder}"
       },
+      "windows": {
+        "command": "C:\\Users\\Administrator\\AppData\\Local\\Microsoft\\WinGet\\Links\\task.exe"
+      },
       "problemMatcher": []
     },
     {
       "label": "pc: scheduler replay long",
       "type": "shell",
-      "command": "C:\\Users\\Administrator\\AppData\\Local\\Microsoft\\WinGet\\Links\\task.exe",
+      "command": "task",
       "args": [
         "sim-scheduler-long"
       ],
       "options": {
         "cwd": "${workspaceFolder}"
       },
+      "windows": {
+        "command": "C:\\Users\\Administrator\\AppData\\Local\\Microsoft\\WinGet\\Links\\task.exe"
+      },
       "problemMatcher": []
     },
     {
       "label": "pc: scheduler replay watch",
       "type": "shell",
-      "command": "C:\\Users\\Administrator\\AppData\\Local\\Microsoft\\WinGet\\Links\\task.exe",
+      "command": "task",
       "args": [
         "sim-scheduler-watch"
       ],
       "options": {
         "cwd": "${workspaceFolder}"
       },
+      "windows": {
+        "command": "C:\\Users\\Administrator\\AppData\\Local\\Microsoft\\WinGet\\Links\\task.exe"
+      },
       "problemMatcher": []
     },
     {
       "label": "mcu: build gcc release",
       "type": "shell",
-      "command": "C:\\Users\\Administrator\\AppData\\Local\\Microsoft\\WinGet\\Links\\task.exe",
+      "command": "task",
       "args": [
         "build"
       ],
       "options": {
         "cwd": "${workspaceFolder}"
+      },
+      "windows": {
+        "command": "C:\\Users\\Administrator\\AppData\\Local\\Microsoft\\WinGet\\Links\\task.exe"
       },
       "group": {
         "kind": "build",
@@ -224,21 +244,23 @@
     {
       "label": "mcu: build gcc optimized",
       "type": "shell",
-      "command": "C:\\Users\\Administrator\\AppData\\Local\\Microsoft\\WinGet\\Links\\task.exe",
+      "command": "task",
       "args": [
         "build-optimized"
       ],
       "options": {
         "cwd": "${workspaceFolder}"
       },
+      "windows": {
+        "command": "C:\\Users\\Administrator\\AppData\\Local\\Microsoft\\WinGet\\Links\\task.exe"
+      },
       "problemMatcher": []
     },
     {
       "label": "mcu: compare keil vs gcc board-safe",
       "type": "shell",
-      "command": "py",
+      "command": "python3",
       "args": [
-        "-3.12",
         "scripts/check_build_alignment.py",
         "--mode",
         "board-safe",
@@ -248,14 +270,24 @@
       "options": {
         "cwd": "${workspaceFolder}"
       },
+      "windows": {
+        "command": "py",
+        "args": [
+          "-3.12",
+          "scripts/check_build_alignment.py",
+          "--mode",
+          "board-safe",
+          "--json",
+          "artifacts/build-alignment-board-safe.json"
+        ]
+      },
       "problemMatcher": []
     },
     {
       "label": "mcu: compare keil vs gcc optimized",
       "type": "shell",
-      "command": "py",
+      "command": "python3",
       "args": [
-        "-3.12",
         "scripts/check_build_alignment.py",
         "--mode",
         "optimized",
@@ -265,53 +297,76 @@
       "options": {
         "cwd": "${workspaceFolder}"
       },
+      "windows": {
+        "command": "py",
+        "args": [
+          "-3.12",
+          "scripts/check_build_alignment.py",
+          "--mode",
+          "optimized",
+          "--json",
+          "artifacts/build-alignment-optimized.json"
+        ]
+      },
       "problemMatcher": []
     },
     {
       "label": "mcu: flash stlink",
       "type": "shell",
-      "command": "C:\\Users\\Administrator\\AppData\\Local\\Microsoft\\WinGet\\Links\\task.exe",
+      "command": "task",
       "args": [
         "flash-stlink"
       ],
       "options": {
         "cwd": "${workspaceFolder}"
       },
+      "windows": {
+        "command": "C:\\Users\\Administrator\\AppData\\Local\\Microsoft\\WinGet\\Links\\task.exe"
+      },
       "problemMatcher": []
     },
     {
       "label": "mcu: build gcc monitor",
       "type": "shell",
-      "command": "C:\\Users\\Administrator\\AppData\\Local\\Microsoft\\WinGet\\Links\\task.exe",
+      "command": "task",
       "args": [
         "build-monitor"
       ],
       "options": {
         "cwd": "${workspaceFolder}"
       },
+      "windows": {
+        "command": "C:\\Users\\Administrator\\AppData\\Local\\Microsoft\\WinGet\\Links\\task.exe"
+      },
       "problemMatcher": []
     },
     {
       "label": "mcu: flash stlink monitor",
       "type": "shell",
-      "command": "C:\\Users\\Administrator\\AppData\\Local\\Microsoft\\WinGet\\Links\\task.exe",
+      "command": "task",
       "args": [
         "flash-stlink-monitor"
       ],
       "options": {
         "cwd": "${workspaceFolder}"
       },
+      "windows": {
+        "command": "C:\\Users\\Administrator\\AppData\\Local\\Microsoft\\WinGet\\Links\\task.exe"
+      },
       "problemMatcher": []
     },
     {
       "label": "mcu: watch board status",
       "type": "shell",
-      "command": "C:\\Users\\Administrator\\AppData\\Local\\Microsoft\\WinGet\\Links\\task.exe",
+      "command": "task",
       "args": [
         "watch-board-stlink"
       ],
       "options": {
         "cwd": "${workspaceFolder}"
+      },
+      "windows": {
+        "command": "C:\\Users\\Administrator\\AppData\\Local\\Microsoft\\WinGet\\Links\\task.exe"
       },
       "problemMatcher": []
     },
@@ -327,6 +382,16 @@
       "options": {
         "cwd": "${workspaceFolder}"
       },
+      "windows": {
+        "command": "C:\\Keil_v5\\UV4\\UV4.exe"
+      },
+      "osx": {
+        "command": "sh",
+        "args": [
+          "-c",
+          "echo 'Keil only exists on Windows; use task build on macOS.' && exit 1"
+        ]
+      },
       "problemMatcher": []
     },
     {
@@ -341,6 +406,16 @@
       ],
       "options": {
         "cwd": "${workspaceFolder}"
+      },
+      "windows": {
+        "command": "cmd"
+      },
+      "osx": {
+        "command": "sh",
+        "args": [
+          "-c",
+          "echo 'Keil build log is only meaningful on Windows.' && exit 1"
+        ]
       },
       "problemMatcher": []
     }
