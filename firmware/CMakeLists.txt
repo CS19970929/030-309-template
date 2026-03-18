@@ -88,6 +88,7 @@ target_include_directories(${PROJECT_NAME}.elf PRIVATE
 target_compile_definitions(${PROJECT_NAME}.elf PRIVATE
     USE_STDPERIPH_DRIVER
     STM32F0XX
+    APP_RUNTIME_MONITOR_ENABLE
 )
 
 target_compile_options(${PROJECT_NAME}.elf PRIVATE

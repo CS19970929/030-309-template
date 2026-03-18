@@ -69,11 +69,23 @@
 - 降低主循环抖动；
 - 避免监控代码本身干扰运行时序判断。
 
+### 5. `Keil` 与 `CMake` 分开处理运行时监控
+
+- `CMake/GCC` 通过 `APP_RUNTIME_MONITOR_ENABLE` 编译完整运行时监控实现；
+- `Keil` 工程不再编译 `app_runtime_monitor.c` / `app_state_snapshot.c`；
+- `Keil` 下由 [`app_runtime_monitor.h`](E:/TODO/030%20+%20309/Code/Source/BSP/app_runtime_monitor.h) 提供空实现。
+
+用途：
+- 避免 `Keil` 因链接区 / RAM 紧张报 `L6406E No space in execution regions`；
+- 保留 `CMake` 侧的长期监控与主机联调能力；
+- 让你还能继续优先用 `Keil` 看板上问题。
+
 ## 本轮验证结果
 
 ### 编译/下载
 
 - `task build` 通过
+- `C:\Keil_v5\UV4\UV4.exe -b CommomSH367309_16series_030C8T6_C.uvprojx -j0` 通过
 - `STM32_Programmer_CLI.exe -c port=SWD mode=UR -hardRst ...` 下载通过
 - `OpenOCD` 在目标恢复后可重新连接
 
