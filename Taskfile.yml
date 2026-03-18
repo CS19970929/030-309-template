@@ -1,0 +1,72 @@
+version: "3"
+
+vars:
+  PYTHON: '{{default "python" .PYTHON}}'
+  MAP_FILE: '{{default "CommomSH367309_16series_030C8T6_C.map" .MAP_FILE}}'
+  TEMPLATE_NAME: '{{default "firmware-stm32f0" .TEMPLATE_NAME}}'
+  PROJECT_NAME: '{{default "sample-project" .PROJECT_NAME}}'
+
+tasks:
+  default:
+    desc: 显示可用任务
+    cmds:
+      - task --list
+
+  init:
+    desc: 初始化 Python 工具环境
+    cmds:
+      - "{{.PYTHON}} -m pip install uv"
+      - uv sync
+
+  build:
+    desc: 预留的跨平台主构建入口
+    cmds:
+      - '{{.PYTHON}} scripts/export_artifacts.py --source-root . --output artifacts/build-plan.json'
+
+  rebuild:
+    desc: 清理后重新执行主构建入口
+    cmds:
+      - task: clean
+      - task: build
+
+  clean:
+    desc: 清理自动化生成物目录
+    cmds:
+      - '{{.PYTHON}} scripts/export_artifacts.py --source-root . --output artifacts/build-plan.json --clean'
+
+  lint:
+    desc: 执行基础脚本自检
+    cmds:
+      - "{{.PYTHON}} -m compileall scripts"
+
+  format:
+    desc: 预留格式化入口
+    cmds:
+      - '{{.PYTHON}} scripts/patch_project.py --check-only --project-root .'
+
+  test:
+    desc: 执行自动化骨架自检
+    cmds:
+      - "{{.PYTHON}} scripts/new_project.py --help"
+      - "{{.PYTHON}} scripts/analyze_map.py --help"
+      - "{{.PYTHON}} scripts/debug_capture.py --help"
+
+  map:
+    desc: 分析 map 文件热点
+    cmds:
+      - '{{.PYTHON}} scripts/analyze_map.py --map "{{.MAP_FILE}}" --top 20 --json artifacts/map-summary.json'
+
+  flash:
+    desc: 预留烧录入口，当前仅生成操作说明
+    cmds:
+      - '{{.PYTHON}} scripts/debug_capture.py flash --output artifacts/flash-plan.md'
+
+  debug:
+    desc: 预留调试入口，当前仅生成调试采集说明
+    cmds:
+      - '{{.PYTHON}} scripts/debug_capture.py debug --output artifacts/debug-plan.md'
+
+  new:
+    desc: 基于模板生成新项目骨架
+    cmds:
+      - '{{.PYTHON}} scripts/new_project.py --template "{{.TEMPLATE_NAME}}" --project-name "{{.PROJECT_NAME}}" --output templates/generated/{{.PROJECT_NAME}}'

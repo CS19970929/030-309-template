@@ -1,0 +1,42 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 25,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "firmware-debug",
+      "displayName": "Firmware Debug",
+      "description": "Reserved Debug preset for future firmware/CMakeLists.txt",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/artifacts/cmake/firmware-debug",
+      "sourceDir": "${sourceDir}/firmware",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "firmware-release",
+      "displayName": "Firmware Release",
+      "description": "Reserved Release preset for future firmware/CMakeLists.txt",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/artifacts/cmake/firmware-release",
+      "sourceDir": "${sourceDir}/firmware",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "build-firmware-debug",
+      "configurePreset": "firmware-debug"
+    },
+    {
+      "name": "build-firmware-release",
+      "configurePreset": "firmware-release"
+    }
+  ]
+}

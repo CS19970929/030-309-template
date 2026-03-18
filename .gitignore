@@ -29,3 +29,6 @@ Users/CommomSH367309_16series_103RCT6_C.uvoptx
 *.ewp
 
 *.o
+artifacts/
+templates/generated/
+.ruff_cache/

@@ -1,0 +1,25 @@
+[project]
+name = "codex-toolchain-bootstrap"
+version = "0.1.0"
+description = "STM32 BMS 模板仓库的跨平台自动化骨架"
+requires-python = ">=3.8"
+dependencies = []
+
+[project.optional-dependencies]
+dev = [
+  "ruff>=0.12.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv]
+default-groups = []
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
