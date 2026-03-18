@@ -1,0 +1,63 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Python: Toolchain Doctor",
+      "type": "python",
+      "request": "launch",
+      "program": "${workspaceFolder}/scripts/check_toolchain.py",
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "name": "Python: New Project",
+      "type": "python",
+      "request": "launch",
+      "program": "${workspaceFolder}/scripts/new_project.py",
+      "args": [
+        "--template",
+        "firmware-stm32f0",
+        "--project-name",
+        "demo-bms",
+        "--device-code",
+        "STM32F030C8",
+        "--protocol-variant",
+        "modbus",
+        "--customer-code",
+        "common",
+        "--output",
+        "templates/generated/demo-bms"
+      ],
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "name": "Python: Analyze Map",
+      "type": "python",
+      "request": "launch",
+      "program": "${workspaceFolder}/scripts/analyze_map.py",
+      "args": [
+        "--map",
+        "CommomSH367309_16series_030C8T6_C.map",
+        "--top",
+        "20",
+        "--json",
+        "artifacts/map-summary.json"
+      ],
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "name": "Cortex-Debug: STM32F030 (J-Link)",
+      "type": "cortex-debug",
+      "request": "launch",
+      "servertype": "jlink",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "mcu: build keil",
+      "executable": "${workspaceFolder}/Objects/CommomSH367309_16series_030C8T6_C.axf",
+      "device": "STM32F030C8",
+      "interface": "swd",
+      "runToEntryPoint": "main"
+    }
+  ]
+}

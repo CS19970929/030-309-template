@@ -1,0 +1,156 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "pc: doctor",
+      "type": "shell",
+      "command": "python",
+      "args": [
+        "scripts/check_toolchain.py"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "pc: new project",
+      "type": "shell",
+      "command": "python",
+      "args": [
+        "scripts/new_project.py",
+        "--template",
+        "firmware-stm32f0",
+        "--project-name",
+        "demo-bms",
+        "--device-code",
+        "STM32F030C8",
+        "--protocol-variant",
+        "modbus",
+        "--customer-code",
+        "common",
+        "--output",
+        "templates/generated/demo-bms"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "pc: patch preview",
+      "type": "shell",
+      "command": "python",
+      "args": [
+        "scripts/patch_project.py",
+        "--project-root",
+        "templates/firmware-stm32f0",
+        "--vars-file",
+        "templates/vars.sample.json",
+        "--check-only"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "pc: analyze map",
+      "type": "shell",
+      "command": "python",
+      "args": [
+        "scripts/analyze_map.py",
+        "--map",
+        "CommomSH367309_16series_030C8T6_C.map",
+        "--top",
+        "20",
+        "--json",
+        "artifacts/map-summary.json"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "pc: flash plan",
+      "type": "shell",
+      "command": "python",
+      "args": [
+        "scripts/debug_capture.py",
+        "flash",
+        "--probe",
+        "jlink",
+        "--artifact",
+        "Objects/output.hex",
+        "--output",
+        "artifacts/flash-plan.md"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "pc: debug plan",
+      "type": "shell",
+      "command": "python",
+      "args": [
+        "scripts/debug_capture.py",
+        "debug",
+        "--probe",
+        "openocd",
+        "--artifact",
+        "Objects/output.hex",
+        "--output",
+        "artifacts/debug-plan.md"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "pc: host sim (cmake)",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--preset",
+        "host-sim-debug"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "mcu: build keil",
+      "type": "shell",
+      "command": "C:\\Keil_v5\\UV4\\UV4.exe",
+      "args": [
+        "-b",
+        "CommomSH367309_16series_030C8T6_C.uvprojx",
+        "-j0"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "mcu: open keil build log",
+      "type": "shell",
+      "command": "cmd",
+      "args": [
+        "/c",
+        "start",
+        "",
+        "Objects\\CommomSH367309_16series_030C8T6_C.build_log.htm"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    }
+  ]
+}
