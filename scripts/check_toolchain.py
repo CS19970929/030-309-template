@@ -10,6 +10,8 @@ TOOLS = [
     "cmake",
     "ninja",
     "arm-none-eabi-gcc",
+    "JLinkExe",
+    "openocd",
 ]
 
 
