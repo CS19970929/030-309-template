@@ -17,6 +17,13 @@ FALLBACKS = {
         r"C:\Users\Administrator\AppData\Local\Microsoft\WinGet\Links\ninja.exe",
     ],
     "arm-none-eabi-gcc": [
+        str(
+            (
+                shutil.os.path.expanduser(
+                    "~/.local/toolchains/arm-gnu-toolchain-15.2.rel1-darwin-arm64-arm-none-eabi/bin/arm-none-eabi-gcc"
+                )
+            )
+        ),
         r"C:\Program Files (x86)\Arm GNU Toolchain arm-none-eabi\14.2 rel1\bin\arm-none-eabi-gcc.exe",
     ],
     "JLinkExe": [
@@ -41,6 +48,10 @@ TOOLS = [
 
 
 def resolve_tool(tool: str):
+    for candidate in FALLBACKS.get(tool, []):
+        if os.path.exists(candidate):
+            return candidate
+
     candidates = [tool]
     if tool == "python" and os.name != "nt":
         candidates.insert(0, "python3")
@@ -49,10 +60,6 @@ def resolve_tool(tool: str):
         path = shutil.which(candidate)
         if path:
             return path
-
-    for candidate in FALLBACKS.get(tool, []):
-        if os.path.exists(candidate):
-            return candidate
     return None
 
 
@@ -87,7 +94,7 @@ def main() -> int:
     for tool in TOOLS:
         path = resolve_tool(tool)
         report["tools"][tool] = path
-        if path is None:
+        if path is None and tool not in {"JLinkExe", "openocd"}:
             missing.append(tool)
 
     arm_gcc = report["tools"].get("arm-none-eabi-gcc")
@@ -99,6 +106,9 @@ def main() -> int:
         }
         if not headers_ok:
             missing.append("arm-none-eabi-gcc headers")
+
+    if not report["tools"].get("JLinkExe") and not report["tools"].get("openocd"):
+        missing.append("JLinkExe/openocd")
 
     print(json.dumps(report, indent=2, ensure_ascii=False))
 

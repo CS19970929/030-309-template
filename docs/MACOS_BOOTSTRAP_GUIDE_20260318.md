@@ -76,6 +76,12 @@ arm-none-eabi-gcc -xc -E - <<'EOF'
 EOF
 ```
 
+当前这台 Mac 已验证可用的安装路径：
+
+```text
+/Users/cs/.local/toolchains/arm-gnu-toolchain-15.2.rel1-darwin-arm64-arm-none-eabi
+```
+
 只有这一步通过后，再执行：
 
 ```bash

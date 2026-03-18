@@ -162,9 +162,6 @@ set_target_properties(${PROJECT_NAME}.elf PROPERTIES
     SUFFIX ".elf"
 )
 
-find_program(CMAKE_OBJCOPY arm-none-eabi-objcopy)
-find_program(CMAKE_SIZE arm-none-eabi-size)
-
 if(CMAKE_OBJCOPY)
     add_custom_command(TARGET ${PROJECT_NAME}.elf POST_BUILD
         COMMAND ${CMAKE_OBJCOPY} -O binary
