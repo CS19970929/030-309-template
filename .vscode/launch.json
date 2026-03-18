@@ -93,6 +93,28 @@
       "miDebuggerPath": "C:/qp/qtools/MinGW32/bin/gdb.exe"
     },
     {
+      "name": "Host Replay: Modbus Parser (Watch)",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/artifacts/cmake/host-sim-debug/host_sim/modbus_parser_host_replay.exe",
+      "args": [
+        "--input",
+        "host_sim/scenarios/modbus_frames.txt",
+        "--log",
+        "artifacts/host-sim/modbus-replay-watch.log",
+        "--snapshot",
+        "artifacts/host-sim/modbus-replay-watch.jsonl",
+        "--repeat",
+        "10000"
+      ],
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "pc: host replay watch",
+      "stopAtEntry": false,
+      "console": "integratedTerminal",
+      "MIMode": "gdb",
+      "miDebuggerPath": "C:/qp/qtools/MinGW32/bin/gdb.exe"
+    },
+    {
       "name": "Host Replay: Scheduler",
       "type": "cppdbg",
       "request": "launch",
@@ -127,6 +149,26 @@
       ],
       "cwd": "${workspaceFolder}",
       "preLaunchTask": "pc: scheduler replay long",
+      "stopAtEntry": false,
+      "console": "integratedTerminal",
+      "MIMode": "gdb",
+      "miDebuggerPath": "C:/qp/qtools/MinGW32/bin/gdb.exe"
+    },
+    {
+      "name": "Host Replay: Scheduler (Watch)",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/artifacts/cmake/host-sim-debug/host_sim/scheduler_host_replay.exe",
+      "args": [
+        "--ticks",
+        "50000",
+        "--log",
+        "artifacts/host-sim/scheduler-replay-watch.log",
+        "--snapshot",
+        "artifacts/host-sim/scheduler-replay-watch.jsonl"
+      ],
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "pc: scheduler replay watch",
       "stopAtEntry": false,
       "console": "integratedTerminal",
       "MIMode": "gdb",

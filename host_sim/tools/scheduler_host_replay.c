@@ -48,6 +48,7 @@ static int32_t g_temp_max_c_x10 = 255;
 static int32_t g_temp_min_c_x10 = 230;
 static uint32_t g_soc_pct = 800U;
 static uint32_t g_soh_pct = 980U;
+static int g_quiet_console = 0;
 
 static void HostSim_ResetScheduler(void)
 {
@@ -62,6 +63,18 @@ static void HostSim_ResetScheduler(void)
 
 static void HostSim_WriteLogLine(const char *task_name, uint32_t run_count)
 {
+    if (!g_quiet_console)
+    {
+        printf("tick=%lu task=%s run=%lu voltage=%lu current=%ld soc=%lu\n",
+               (unsigned long)g_tick_count,
+               task_name,
+               (unsigned long)run_count,
+               (unsigned long)g_pack_voltage_mv,
+               (long)g_pack_current_ma,
+               (unsigned long)g_soc_pct);
+        fflush(stdout);
+    }
+
     if (g_log_file == NULL)
     {
         return;
@@ -180,7 +193,7 @@ static void HostSim_RegisterTasks(void)
 static void HostSim_PrintUsage(const char *program)
 {
     fprintf(stderr,
-            "Usage: %s --ticks <count> --log <path> --snapshot <path>\n",
+            "Usage: %s --ticks <count> --log <path> --snapshot <path> [--quiet-console]\n",
             program);
 }
 
@@ -232,6 +245,10 @@ int main(int argc, char **argv)
         else if ((strcmp(argv[i], "--snapshot") == 0) && (i + 1 < argc))
         {
             snapshot_path = argv[++i];
+        }
+        else if (strcmp(argv[i], "--quiet-console") == 0)
+        {
+            g_quiet_console = 1;
         }
         else
         {

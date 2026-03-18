@@ -71,17 +71,34 @@ task sim-scheduler-long
 - [scheduler-replay-long.log](E:/TODO/030%20+%20309/artifacts/host-sim/scheduler-replay-long.log)
 - [scheduler-replay-long.jsonl](E:/TODO/030%20+%20309/artifacts/host-sim/scheduler-replay-long.jsonl)
 
+### 终端持续刷日志
+
+如果你希望直接在终端持续看到类似 BMS 状态流，而不是只落文件，用：
+
+```powershell
+task sim-scheduler-watch
+```
+
+它会：
+
+- 在终端持续输出任务执行、模拟电压、电流、SOC
+- 同时写入文件：
+  - [scheduler-replay-watch.log](E:/TODO/030%20+%20309/artifacts/host-sim/scheduler-replay-watch.log)
+  - [scheduler-replay-watch.jsonl](E:/TODO/030%20+%20309/artifacts/host-sim/scheduler-replay-watch.jsonl)
+
 ## VS Code 一键入口
 
 ### Run Task
 
 - `pc: scheduler replay`
 - `pc: scheduler replay long`
+- `pc: scheduler replay watch`
 
 ### Run and Debug
 
 - `Host Replay: Scheduler`
 - `Host Replay: Scheduler (Long)`
+- `Host Replay: Scheduler (Watch)`
 
 ## 适合拿它做什么
 

@@ -158,6 +158,18 @@
       "problemMatcher": []
     },
     {
+      "label": "pc: host replay watch",
+      "type": "shell",
+      "command": "C:\\Users\\Administrator\\AppData\\Local\\Microsoft\\WinGet\\Links\\task.exe",
+      "args": [
+        "sim-replay-watch"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
       "label": "pc: scheduler replay",
       "type": "shell",
       "command": "C:\\Users\\Administrator\\AppData\\Local\\Microsoft\\WinGet\\Links\\task.exe",
@@ -175,6 +187,18 @@
       "command": "C:\\Users\\Administrator\\AppData\\Local\\Microsoft\\WinGet\\Links\\task.exe",
       "args": [
         "sim-scheduler-long"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "pc: scheduler replay watch",
+      "type": "shell",
+      "command": "C:\\Users\\Administrator\\AppData\\Local\\Microsoft\\WinGet\\Links\\task.exe",
+      "args": [
+        "sim-scheduler-watch"
       ],
       "options": {
         "cwd": "${workspaceFolder}"
