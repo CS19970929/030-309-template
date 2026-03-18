@@ -6,26 +6,26 @@
     "patch": 0
   },
   "configurePresets": [
-    {
-      "name": "firmware-debug",
-      "displayName": "Firmware Debug",
+        {
+            "name": "firmware-debug",
+            "displayName": "Firmware Debug",
             "description": "Reserved Debug preset for future firmware/CMakeLists.txt",
             "generator": "Ninja",
             "binaryDir": "${sourceDir}/artifacts/cmake/firmware-debug",
-            "sourceDir": "${sourceDir}/firmware",
             "cacheVariables": {
+                "BUILD_FIRMWARE": "ON",
                 "CMAKE_BUILD_TYPE": "Debug",
                 "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/toolchains/arm-none-eabi-gcc.cmake"
             }
         },
     {
-      "name": "firmware-release",
-      "displayName": "Firmware Release",
+            "name": "firmware-release",
+            "displayName": "Firmware Release",
             "description": "Reserved Release preset for future firmware/CMakeLists.txt",
             "generator": "Ninja",
             "binaryDir": "${sourceDir}/artifacts/cmake/firmware-release",
-            "sourceDir": "${sourceDir}/firmware",
             "cacheVariables": {
+                "BUILD_FIRMWARE": "ON",
                 "CMAKE_BUILD_TYPE": "Release",
                 "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/toolchains/arm-none-eabi-gcc.cmake"
             }
@@ -37,8 +37,8 @@
             "description": "Native host-side simulation preset",
             "generator": "Ninja",
             "binaryDir": "${sourceDir}/artifacts/cmake/host-sim-debug",
-            "sourceDir": "${sourceDir}/host_sim",
             "cacheVariables": {
+                "BUILD_HOST_SIM": "ON",
                 "CMAKE_BUILD_TYPE": "Debug"
             }
         }

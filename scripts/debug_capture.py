@@ -3,6 +3,16 @@ import shutil
 import subprocess
 from pathlib import Path
 
+FALLBACK_EXECUTABLES = {
+    "JLinkExe": [
+        r"C:\Program Files\SEGGER\JLink_V818\JLink.exe",
+        r"C:\Program Files\SEGGER\JLink_V796h\JLink.exe",
+    ],
+    "openocd": [
+        r"C:\Users\Administrator\AppData\Local\Microsoft\WinGet\Packages\xpack-dev-tools.openocd-xpack_Microsoft.Winget.Source_8wekyb3d8bbwe\xpack-openocd-0.12.0-7\bin\openocd.exe",
+    ],
+}
+
 
 def normalize_path(raw_path: str) -> Path:
     path = Path(raw_path)
@@ -27,11 +37,21 @@ def build_parser() -> argparse.ArgumentParser:
 def detect_probe(preferred: str) -> str:
     if preferred != "auto":
         return preferred
-    if shutil.which("JLinkExe"):
+    if find_executable("JLinkExe"):
         return "jlink"
-    if shutil.which("openocd"):
+    if find_executable("openocd"):
         return "openocd"
     return "jlink"
+
+
+def find_executable(name: str):
+    path = shutil.which(name)
+    if path:
+        return path
+    for candidate in FALLBACK_EXECUTABLES.get(name, []):
+        if Path(candidate).exists():
+            return candidate
+    return None
 
 
 def build_jlink_command(args, command_file: Path) -> list:
@@ -55,7 +75,8 @@ def build_jlink_command(args, command_file: Path) -> list:
         commands.extend(["halt", "g", "qc"])
 
     command_file.write_text("\n".join(commands) + "\n", encoding="utf-8")
-    return ["JLinkExe", "-CommandFile", str(command_file)]
+    executable = find_executable("JLinkExe") or "JLinkExe"
+    return [executable, "-CommandFile", str(command_file)]
 
 
 def build_openocd_command(args) -> list:
@@ -71,7 +92,8 @@ def build_openocd_command(args) -> list:
         script += f"program {image_path} verify reset exit"
     else:
         script += "halt; reset halt; exit"
-    return ["openocd", "-c", script]
+    executable = find_executable("openocd") or "openocd"
+    return [executable, "-c", script]
 
 
 def render_plan(mode: str, probe: str, command: list, artifact: Path, run: bool) -> str:
@@ -96,17 +118,17 @@ def main() -> int:
 
     if probe == "openocd":
         command = build_openocd_command(args)
-        executable = "openocd"
+        executable = find_executable("openocd") or "openocd"
     else:
         command = build_jlink_command(args, command_file)
-        executable = "JLinkExe"
+        executable = find_executable("JLinkExe") or "JLinkExe"
 
     artifact_path = normalize_path(args.artifact)
     output_path.write_text(render_plan(args.mode, probe, command, artifact_path, args.run), encoding="utf-8")
     print(f"Plan file generated: {output_path}")
 
     if args.run:
-        if shutil.which(executable) is None:
+        if not Path(str(executable)).exists() and shutil.which(str(executable)) is None:
             print(f"Executable not found: {executable}")
             return 1
         if args.mode == "flash" and not artifact_path.exists():

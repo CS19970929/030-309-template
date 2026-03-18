@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.25)
 
+set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
+
 project(stm32f030_app C ASM)
 
 set(PROJECT_ROOT "${CMAKE_CURRENT_LIST_DIR}/..")
@@ -41,7 +43,6 @@ set(FIRMWARE_SOURCES
     "${PROJECT_ROOT}/Code/Source/BSP/bsp.c"
     "${PROJECT_ROOT}/Code/Source/BSP/bsp_timer.c"
     "${PROJECT_ROOT}/Code/Source/BSP/Time_Triggered.c"
-    "${PROJECT_ROOT}/Code/Source/BSP/src/bsp_key.c"
     "${PROJECT_ROOT}/Code/Source/NewFunc/LedBar.c"
     "${PROJECT_ROOT}/Code/Source/conf/conf.c"
     "${CMAKE_CURRENT_LIST_DIR}/startup/startup_stm32f0xx_gcc.S"
@@ -95,6 +96,11 @@ target_compile_options(${PROJECT_NAME}.elf PRIVATE
     -fno-common
     -fmessage-length=0
     -std=gnu99
+    $<$<CONFIG:Release>:-Os>
+    $<$<CONFIG:Release>:-flto>
+    $<$<CONFIG:MinSizeRel>:-Os>
+    $<$<CONFIG:MinSizeRel>:-flto>
+    $<$<COMPILE_LANGUAGE:C>:-Wno-implicit-function-declaration>
     $<$<COMPILE_LANGUAGE:C>:-Wall>
 )
 
@@ -106,10 +112,13 @@ target_link_options(${PROJECT_NAME}.elf PRIVATE
     -Wl,-Map=${CMAKE_BINARY_DIR}/stm32f030_app.map
     --specs=nano.specs
     --specs=nosys.specs
+    $<$<CONFIG:Release>:-flto>
+    $<$<CONFIG:MinSizeRel>:-flto>
 )
 
 set_target_properties(${PROJECT_NAME}.elf PROPERTIES
     OUTPUT_NAME "CommomSH367309_16series_030C8T6_C"
+    SUFFIX ".elf"
 )
 
 find_program(CMAKE_OBJCOPY arm-none-eabi-objcopy)

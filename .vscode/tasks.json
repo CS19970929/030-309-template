@@ -4,8 +4,9 @@
     {
       "label": "pc: doctor",
       "type": "shell",
-      "command": "python",
+      "command": "py",
       "args": [
+        "-3.12",
         "scripts/check_toolchain.py"
       ],
       "options": {
@@ -16,8 +17,9 @@
     {
       "label": "pc: new project",
       "type": "shell",
-      "command": "python",
+      "command": "py",
       "args": [
+        "-3.12",
         "scripts/new_project.py",
         "--template",
         "firmware-stm32f0",
@@ -40,8 +42,9 @@
     {
       "label": "pc: patch preview",
       "type": "shell",
-      "command": "python",
+      "command": "py",
       "args": [
+        "-3.12",
         "scripts/patch_project.py",
         "--project-root",
         "templates/firmware-stm32f0",
@@ -57,8 +60,9 @@
     {
       "label": "pc: analyze map",
       "type": "shell",
-      "command": "python",
+      "command": "py",
       "args": [
+        "-3.12",
         "scripts/analyze_map.py",
         "--map",
         "CommomSH367309_16series_030C8T6_C.map",
@@ -75,8 +79,9 @@
     {
       "label": "pc: flash plan",
       "type": "shell",
-      "command": "python",
+      "command": "py",
       "args": [
+        "-3.12",
         "scripts/debug_capture.py",
         "flash",
         "--probe",
@@ -94,8 +99,9 @@
     {
       "label": "pc: debug plan",
       "type": "shell",
-      "command": "python",
+      "command": "py",
       "args": [
+        "-3.12",
         "scripts/debug_capture.py",
         "debug",
         "--probe",
@@ -113,10 +119,22 @@
     {
       "label": "pc: host sim (cmake)",
       "type": "shell",
-      "command": "cmake",
+      "command": "C:\\Program Files\\CMake\\bin\\cmake.exe",
       "args": [
         "--preset",
         "host-sim-debug"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "mcu: build gcc release",
+      "type": "shell",
+      "command": "C:\\Users\\Administrator\\AppData\\Local\\Microsoft\\WinGet\\Links\\task.exe",
+      "args": [
+        "build"
       ],
       "options": {
         "cwd": "${workspaceFolder}"

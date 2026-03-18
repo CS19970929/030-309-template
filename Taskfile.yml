@@ -1,14 +1,15 @@
 version: "3"
 
 vars:
-  PYTHON: '{{default "python" .PYTHON}}'
+  PYTHON: '{{default (ternary "py -3.12" "python3" (eq OS "windows")) .PYTHON}}'
+  CMAKE: '{{default (ternary "C:/Program Files/CMake/bin/cmake.exe" "cmake" (eq OS "windows")) .CMAKE}}'
   MAP_FILE: '{{default "CommomSH367309_16series_030C8T6_C.map" .MAP_FILE}}'
   TEMPLATE_NAME: '{{default "firmware-stm32f0" .TEMPLATE_NAME}}'
   PROJECT_NAME: '{{default "sample-project" .PROJECT_NAME}}'
   DEVICE_CODE: '{{default "STM32F030C8" .DEVICE_CODE}}'
   PROTOCOL_VARIANT: '{{default "default" .PROTOCOL_VARIANT}}'
   CUSTOMER_CODE: '{{default "common" .CUSTOMER_CODE}}'
-  FIRMWARE_HEX: '{{default "artifacts/cmake/firmware-debug/CommomSH367309_16series_030C8T6_C.hex" .FIRMWARE_HEX}}'
+  FIRMWARE_HEX: '{{default "artifacts/cmake/firmware-release/CommomSH367309_16series_030C8T6_C.hex" .FIRMWARE_HEX}}'
   PROBE: '{{default "auto" .PROBE}}'
   VARS_FILE: '{{default "templates/vars.sample.json" .VARS_FILE}}'
 
@@ -30,16 +31,28 @@ tasks:
       - uv sync
 
   build:
-    desc: 使用 CMake Preset 构建 STM32F030 固件
+    desc: 使用 CMake Release Preset 构建 STM32F030 固件
     cmds:
-      - "cmake --preset firmware-debug"
-      - "cmake --build --preset build-firmware-debug"
+      - '"{{.CMAKE}}" --preset firmware-release'
+      - '"{{.CMAKE}}" --build --preset build-firmware-release'
+
+  build-debug:
+    desc: 使用 CMake Debug Preset 构建 STM32F030 固件
+    cmds:
+      - '"{{.CMAKE}}" --preset firmware-debug'
+      - '"{{.CMAKE}}" --build --preset build-firmware-debug'
 
   rebuild:
     desc: 清理后重新执行固件构建
     cmds:
       - task: clean
       - task: build
+
+  rebuild-debug:
+    desc: 清理后重新执行固件 Debug 构建
+    cmds:
+      - task: clean
+      - task: build-debug
 
   clean:
     desc: 清理自动化生成物目录
@@ -82,9 +95,9 @@ tasks:
   sim-modbus:
     desc: 在 PC 上构建并运行 Modbus 解析主机侧仿真
     cmds:
-      - "cmake --preset host-sim-debug"
-      - "cmake --build --preset build-host-sim-debug"
-      - "artifacts\\cmake\\host-sim-debug\\modbus_parser_host_test"
+      - '"{{.CMAKE}}" --preset host-sim-debug'
+      - '"{{.CMAKE}}" --build --preset build-host-sim-debug'
+      - 'artifacts/cmake/host-sim-debug/host_sim/modbus_parser_host_test{{if eq OS "windows"}}.exe{{end}}'
 
   new:
     desc: 基于模板生成新项目骨架
