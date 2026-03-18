@@ -1,0 +1,5 @@
+{
+  "name": "firmware-stm32f0",
+  "description": "STM32 firmware template for Codex-driven automation",
+  "replacements": {}
+}

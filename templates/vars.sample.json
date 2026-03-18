@@ -1,0 +1,6 @@
+{
+  "__PROJECT_SLUG__": "sample-bms",
+  "__DEVICE_CODE__": "STM32F030C8",
+  "__PROTOCOL_VARIANT__": "modbus",
+  "__CUSTOMER_CODE__": "common"
+}

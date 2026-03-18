@@ -5,8 +5,12 @@ vars:
   MAP_FILE: '{{default "CommomSH367309_16series_030C8T6_C.map" .MAP_FILE}}'
   TEMPLATE_NAME: '{{default "firmware-stm32f0" .TEMPLATE_NAME}}'
   PROJECT_NAME: '{{default "sample-project" .PROJECT_NAME}}'
+  DEVICE_CODE: '{{default "STM32F030C8" .DEVICE_CODE}}'
+  PROTOCOL_VARIANT: '{{default "default" .PROTOCOL_VARIANT}}'
+  CUSTOMER_CODE: '{{default "common" .CUSTOMER_CODE}}'
   FIRMWARE_HEX: '{{default "artifacts/cmake/firmware-debug/CommomSH367309_16series_030C8T6_C.hex" .FIRMWARE_HEX}}'
   PROBE: '{{default "auto" .PROBE}}'
+  VARS_FILE: '{{default "templates/vars.sample.json" .VARS_FILE}}'
 
 tasks:
   default:
@@ -48,9 +52,9 @@ tasks:
       - "{{.PYTHON}} -m compileall scripts"
 
   format:
-    desc: 预留格式化入口
+    desc: 检查模板替换脚本
     cmds:
-      - '{{.PYTHON}} scripts/patch_project.py --check-only --project-root .'
+      - '{{.PYTHON}} scripts/patch_project.py --check-only --project-root . --vars-file "{{.VARS_FILE}}"'
 
   test:
     desc: 执行自动化骨架自检
@@ -78,4 +82,9 @@ tasks:
   new:
     desc: 基于模板生成新项目骨架
     cmds:
-      - '{{.PYTHON}} scripts/new_project.py --template "{{.TEMPLATE_NAME}}" --project-name "{{.PROJECT_NAME}}" --output templates/generated/{{.PROJECT_NAME}}'
+      - '{{.PYTHON}} scripts/new_project.py --template "{{.TEMPLATE_NAME}}" --project-name "{{.PROJECT_NAME}}" --device-code "{{.DEVICE_CODE}}" --protocol-variant "{{.PROTOCOL_VARIANT}}" --customer-code "{{.CUSTOMER_CODE}}" --output templates/generated/{{.PROJECT_NAME}}'
+
+  patch:
+    desc: 对现有项目执行占位符替换
+    cmds:
+      - '{{.PYTHON}} scripts/patch_project.py --project-root . --vars-file "{{.VARS_FILE}}"'
