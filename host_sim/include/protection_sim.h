@@ -47,9 +47,12 @@ typedef struct
 
 typedef struct
 {
-    uint8_t severity;
-    uint16_t assert_count;
-    uint16_t recover_count;
+    uint8_t second_active;
+    uint8_t third_active;
+    uint16_t second_assert_count;
+    uint16_t second_recover_count;
+    uint16_t third_assert_count;
+    uint16_t third_recover_count;
 } ProtectionFaultState;
 
 typedef struct

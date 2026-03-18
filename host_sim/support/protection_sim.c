@@ -6,120 +6,154 @@ static uint8_t ProtectionSim_EvaluateHigh(const ProtectionHighFaultConfig *confi
                                           ProtectionFaultState *state,
                                           uint16_t value)
 {
-    uint8_t target = 0U;
-
-    if (value >= config->third_threshold)
+    if (state->second_active == 0U)
     {
-        target = 3U;
-    }
-    else if (value >= config->second_threshold)
-    {
-        target = 2U;
-    }
-    else if (value >= config->first_threshold)
-    {
-        target = 1U;
-    }
-
-    if (target > 0U)
-    {
-        if (target >= state->severity)
+        if (value >= config->second_threshold)
         {
-            ++state->assert_count;
-            if (state->assert_count >= config->filter_ticks)
+            ++state->second_assert_count;
+            if (state->second_assert_count >= config->filter_ticks)
             {
-                state->severity = target;
-                state->assert_count = config->filter_ticks;
-                state->recover_count = 0U;
+                state->second_active = 1U;
+                state->second_assert_count = config->filter_ticks;
+                state->second_recover_count = 0U;
             }
         }
         else
         {
-            state->assert_count = 0U;
+            state->second_assert_count = 0U;
+        }
+    }
+    else if (value <= config->first_threshold)
+    {
+        ++state->second_recover_count;
+        if (state->second_recover_count >= config->filter_ticks)
+        {
+            state->second_active = 0U;
+            state->second_recover_count = config->filter_ticks;
         }
     }
     else
     {
-        state->assert_count = 0U;
-        if (state->severity > 0U)
-        {
-            if (value <= config->recover_threshold)
-            {
-                ++state->recover_count;
-                if (state->recover_count >= config->filter_ticks)
-                {
-                    state->severity = 0U;
-                    state->recover_count = config->filter_ticks;
-                }
-            }
-            else
-            {
-                state->recover_count = 0U;
-            }
-        }
+        state->second_recover_count = 0U;
     }
 
-    return state->severity;
+    if (state->third_active == 0U)
+    {
+        if (value >= config->third_threshold)
+        {
+            ++state->third_assert_count;
+            if (state->third_assert_count >= config->filter_ticks)
+            {
+                state->third_active = 1U;
+                state->third_assert_count = config->filter_ticks;
+                state->third_recover_count = 0U;
+            }
+        }
+        else
+        {
+            state->third_assert_count = 0U;
+        }
+    }
+    else if (value <= config->recover_threshold)
+    {
+        ++state->third_recover_count;
+        if (state->third_recover_count >= config->filter_ticks)
+        {
+            state->third_active = 0U;
+            state->third_recover_count = config->filter_ticks;
+        }
+    }
+    else
+    {
+        state->third_recover_count = 0U;
+    }
+
+    if (state->third_active != 0U)
+    {
+        return 3U;
+    }
+    if (state->second_active != 0U)
+    {
+        return 2U;
+    }
+    return 0U;
 }
 
 static uint8_t ProtectionSim_EvaluateLow(const ProtectionLowFaultConfig *config,
                                          ProtectionFaultState *state,
                                          uint16_t value)
 {
-    uint8_t target = 0U;
-
-    if (value <= config->third_threshold)
+    if (state->second_active == 0U)
     {
-        target = 3U;
-    }
-    else if (value <= config->second_threshold)
-    {
-        target = 2U;
-    }
-    else if (value <= config->first_threshold)
-    {
-        target = 1U;
-    }
-
-    if (target > 0U)
-    {
-        if (target >= state->severity)
+        if (value <= config->second_threshold)
         {
-            ++state->assert_count;
-            if (state->assert_count >= config->filter_ticks)
+            ++state->second_assert_count;
+            if (state->second_assert_count >= config->filter_ticks)
             {
-                state->severity = target;
-                state->assert_count = config->filter_ticks;
-                state->recover_count = 0U;
+                state->second_active = 1U;
+                state->second_assert_count = config->filter_ticks;
+                state->second_recover_count = 0U;
             }
         }
         else
         {
-            state->assert_count = 0U;
+            state->second_assert_count = 0U;
+        }
+    }
+    else if (value >= config->first_threshold)
+    {
+        ++state->second_recover_count;
+        if (state->second_recover_count >= config->filter_ticks)
+        {
+            state->second_active = 0U;
+            state->second_recover_count = config->filter_ticks;
         }
     }
     else
     {
-        state->assert_count = 0U;
-        if (state->severity > 0U)
-        {
-            if (value >= config->recover_threshold)
-            {
-                ++state->recover_count;
-                if (state->recover_count >= config->filter_ticks)
-                {
-                    state->severity = 0U;
-                    state->recover_count = config->filter_ticks;
-                }
-            }
-            else
-            {
-                state->recover_count = 0U;
-            }
-        }
+        state->second_recover_count = 0U;
     }
 
-    return state->severity;
+    if (state->third_active == 0U)
+    {
+        if (value <= config->third_threshold)
+        {
+            ++state->third_assert_count;
+            if (state->third_assert_count >= config->filter_ticks)
+            {
+                state->third_active = 1U;
+                state->third_assert_count = config->filter_ticks;
+                state->third_recover_count = 0U;
+            }
+        }
+        else
+        {
+            state->third_assert_count = 0U;
+        }
+    }
+    else if (value >= config->recover_threshold)
+    {
+        ++state->third_recover_count;
+        if (state->third_recover_count >= config->filter_ticks)
+        {
+            state->third_active = 0U;
+            state->third_recover_count = config->filter_ticks;
+        }
+    }
+    else
+    {
+        state->third_recover_count = 0U;
+    }
+
+    if (state->third_active != 0U)
+    {
+        return 3U;
+    }
+    if (state->second_active != 0U)
+    {
+        return 2U;
+    }
+    return 0U;
 }
 
 static void ProtectionSim_ApplySeverity(uint32_t fault_mask,

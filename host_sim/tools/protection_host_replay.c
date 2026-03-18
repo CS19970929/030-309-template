@@ -24,6 +24,19 @@ typedef struct
     int quiet_console;
 } ReplayOptions;
 
+typedef struct
+{
+    uint32_t first_count;
+    uint32_t second_count;
+    uint32_t third_count;
+    uint32_t charge_mos_off_count;
+    uint32_t discharge_mos_off_count;
+    uint32_t last_fault_first;
+    uint32_t last_fault_second;
+    uint32_t last_fault_third;
+    uint32_t transition_count;
+} ReplaySummary;
+
 static void HostSim_PrintUsage(const char *program)
 {
     fprintf(stderr,
@@ -186,6 +199,40 @@ static const char *HostSim_ResultName(const AppSimOutputSnapshot *output)
     return "normal";
 }
 
+static void HostSim_UpdateSummary(ReplaySummary *summary, const AppSimOutputSnapshot *output)
+{
+    if (output->fault_first != 0U)
+    {
+        ++summary->first_count;
+    }
+    if (output->fault_second != 0U)
+    {
+        ++summary->second_count;
+    }
+    if (output->fault_third != 0U)
+    {
+        ++summary->third_count;
+    }
+    if (output->charge_mos_off != 0U)
+    {
+        ++summary->charge_mos_off_count;
+    }
+    if (output->discharge_mos_off != 0U)
+    {
+        ++summary->discharge_mos_off_count;
+    }
+    if ((summary->last_fault_first != output->fault_first) ||
+        (summary->last_fault_second != output->fault_second) ||
+        (summary->last_fault_third != output->fault_third))
+    {
+        ++summary->transition_count;
+    }
+
+    summary->last_fault_first = output->fault_first;
+    summary->last_fault_second = output->fault_second;
+    summary->last_fault_third = output->fault_third;
+}
+
 int main(int argc, char **argv)
 {
     ReplayOptions options;
@@ -196,6 +243,7 @@ int main(int argc, char **argv)
     int line_index = 0;
     int step = 0;
     int failures = 0;
+    ReplaySummary summary;
     ProtectionSimConfig config;
     ProtectionSimState state;
     AppSimInputSnapshot input;
@@ -237,6 +285,7 @@ int main(int argc, char **argv)
 
     ProtectionSim_LoadBaselineConfig(&config);
     ProtectionSim_Reset(&state);
+    memset(&summary, 0, sizeof(summary));
 
     while (fgets(line, sizeof(line), input_file) != NULL)
     {
@@ -271,6 +320,8 @@ int main(int argc, char **argv)
             fputs(json_line, snapshot_file);
         }
 
+        HostSim_UpdateSummary(&summary, &output);
+
         fprintf(log_file,
                 "step=%d tick=%lu result=%s fault1=0x%08lX fault2=0x%08lX fault3=0x%08lX chg_mos=%u dsg_mos=%u\n",
                 step,
@@ -295,9 +346,23 @@ int main(int argc, char **argv)
     }
 
     fprintf(log_file, "summary steps=%d failures=%d\n", step, failures);
+    fprintf(log_file,
+            "summary fault_first_steps=%lu fault_second_steps=%lu fault_third_steps=%lu chg_mos_off_steps=%lu dsg_mos_off_steps=%lu transitions=%lu\n",
+            (unsigned long)summary.first_count,
+            (unsigned long)summary.second_count,
+            (unsigned long)summary.third_count,
+            (unsigned long)summary.charge_mos_off_count,
+            (unsigned long)summary.discharge_mos_off_count,
+            (unsigned long)summary.transition_count);
     if (!options.quiet_console)
     {
-        printf("Protection replay finished: steps=%d failures=%d\n", step, failures);
+        printf("Protection replay finished: steps=%d failures=%d first=%lu second=%lu third=%lu transitions=%lu\n",
+               step,
+               failures,
+               (unsigned long)summary.first_count,
+               (unsigned long)summary.second_count,
+               (unsigned long)summary.third_count,
+               (unsigned long)summary.transition_count);
     }
 
     fclose(snapshot_file);

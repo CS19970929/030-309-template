@@ -10,6 +10,16 @@
 
 这一版不是对真实量产阈值的最终等价复刻，而是 `host baseline` 骨架，用来承接后续从 [Fault.c](/Users/cs/Downloads/work/todo/030-309-template/Code/Source/Fault.c) 继续抽取的工作。
 
+当前已经对齐了一部分 `Fault.c` 的结构语义：
+
+- 每类保护区分 `Second` / `Third` 两级锁存
+- `Second` 级按 `Second threshold -> First threshold` 做恢复
+- `Third` 级按 `Third threshold -> Recover threshold` 做恢复
+- 结果输出为 `fault_first / fault_second / fault_third` 三层摘要，其中：
+  - `fault_first` 表示该步存在任一级故障
+  - `fault_second` 表示该步存在 `Second` 级或更高故障
+  - `fault_third` 表示该步存在 `Third` 级故障
+
 ## 当前入口
 
 使用以下命令：
@@ -28,6 +38,15 @@ task sim-protection-watch
 
 - `artifacts/host-sim/protection-replay.log`
 - `artifacts/host-sim/protection-replay.jsonl`
+
+日志末尾会额外输出摘要：
+
+- `fault_first_steps`
+- `fault_second_steps`
+- `fault_third_steps`
+- `chg_mos_off_steps`
+- `dsg_mos_off_steps`
+- `transitions`
 
 ## 当前结构
 
@@ -60,6 +79,16 @@ task sim-protection-watch
 - `charge_mos_off`
 - `discharge_mos_off`
 
+示例场景已经覆盖：
+
+- `OVP second/third` 触发与恢复
+- `UVP second/third` 触发与恢复
+- `Charge OCP second/third`
+- `Discharge OCP second/third`
+- `Charge OTP second/third`
+- `Discharge UTP second/third`
+- `MOS OTP second/third`
+
 ## 当前边界
 
 这一版故意保持克制：
@@ -78,6 +107,6 @@ task sim-protection-watch
 
 建议按这个顺序继续收敛：
 
-1. 把 `Fault.c` 的第一批判定函数映射到 `ProtectionSim`。
+1. 把 `Fault.c` 的第一批判定函数继续映射到 `ProtectionSim`，优先补 `Bat OVP/UVP`、`Vdelta`、`SOC low`。
 2. 把场景从单一 `csv` 扩成可分类的 `OVP/UVP/OCP/OTP` 用例集。
-3. 增加摘要统计，让 Codex 自动总结触发点、恢复点和 MOS 行为。
+3. 增加更细的摘要统计，让 Codex 自动总结触发点、恢复点和 MOS 行为。
