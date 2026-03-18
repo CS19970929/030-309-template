@@ -1,17 +1,17 @@
 #include "bms_comm_data_adapter.h"
 
-static uint16_t BmsComm_EncodePylonLocation(uint16_t point_index)
+static uint16_t BmsComm_EncodePylonLocation(uint16_t point_index, uint8_t type_code)
 {
     if (point_index == 0U)
     {
-        point_index = 1U;
+        return 0xFFFFU;
     }
     if (point_index > 0x00FFU)
     {
         point_index = 0x00FFU;
     }
 
-    return (uint16_t)(0x0100U | point_index);
+    return (uint16_t)((point_index << 8) | type_code);
 }
 
 static uint16_t BmsComm_EncodePylonTemperature(int16_t temp_c_x10)
@@ -261,8 +261,8 @@ uint16_t BmsComm_BuildAnalogPayload(uint8_t *info_buf, uint16_t capacity)
         cell_avg_temp = BmsComm_EncodePylonTemperature((int16_t)(temp_sum / valid_count) - 400);
         cell_max_temp = BmsComm_EncodePylonTemperature((int16_t)cell_max_temp - 400);
         cell_min_temp = BmsComm_EncodePylonTemperature((int16_t)cell_min_temp - 400);
-        cell_max_location = BmsComm_EncodePylonLocation((uint16_t)(temp_max_index + 1U));
-        cell_min_location = BmsComm_EncodePylonLocation((uint16_t)(temp_min_index + 1U));
+        cell_max_location = BmsComm_EncodePylonLocation((uint16_t)(temp_max_index + 1U), 0x05U);
+        cell_min_location = BmsComm_EncodePylonLocation((uint16_t)(temp_min_index + 1U), 0x05U);
     }
 
     temp_raw = g_stCellInfoReport.u16Temperature[MOS_TEMP1];
@@ -284,9 +284,9 @@ uint16_t BmsComm_BuildAnalogPayload(uint8_t *info_buf, uint16_t capacity)
     analog_soh_u8[1] = (uint8_t)g_stCellInfoReport.SocElement.u16Soh;
 
     analog_tail_u16[0] = g_stCellInfoReport.u16VCellMax;
-    analog_tail_u16[1] = BmsComm_EncodePylonLocation(g_stCellInfoReport.u16VCellMaxPosition);
+    analog_tail_u16[1] = BmsComm_EncodePylonLocation(g_stCellInfoReport.u16VCellMaxPosition, 0x04U);
     analog_tail_u16[2] = g_stCellInfoReport.u16VCellMin;
-    analog_tail_u16[3] = BmsComm_EncodePylonLocation(g_stCellInfoReport.u16VCellMinPosition);
+    analog_tail_u16[3] = BmsComm_EncodePylonLocation(g_stCellInfoReport.u16VCellMinPosition, 0x04U);
     analog_tail_u16[4] = cell_avg_temp;
     analog_tail_u16[5] = cell_max_temp;
     analog_tail_u16[6] = cell_max_location;
@@ -294,9 +294,9 @@ uint16_t BmsComm_BuildAnalogPayload(uint8_t *info_buf, uint16_t capacity)
     analog_tail_u16[8] = cell_min_location;
     analog_tail_u16[9] = mos_temp;
     analog_tail_u16[10] = mos_temp;
-    analog_tail_u16[11] = (mos_temp == 0xFFFFU) ? 0xFFFFU : 0x0101U;
+    analog_tail_u16[11] = (mos_temp == 0xFFFFU) ? 0xFFFFU : BmsComm_EncodePylonLocation(1U, 0x06U);
     analog_tail_u16[12] = mos_temp;
-    analog_tail_u16[13] = (mos_temp == 0xFFFFU) ? 0xFFFFU : 0x0101U;
+    analog_tail_u16[13] = (mos_temp == 0xFFFFU) ? 0xFFFFU : BmsComm_EncodePylonLocation(1U, 0x06U);
     analog_tail_u16[14] = 0xFFFFU;
     analog_tail_u16[15] = 0xFFFFU;
     analog_tail_u16[16] = 0xFFFFU;
@@ -307,7 +307,6 @@ uint16_t BmsComm_BuildAnalogPayload(uint8_t *info_buf, uint16_t capacity)
     idx = BmsComm_AppendU16List(info_buf, idx, capacity, analog_prefix_u16, 2U);
     idx = BmsComm_AppendU8List(info_buf, idx, capacity, analog_mid_u8, 1U);
     idx = BmsComm_AppendU16List(info_buf, idx, capacity, analog_mid_u16, 2U);
-    idx = BmsComm_AppendU16(info_buf, idx, capacity, g_stCellInfoReport.SocElement.u16Cycle_times);
     idx = BmsComm_AppendU8List(info_buf, idx, capacity, analog_soh_u8, 2U);
     idx = BmsComm_AppendU16List(info_buf, idx, capacity, analog_tail_u16, 19U);
 

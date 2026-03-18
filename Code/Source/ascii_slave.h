@@ -30,7 +30,7 @@
 #define PROTOCOL_VERSION        0x20       //协议版本号
 #define SLAVE_ADDRESS           0x12       // 本机从机地址（协议要求从2开始）
 #define MAX_FRAME_LEN           350
-//#define MAX_FRAME_LEN           600        // 最大帧长度
+//#define MAX_FRAME_LEN           350        // 最大帧长度
 #define ASCII_RX_FRAME_LEN      64
 #define CELL_MAX_NUM            16         // 最大电芯数量（48V电池16串）
 // RS485控制引脚定义
