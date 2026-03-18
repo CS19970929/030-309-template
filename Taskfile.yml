@@ -51,6 +51,16 @@ tasks:
       - '"{{.CMAKE}}" --preset firmware-debug'
       - '"{{.CMAKE}}" --build --preset build-firmware-debug'
 
+  build-check:
+    desc: 检查当前 GCC 板级安全构建与 Keil 的源文件/宏定义差异
+    cmds:
+      - '{{.PYTHON}} scripts/check_build_alignment.py --mode board-safe --json artifacts/build-alignment-board-safe.json'
+
+  build-check-optimized:
+    desc: 检查当前 GCC 优化构建与 Keil 的源文件/宏定义差异
+    cmds:
+      - '{{.PYTHON}} scripts/check_build_alignment.py --mode optimized --json artifacts/build-alignment-optimized.json'
+
   rebuild:
     desc: 清理后重新执行固件构建
     cmds:
