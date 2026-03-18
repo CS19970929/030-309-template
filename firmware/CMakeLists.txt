@@ -91,6 +91,7 @@ target_compile_definitions(${PROJECT_NAME}.elf PRIVATE
 target_compile_options(${PROJECT_NAME}.elf PRIVATE
     -mcpu=cortex-m0
     -mthumb
+    -g3
     -ffunction-sections
     -fdata-sections
     -fno-common
