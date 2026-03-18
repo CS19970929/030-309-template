@@ -132,6 +132,20 @@ tasks:
       - '"{{.CMAKE}}" --build --preset build-host-sim-debug'
       - 'artifacts/cmake/host-sim-debug/host_sim/modbus_parser_host_replay{{if eq OS "windows"}}.exe{{end}} --input host_sim/scenarios/modbus_frames.txt --log artifacts/host-sim/modbus-replay-long.log --snapshot artifacts/host-sim/modbus-replay-long.jsonl --repeat 10000 --quiet-console'
 
+  sim-scheduler:
+    desc: 在 PC 上运行共享调度器仿真并输出周期任务日志与快照
+    cmds:
+      - '"{{.CMAKE}}" --preset host-sim-debug'
+      - '"{{.CMAKE}}" --build --preset build-host-sim-debug'
+      - 'artifacts/cmake/host-sim-debug/host_sim/scheduler_host_replay{{if eq OS "windows"}}.exe{{end}} --ticks 1000 --log artifacts/host-sim/scheduler-replay.log --snapshot artifacts/host-sim/scheduler-replay.jsonl'
+
+  sim-scheduler-long:
+    desc: 在 PC 上长期运行共享调度器仿真并输出周期任务日志与快照
+    cmds:
+      - '"{{.CMAKE}}" --preset host-sim-debug'
+      - '"{{.CMAKE}}" --build --preset build-host-sim-debug'
+      - 'artifacts/cmake/host-sim-debug/host_sim/scheduler_host_replay{{if eq OS "windows"}}.exe{{end}} --ticks 50000 --log artifacts/host-sim/scheduler-replay-long.log --snapshot artifacts/host-sim/scheduler-replay-long.jsonl'
+
   flash-stlink:
     desc: 使用 ST-Link + OpenOCD 烧录 GCC 生成的固件
     cmds:

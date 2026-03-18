@@ -93,6 +93,46 @@
       "miDebuggerPath": "C:/qp/qtools/MinGW32/bin/gdb.exe"
     },
     {
+      "name": "Host Replay: Scheduler",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/artifacts/cmake/host-sim-debug/host_sim/scheduler_host_replay.exe",
+      "args": [
+        "--ticks",
+        "1000",
+        "--log",
+        "artifacts/host-sim/scheduler-replay.log",
+        "--snapshot",
+        "artifacts/host-sim/scheduler-replay.jsonl"
+      ],
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "pc: scheduler replay",
+      "stopAtEntry": false,
+      "console": "integratedTerminal",
+      "MIMode": "gdb",
+      "miDebuggerPath": "C:/qp/qtools/MinGW32/bin/gdb.exe"
+    },
+    {
+      "name": "Host Replay: Scheduler (Long)",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/artifacts/cmake/host-sim-debug/host_sim/scheduler_host_replay.exe",
+      "args": [
+        "--ticks",
+        "50000",
+        "--log",
+        "artifacts/host-sim/scheduler-replay-long.log",
+        "--snapshot",
+        "artifacts/host-sim/scheduler-replay-long.jsonl"
+      ],
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "pc: scheduler replay long",
+      "stopAtEntry": false,
+      "console": "integratedTerminal",
+      "MIMode": "gdb",
+      "miDebuggerPath": "C:/qp/qtools/MinGW32/bin/gdb.exe"
+    },
+    {
       "name": "Cortex-Debug: STM32F030 (J-Link)",
       "type": "cortex-debug",
       "request": "launch",
