@@ -1,6 +1,8 @@
 import json
+import os
 import platform
 import shutil
+import subprocess
 import sys
 
 
@@ -39,13 +41,37 @@ TOOLS = [
 
 
 def resolve_tool(tool: str):
-    path = shutil.which(tool)
-    if path:
-        return path
+    candidates = [tool]
+    if tool == "python" and os.name != "nt":
+        candidates.insert(0, "python3")
+
+    for candidate in candidates:
+        path = shutil.which(candidate)
+        if path:
+            return path
+
     for candidate in FALLBACKS.get(tool, []):
-        if shutil.os.path.exists(candidate):
+        if os.path.exists(candidate):
             return candidate
     return None
+
+
+def check_arm_gcc_headers(gcc_path: str):
+    command = [gcc_path, "-xc", "-E", "-"]
+    source = b"#include <stdint.h>\n"
+    completed = subprocess.run(
+        command,
+        input=source,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.PIPE,
+        check=False,
+    )
+    stderr = completed.stderr.decode("utf-8", errors="replace").strip()
+    if completed.returncode == 0:
+        return True, ""
+    if stderr:
+        return False, stderr.splitlines()[-1]
+    return False, "arm-none-eabi-gcc 无法预处理 <stdint.h>"
 
 
 def main() -> int:
@@ -54,6 +80,7 @@ def main() -> int:
         "python": sys.version.split()[0],
         "python_ok": sys.version_info >= (3, 8),
         "tools": {},
+        "checks": {},
     }
     missing = []
 
@@ -63,6 +90,16 @@ def main() -> int:
         if path is None:
             missing.append(tool)
 
+    arm_gcc = report["tools"].get("arm-none-eabi-gcc")
+    if arm_gcc:
+        headers_ok, detail = check_arm_gcc_headers(arm_gcc)
+        report["checks"]["arm-none-eabi-gcc-headers"] = {
+            "ok": headers_ok,
+            "detail": detail,
+        }
+        if not headers_ok:
+            missing.append("arm-none-eabi-gcc headers")
+
     print(json.dumps(report, indent=2, ensure_ascii=False))
 
     if not report["python_ok"]:
@@ -71,6 +108,9 @@ def main() -> int:
 
     if missing:
         print("\n缺少工具：" + ", ".join(missing))
+        if "arm-none-eabi-gcc headers" in missing:
+            print("提示：当前 arm-none-eabi-gcc 可执行文件存在，但标准头文件不可用。")
+            print("macOS 上请优先安装完整 Arm GNU Toolchain，而不是 only-compiler 形态。")
         return 1
 
     print("\n工具链检查通过。")

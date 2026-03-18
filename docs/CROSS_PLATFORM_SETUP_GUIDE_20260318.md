@@ -51,13 +51,46 @@ task doctor
 - `go-task`
 - `dotnet-sdk`
 
+建议先安装：
+
+```bash
+brew install python uv cmake ninja go-task open-ocd
+```
+
+说明：
+
+- `host_sim` 路线只依赖 `python3 + uv + cmake + ninja + task`。
+- 固件 `task build` 还依赖一套**完整**的 `Arm GNU Toolchain`。
+- 我在 macOS 现场验证时发现，当前 Homebrew 的 `arm-none-eabi-gcc` 是 `without-headers` 形态，`cmake --preset firmware-release` 能过，但真正编译会在 `<stdint.h>` 处失败。
+- 因此，macOS 上如果你的目标是跑通固件构建，优先安装 Arm 官方发布的完整工具链，或者其它自带 `newlib` / 标准头的发行版，再确保 `arm-none-eabi-gcc` 在 `PATH` 中指向那套完整工具链。
+
 安装后执行：
 
 ```bash
 python3 scripts/check_toolchain.py
-python3 -m pip install uv
-uv sync
+task init
 task doctor
+```
+
+补充说明：
+
+- `task init` 在 macOS 下会优先复用已安装的 `uv`。
+- 如果你已经通过 `brew install uv` 安装过，就不会再触发 Homebrew Python 的 `PEP 668` 限制。
+- 当前仓库的 `task init` 使用 `uv sync --no-install-project`，只同步工具依赖，不要求仓库本身是可发布 Python 包。
+
+如果只是先跑主机侧仿真，推荐顺序：
+
+```bash
+task doctor
+task init
+task sim-modbus
+task sim-replay
+```
+
+如果要跑固件构建，再执行：
+
+```bash
+task build
 ```
 
 ## 推荐验证顺序

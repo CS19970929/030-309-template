@@ -3,6 +3,7 @@
 vars:
   PYTHON: '{{default (ternary "py -3.12" "python3" (eq OS "windows")) .PYTHON}}'
   CMAKE: '{{default (ternary "C:/Program Files/CMake/bin/cmake.exe" "cmake" (eq OS "windows")) .CMAKE}}'
+  EXEC_PREFIX: '{{if eq OS "windows"}}{{else}}./{{end}}'
   MAP_FILE: '{{default "CommomSH367309_16series_030C8T6_C.map" .MAP_FILE}}'
   TEMPLATE_NAME: '{{default "firmware-stm32f0" .TEMPLATE_NAME}}'
   PROJECT_NAME: '{{default "sample-project" .PROJECT_NAME}}'
@@ -31,8 +32,8 @@ tasks:
   init:
     desc: 初始化 Python 工具环境
     cmds:
-      - "{{.PYTHON}} -m pip install uv"
-      - uv sync
+      - '{{if eq OS "windows"}}{{.PYTHON}} -m pip install uv{{else}}python3 -c "import shutil, sys; sys.exit(0 if shutil.which(\"uv\") else 1)" || python3 -m pip install --user uv{{end}}'
+      - uv sync --no-install-project
 
   build:
     desc: 使用板级安全 Preset 构建 STM32F030 固件，尽量贴近 Keil 行为
@@ -123,49 +124,49 @@ tasks:
     cmds:
       - '"{{.CMAKE}}" --preset host-sim-debug'
       - '"{{.CMAKE}}" --build --preset build-host-sim-debug'
-      - 'artifacts/cmake/host-sim-debug/host_sim/modbus_parser_host_test{{if eq OS "windows"}}.exe{{end}}'
+      - '{{.EXEC_PREFIX}}artifacts/cmake/host-sim-debug/host_sim/modbus_parser_host_test{{if eq OS "windows"}}.exe{{end}}'
 
   sim-replay:
     desc: 在 PC 上回放 Modbus 帧并生成日志与快照
     cmds:
       - '"{{.CMAKE}}" --preset host-sim-debug'
       - '"{{.CMAKE}}" --build --preset build-host-sim-debug'
-      - 'artifacts/cmake/host-sim-debug/host_sim/modbus_parser_host_replay{{if eq OS "windows"}}.exe{{end}} --input host_sim/scenarios/modbus_frames.txt --log artifacts/host-sim/modbus-replay.log --snapshot artifacts/host-sim/modbus-replay.jsonl --repeat 1'
+      - '{{.EXEC_PREFIX}}artifacts/cmake/host-sim-debug/host_sim/modbus_parser_host_replay{{if eq OS "windows"}}.exe{{end}} --input host_sim/scenarios/modbus_frames.txt --log artifacts/host-sim/modbus-replay.log --snapshot artifacts/host-sim/modbus-replay.jsonl --repeat 1'
 
   sim-replay-long:
     desc: 长时间回放 Modbus 帧并仅落日志与快照
     cmds:
       - '"{{.CMAKE}}" --preset host-sim-debug'
       - '"{{.CMAKE}}" --build --preset build-host-sim-debug'
-      - 'artifacts/cmake/host-sim-debug/host_sim/modbus_parser_host_replay{{if eq OS "windows"}}.exe{{end}} --input host_sim/scenarios/modbus_frames.txt --log artifacts/host-sim/modbus-replay-long.log --snapshot artifacts/host-sim/modbus-replay-long.jsonl --repeat 10000 --quiet-console'
+      - '{{.EXEC_PREFIX}}artifacts/cmake/host-sim-debug/host_sim/modbus_parser_host_replay{{if eq OS "windows"}}.exe{{end}} --input host_sim/scenarios/modbus_frames.txt --log artifacts/host-sim/modbus-replay-long.log --snapshot artifacts/host-sim/modbus-replay-long.jsonl --repeat 10000 --quiet-console'
 
   sim-replay-watch:
     desc: 在终端持续输出 Modbus 回放日志，并同时落文件
     cmds:
       - '"{{.CMAKE}}" --preset host-sim-debug'
       - '"{{.CMAKE}}" --build --preset build-host-sim-debug'
-      - 'artifacts/cmake/host-sim-debug/host_sim/modbus_parser_host_replay{{if eq OS "windows"}}.exe{{end}} --input host_sim/scenarios/modbus_frames.txt --log artifacts/host-sim/modbus-replay-watch.log --snapshot artifacts/host-sim/modbus-replay-watch.jsonl --repeat 10000'
+      - '{{.EXEC_PREFIX}}artifacts/cmake/host-sim-debug/host_sim/modbus_parser_host_replay{{if eq OS "windows"}}.exe{{end}} --input host_sim/scenarios/modbus_frames.txt --log artifacts/host-sim/modbus-replay-watch.log --snapshot artifacts/host-sim/modbus-replay-watch.jsonl --repeat 10000'
 
   sim-scheduler:
     desc: 在 PC 上运行共享调度器仿真并输出周期任务日志与快照
     cmds:
       - '"{{.CMAKE}}" --preset host-sim-debug'
       - '"{{.CMAKE}}" --build --preset build-host-sim-debug'
-      - 'artifacts/cmake/host-sim-debug/host_sim/scheduler_host_replay{{if eq OS "windows"}}.exe{{end}} --ticks 1000 --log artifacts/host-sim/scheduler-replay.log --snapshot artifacts/host-sim/scheduler-replay.jsonl'
+      - '{{.EXEC_PREFIX}}artifacts/cmake/host-sim-debug/host_sim/scheduler_host_replay{{if eq OS "windows"}}.exe{{end}} --ticks 1000 --log artifacts/host-sim/scheduler-replay.log --snapshot artifacts/host-sim/scheduler-replay.jsonl'
 
   sim-scheduler-long:
     desc: 在 PC 上长期运行共享调度器仿真并输出周期任务日志与快照
     cmds:
       - '"{{.CMAKE}}" --preset host-sim-debug'
       - '"{{.CMAKE}}" --build --preset build-host-sim-debug'
-      - 'artifacts/cmake/host-sim-debug/host_sim/scheduler_host_replay{{if eq OS "windows"}}.exe{{end}} --ticks 50000 --log artifacts/host-sim/scheduler-replay-long.log --snapshot artifacts/host-sim/scheduler-replay-long.jsonl --quiet-console'
+      - '{{.EXEC_PREFIX}}artifacts/cmake/host-sim-debug/host_sim/scheduler_host_replay{{if eq OS "windows"}}.exe{{end}} --ticks 50000 --log artifacts/host-sim/scheduler-replay-long.log --snapshot artifacts/host-sim/scheduler-replay-long.jsonl --quiet-console'
 
   sim-scheduler-watch:
     desc: 在终端持续输出共享调度器仿真日志，并同时落文件
     cmds:
       - '"{{.CMAKE}}" --preset host-sim-debug'
       - '"{{.CMAKE}}" --build --preset build-host-sim-debug'
-      - 'artifacts/cmake/host-sim-debug/host_sim/scheduler_host_replay{{if eq OS "windows"}}.exe{{end}} --ticks 50000 --log artifacts/host-sim/scheduler-replay-watch.log --snapshot artifacts/host-sim/scheduler-replay-watch.jsonl'
+      - '{{.EXEC_PREFIX}}artifacts/cmake/host-sim-debug/host_sim/scheduler_host_replay{{if eq OS "windows"}}.exe{{end}} --ticks 50000 --log artifacts/host-sim/scheduler-replay-watch.log --snapshot artifacts/host-sim/scheduler-replay-watch.jsonl'
 
   flash-stlink:
     desc: 使用 ST-Link + OpenOCD 烧录 GCC 生成的固件
@@ -191,4 +192,3 @@ tasks:
     desc: 对现有项目执行占位符替换
     cmds:
       - '{{.PYTHON}} scripts/patch_project.py --project-root . --vars-file "{{.VARS_FILE}}"'
-
