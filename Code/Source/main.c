@@ -30,14 +30,18 @@ void InitVar(void);
 void InitDevice(void);
 void InitSystemWakeUp(void);
 
+// #define _DEBUG_CODE
 int main(void)
 {
 	InitDevice(); // 初始化外设，这两个函数的位置需要斟酌一下，现在换回去先
 	InitVar();	  // 初始化变量
 	// bsp_StartAutoTimer(2, 500);
-
 	while (1)
 	{
+#if (defined _DEBUG_CODE)
+		SCH_Dispatch_Tasks();
+		Comm_PollAll();
+#else
 		SCH_Dispatch_Tasks();
 
 		Comm_PollAll();
@@ -49,50 +53,8 @@ int main(void)
 #ifdef wdog_enable
 		Feed_IWatchDog;
 #endif
+#endif
 	}
-
-	// 	while (1)
-	// 	{
-	// #if (defined _DEBUG_CODE)
-	// 		App_SysTime();
-	// 		App_AFEGet();
-	// 		Comm_PollAll();
-	// 		App_AnlogCal();
-	// 		App_SOC();
-	// 		App_WarnCtrl();
-	// 		App_SleepDeal(); // 放在App_MOS_Relay_Control()后面
-	// 		APP_LedBar();
-	// 		Feed_IWatchDog;
-	// #else
-	// 		App_SysTime();
-	// 		Comm_PollAll();
-
-	// 		App_AFEGet();
-	// 		App_WarnCtrl();
-	// 		App_AnlogCal();
-
-	// 		App_E2promDeal();
-	// 		App_SleepDeal(); // 放在App_MOS_Relay_Control()后面
-	// 		App_SOC();
-	// 		App_CellBalance();
-
-	// 		// APP_LedBar();
-
-	// 		// App_ChargerLoad_Det();
-	// #ifdef __FUNC__HEAT__
-	// 		App_Heat_Cool_Ctrl();
-	// #endif // DEBUG
-
-	// 		App_FlashUpdateDet();
-	// 		App_LogRecord();
-	// 		App_ProID_Deal();
-
-	// #ifdef wdog_enable
-	// 		Feed_IWatchDog;
-	// #endif
-
-	// #endif
-	// 	}
 }
 
 void InitDevice(void)
@@ -108,10 +70,17 @@ void InitDevice(void)
 #if (defined _DEBUG_CODE)
 	IsSleepStartUp();
 	InitIO();
-	InitDelay();
-	InitTimer();
-	// InitSystemWakeUp();
+	InitSystemWakeUp();
+	InitE2PROM(); // 内部EEPROM，不需要初始化
+	InitAFE1();
+
 	Comm_InitAll();
+	SCH_Add_Task(App_AFEGet, 0, 200);
+	SCH_Add_Task(App_WarnCtrl, 8, 10);
+	SCH_Add_Task(App_AnlogCal, 2, 10);
+	SCH_Add_Task(App_SOC, 5, 200);
+	SCH_Add_Task(App_LogRecord, 6, 1000);
+	// SCH_Add_Task(App_SleepDeal, 7, 1000);
 #else
 	IsSleepStartUp();
 	// InitDelay();

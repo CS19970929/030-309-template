@@ -3980,3 +3980,5 @@ static void Comm_DefaultNotifyTxComplete(uint8_t port_id)
 去掉当前的均衡逻辑，使用afe内部均衡功能，
 
 之前你修改CommomSH367309_16series_030C8T6_C.uvprojx 0xd400后，我怎么没触发之前的异常了
+
+增加上位机部分，整体架构重构，功能不动，iap、app、上位机
