@@ -1,0 +1,24 @@
+# Visual Studio / VS Code
+.vs/
+.vscode/
+**/.vs/
+**/.vscode/
+*.suo
+*.user
+
+# Build outputs
+**/bin/
+**/obj/
+**/TestResults/
+*.exe
+*.dll
+*.pdb
+*.cache
+*.manifest
+
+# Logs and temporary data
+*.csv
+*.zip
+
+# Legacy NuGet package cache
+**/packages/
