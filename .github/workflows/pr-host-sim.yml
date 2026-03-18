@@ -1,0 +1,69 @@
+name: PR Host Sim Review
+
+on:
+  pull_request:
+    branches:
+      - main
+      - master
+      - develop
+      - "codex/**"
+  workflow_dispatch:
+
+jobs:
+  host-sim-review:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Build Tools
+        run: sudo apt-get update && sudo apt-get install -y cmake ninja-build
+
+      - name: Host Sim Modbus
+        run: |
+          cmake --preset host-sim-debug
+          cmake --build --preset build-host-sim-debug
+          ./artifacts/cmake/host-sim-debug/host_sim/modbus_parser_host_test
+
+      - name: Host Sim Protection Suite Summary
+        run: |
+          cmake --preset host-sim-debug
+          cmake --build --preset build-host-sim-debug
+          ./artifacts/cmake/host-sim-debug/host_sim/protection_host_replay \
+            --input host_sim/scenarios/protection/protection_ovp_uvp.csv \
+            --log artifacts/host-sim/protection-ovp-uvp.log \
+            --snapshot artifacts/host-sim/protection-ovp-uvp.jsonl
+          ./artifacts/cmake/host-sim-debug/host_sim/protection_host_replay \
+            --input host_sim/scenarios/protection/protection_ocp.csv \
+            --log artifacts/host-sim/protection-ocp.log \
+            --snapshot artifacts/host-sim/protection-ocp.jsonl
+          ./artifacts/cmake/host-sim-debug/host_sim/protection_host_replay \
+            --input host_sim/scenarios/protection/protection_otp_utp.csv \
+            --log artifacts/host-sim/protection-otp-utp.log \
+            --snapshot artifacts/host-sim/protection-otp-utp.jsonl
+          ./artifacts/cmake/host-sim-debug/host_sim/protection_host_replay \
+            --input host_sim/scenarios/protection/protection_pack_soc_vdelta.csv \
+            --log artifacts/host-sim/protection-pack.log \
+            --snapshot artifacts/host-sim/protection-pack.jsonl
+          python3 scripts/analyze_protection_replay.py \
+            --input artifacts/host-sim/protection-ovp-uvp.jsonl \
+            --input artifacts/host-sim/protection-ocp.jsonl \
+            --input artifacts/host-sim/protection-otp-utp.jsonl \
+            --input artifacts/host-sim/protection-pack.jsonl \
+            --json artifacts/host-sim/protection-suite-summary.json \
+            --markdown artifacts/host-sim/protection-suite-summary.md
+
+      - name: Upload Host Sim Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr-host-sim-artifacts
+          path: |
+            artifacts/host-sim/protection-*.log
+            artifacts/host-sim/protection-*.jsonl
+            artifacts/host-sim/protection-suite-summary.json
+            artifacts/host-sim/protection-suite-summary.md
