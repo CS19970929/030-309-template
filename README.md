@@ -9,6 +9,7 @@
 - `task build`：走 CMake Preset 构建固件
 - `task sim-modbus`：运行 Modbus 解析主机侧自检
 - `task sim-replay`：回放 Modbus 帧并生成日志和 JSONL 快照
+- `task sim-protection`：回放第一版保护策略场景并生成日志和 JSONL 快照
 - `task map`：生成 map 摘要
 - `task flash`：生成烧录命令计划
 - `task debug`：生成调试命令计划
@@ -23,6 +24,7 @@
 - [`docs/CODEX_FULL_TAKEOVER_BLUEPRINT_20260318.md`](E:/TODO/030%20+%20309/docs/CODEX_FULL_TAKEOVER_BLUEPRINT_20260318.md)
 - [`docs/CODEX_AUTOMATION_HANDBOOK_20260318.md`](E:/TODO/030%20+%20309/docs/CODEX_AUTOMATION_HANDBOOK_20260318.md)
 - [`docs/PC_SIMULATION_GUIDE_20260318.md`](E:/TODO/030%20+%20309/docs/PC_SIMULATION_GUIDE_20260318.md)
+- [`docs/PC_PROTECTION_SIMULATION_GUIDE_20260319.md`](docs/PC_PROTECTION_SIMULATION_GUIDE_20260319.md)
 - [`docs/SAME_CODE_SIMULATION_STRATEGY_20260318.md`](E:/TODO/030%20+%20309/docs/SAME_CODE_SIMULATION_STRATEGY_20260318.md)
 - [`docs/LOGGING_AND_MONITORING_PLAN_20260318.md`](E:/TODO/030%20+%20309/docs/LOGGING_AND_MONITORING_PLAN_20260318.md)
 

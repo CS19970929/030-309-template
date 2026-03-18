@@ -169,6 +169,20 @@ tasks:
       - '"{{.CMAKE}}" --build --preset build-host-sim-debug'
       - '{{.EXEC_PREFIX}}artifacts/cmake/host-sim-debug/host_sim/scheduler_host_replay{{if eq OS "windows"}}.exe{{end}} --ticks 50000 --log artifacts/host-sim/scheduler-replay-watch.log --snapshot artifacts/host-sim/scheduler-replay-watch.jsonl'
 
+  sim-protection:
+    desc: 在 PC 上回放第一版保护策略场景并输出日志与快照
+    cmds:
+      - '"{{.CMAKE}}" --preset host-sim-debug'
+      - '"{{.CMAKE}}" --build --preset build-host-sim-debug'
+      - '{{.EXEC_PREFIX}}artifacts/cmake/host-sim-debug/host_sim/protection_host_replay{{if eq OS "windows"}}.exe{{end}} --input host_sim/scenarios/protection/protection_basic.csv --log artifacts/host-sim/protection-replay.log --snapshot artifacts/host-sim/protection-replay.jsonl'
+
+  sim-protection-watch:
+    desc: 在终端持续输出第一版保护策略场景结果，并同时落文件
+    cmds:
+      - '"{{.CMAKE}}" --preset host-sim-debug'
+      - '"{{.CMAKE}}" --build --preset build-host-sim-debug'
+      - '{{.EXEC_PREFIX}}artifacts/cmake/host-sim-debug/host_sim/protection_host_replay{{if eq OS "windows"}}.exe{{end}} --input host_sim/scenarios/protection/protection_basic.csv --log artifacts/host-sim/protection-replay-watch.log --snapshot artifacts/host-sim/protection-replay-watch.jsonl'
+
   flash-stlink:
     desc: 使用 ST-Link + OpenOCD 烧录 GCC 生成的固件
     cmds:
