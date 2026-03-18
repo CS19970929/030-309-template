@@ -45,6 +45,12 @@ tasks:
       - '"{{.CMAKE}}" --preset firmware-optimized'
       - '"{{.CMAKE}}" --build --preset build-firmware-optimized'
 
+  build-monitor:
+    desc: 使用监控 Preset 构建 STM32F030 固件，启用运行时快照且关闭 LTO
+    cmds:
+      - '"{{.CMAKE}}" --preset firmware-monitor'
+      - '"{{.CMAKE}}" --build --preset build-firmware-monitor'
+
   build-debug:
     desc: 使用 CMake Debug Preset 构建 STM32F030 固件
     cmds:
@@ -164,6 +170,16 @@ tasks:
     desc: 使用 ST-Link + OpenOCD 烧录 GCC 生成的固件
     cmds:
       - '{{.PYTHON}} scripts/flash_stlink.py --openocd "{{.OPENOCD}}" --scripts-dir "{{.OPENOCD_SCRIPTS}}" --artifact "{{.FIRMWARE_BIN}}" --address 0x08001C00'
+
+  flash-stlink-monitor:
+    desc: 使用 ST-Link + OpenOCD 烧录监控版固件
+    cmds:
+      - '{{.PYTHON}} scripts/flash_stlink.py --openocd "{{.OPENOCD}}" --scripts-dir "{{.OPENOCD_SCRIPTS}}" --artifact "artifacts/cmake/firmware-monitor/CommomSH367309_16series_030C8T6_C.bin" --address 0x08001C00'
+
+  watch-board-stlink:
+    desc: 通过 ST-Link/OpenOCD 轮询板上运行时快照并在终端持续输出
+    cmds:
+      - '{{.PYTHON}} scripts/watch_board_status.py --openocd "{{.OPENOCD}}" --scripts-dir "{{.OPENOCD_SCRIPTS}}" --elf "artifacts/cmake/firmware-monitor/firmware/CommomSH367309_16series_030C8T6_C.elf" --halt-sample'
 
   new:
     desc: 基于模板生成新项目骨架

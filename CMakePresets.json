@@ -52,6 +52,21 @@
             }
         },
         {
+            "name": "firmware-monitor",
+            "displayName": "Firmware Monitor",
+            "description": "Board monitor build with runtime snapshot enabled and no LTO",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/artifacts/cmake/firmware-monitor",
+            "cacheVariables": {
+                "BUILD_FIRMWARE": "ON",
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/toolchains/arm-none-eabi-gcc.cmake",
+                "APP_RUNTIME_MONITOR": "ON",
+                "APP_ENABLE_LTO": "OFF",
+                "APP_OPT_LEVEL": "1"
+            }
+        },
+        {
             "name": "host-sim-debug",
             "displayName": "Host Simulation Debug",
             "description": "Native host-side simulation preset",
@@ -75,6 +90,10 @@
         {
             "name": "build-firmware-optimized",
             "configurePreset": "firmware-optimized"
+        },
+        {
+            "name": "build-firmware-monitor",
+            "configurePreset": "firmware-monitor"
         },
         {
             "name": "build-host-sim-debug",

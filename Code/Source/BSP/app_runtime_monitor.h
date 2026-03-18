@@ -5,13 +5,10 @@
 
 #include "app_state_snapshot.h"
 
-#define APP_RUNTIME_MONITOR_REASON_MAX_LEN 32U
-#define APP_RUNTIME_MONITOR_JSON_MAX_LEN 512U
+#define APP_RUNTIME_MONITOR_JSON_MAX_LEN 256U
 
 #ifdef APP_RUNTIME_MONITOR_ENABLE
-extern AppStateSnapshot g_app_runtime_monitor_snapshot;
 extern char g_app_runtime_monitor_json[APP_RUNTIME_MONITOR_JSON_MAX_LEN];
-extern char g_app_runtime_monitor_reason[APP_RUNTIME_MONITOR_REASON_MAX_LEN];
 extern uint32_t g_app_runtime_monitor_update_count;
 extern uint32_t g_app_runtime_monitor_loop_count;
 extern uint32_t g_app_runtime_monitor_last_status;

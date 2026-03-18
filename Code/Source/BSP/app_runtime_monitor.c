@@ -1,5 +1,6 @@
 #include "app_runtime_monitor.h"
 
+#include <stdio.h>
 #include <string.h>
 
 #include "main.h"
@@ -26,9 +27,7 @@ void AppRuntimeMonitor_RunTask(void) {}
 
 extern UINT8 SeriesNum;
 
-AppStateSnapshot g_app_runtime_monitor_snapshot;
 char g_app_runtime_monitor_json[APP_RUNTIME_MONITOR_JSON_MAX_LEN];
-char g_app_runtime_monitor_reason[APP_RUNTIME_MONITOR_REASON_MAX_LEN];
 uint32_t g_app_runtime_monitor_update_count = 0U;
 uint32_t g_app_runtime_monitor_loop_count = 0U;
 uint32_t g_app_runtime_monitor_last_status = 0U;
@@ -68,37 +67,46 @@ static int32_t AppRuntimeMonitor_ConvertTempCx10(uint16_t raw_temp)
 
 static void AppRuntimeMonitor_Capture(const char *reason)
 {
-    AppSnapshot_Init(&g_app_runtime_monitor_snapshot);
+    AppStateSnapshot snapshot;
 
-    g_app_runtime_monitor_snapshot.cycle = g_app_runtime_monitor_loop_count;
-    g_app_runtime_monitor_snapshot.step = g_app_runtime_monitor_update_count + 1U;
-    g_app_runtime_monitor_snapshot.series_num = (uint32_t)SeriesNum;
-    g_app_runtime_monitor_snapshot.pack_voltage_mv = (uint32_t)g_stCellInfoReport.u16VCellTotle * 10U;
-    g_app_runtime_monitor_snapshot.pack_current_ma = AppRuntimeMonitor_EncodeCurrentMa();
-    g_app_runtime_monitor_snapshot.temp_max_c_x10 = AppRuntimeMonitor_ConvertTempCx10(g_stCellInfoReport.u16TempMax);
-    g_app_runtime_monitor_snapshot.temp_min_c_x10 = AppRuntimeMonitor_ConvertTempCx10(g_stCellInfoReport.u16TempMin);
-    g_app_runtime_monitor_snapshot.soc_pct = (uint32_t)g_stCellInfoReport.SocElement.u16Soc;
-    g_app_runtime_monitor_snapshot.soh_pct = (uint32_t)g_stCellInfoReport.SocElement.u16Soh;
-    g_app_runtime_monitor_snapshot.fault_flags = AppRuntimeMonitor_ReadFaultFlags();
-    g_app_runtime_monitor_snapshot.system_status = SystemStatus.all;
-    AppSnapshot_SetText(g_app_runtime_monitor_snapshot.source,
-                        sizeof(g_app_runtime_monitor_snapshot.source),
+    AppSnapshot_Init(&snapshot);
+
+    snapshot.cycle = g_app_runtime_monitor_loop_count;
+    snapshot.step = g_app_runtime_monitor_update_count + 1U;
+    snapshot.series_num = (uint32_t)SeriesNum;
+    snapshot.pack_voltage_mv = (uint32_t)g_stCellInfoReport.u16VCellTotle * 10U;
+    snapshot.pack_current_ma = AppRuntimeMonitor_EncodeCurrentMa();
+    snapshot.temp_max_c_x10 = AppRuntimeMonitor_ConvertTempCx10(g_stCellInfoReport.u16TempMax);
+    snapshot.temp_min_c_x10 = AppRuntimeMonitor_ConvertTempCx10(g_stCellInfoReport.u16TempMin);
+    snapshot.soc_pct = (uint32_t)g_stCellInfoReport.SocElement.u16Soc;
+    snapshot.soh_pct = (uint32_t)g_stCellInfoReport.SocElement.u16Soh;
+    snapshot.fault_flags = AppRuntimeMonitor_ReadFaultFlags();
+    snapshot.system_status = SystemStatus.all;
+    AppSnapshot_SetText(snapshot.source,
+                        sizeof(snapshot.source),
                         "mcu_runtime");
-    AppSnapshot_SetText(g_app_runtime_monitor_snapshot.result,
-                        sizeof(g_app_runtime_monitor_snapshot.result),
+    AppSnapshot_SetText(snapshot.result,
+                        sizeof(snapshot.result),
                         (reason != NULL) ? reason : "periodic");
 
-    AppSnapshot_SetText(g_app_runtime_monitor_reason,
-                        sizeof(g_app_runtime_monitor_reason),
-                        (reason != NULL) ? reason : "periodic");
-
-    g_app_runtime_monitor_json_length =
-        AppSnapshot_ToJsonLine(&g_app_runtime_monitor_snapshot,
-                               g_app_runtime_monitor_json,
-                               sizeof(g_app_runtime_monitor_json));
+    g_app_runtime_monitor_json_length = snprintf(
+        g_app_runtime_monitor_json,
+        sizeof(g_app_runtime_monitor_json),
+        "{\"src\":\"mcu\",\"step\":%lu,\"reason\":\"%s\",\"v\":%lu,\"i\":%ld,"
+        "\"tmax\":%ld,\"tmin\":%ld,\"soc\":%lu,\"soh\":%lu,\"fault\":%lu,\"status\":%lu}\n",
+        (unsigned long)snapshot.step,
+        (reason != NULL) ? reason : "periodic",
+        (unsigned long)snapshot.pack_voltage_mv,
+        (long)snapshot.pack_current_ma,
+        (long)snapshot.temp_max_c_x10,
+        (long)snapshot.temp_min_c_x10,
+        (unsigned long)snapshot.soc_pct,
+        (unsigned long)snapshot.soh_pct,
+        (unsigned long)snapshot.fault_flags,
+        (unsigned long)snapshot.system_status);
     ++g_app_runtime_monitor_update_count;
-    g_app_runtime_monitor_last_status = g_app_runtime_monitor_snapshot.system_status;
-    g_app_runtime_monitor_last_fault_flags = g_app_runtime_monitor_snapshot.fault_flags;
+    g_app_runtime_monitor_last_status = snapshot.system_status;
+    g_app_runtime_monitor_last_fault_flags = snapshot.fault_flags;
 
 #if APP_RUNTIME_MONITOR_LOG_ENABLE
     if (g_app_runtime_monitor_json_length > 0)
@@ -111,7 +119,6 @@ static void AppRuntimeMonitor_Capture(const char *reason)
 void AppRuntimeMonitor_Init(void)
 {
     memset(g_app_runtime_monitor_json, 0, sizeof(g_app_runtime_monitor_json));
-    memset(g_app_runtime_monitor_reason, 0, sizeof(g_app_runtime_monitor_reason));
     g_app_runtime_monitor_update_count = 0U;
     g_app_runtime_monitor_loop_count = 0U;
     g_app_runtime_monitor_last_status = 0U;

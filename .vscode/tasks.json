@@ -280,6 +280,42 @@
       "problemMatcher": []
     },
     {
+      "label": "mcu: build gcc monitor",
+      "type": "shell",
+      "command": "C:\\Users\\Administrator\\AppData\\Local\\Microsoft\\WinGet\\Links\\task.exe",
+      "args": [
+        "build-monitor"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "mcu: flash stlink monitor",
+      "type": "shell",
+      "command": "C:\\Users\\Administrator\\AppData\\Local\\Microsoft\\WinGet\\Links\\task.exe",
+      "args": [
+        "flash-stlink-monitor"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "mcu: watch board status",
+      "type": "shell",
+      "command": "C:\\Users\\Administrator\\AppData\\Local\\Microsoft\\WinGet\\Links\\task.exe",
+      "args": [
+        "watch-board-stlink"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
       "label": "mcu: build keil",
       "type": "shell",
       "command": "C:\\Keil_v5\\UV4\\UV4.exe",
