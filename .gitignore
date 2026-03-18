@@ -32,3 +32,5 @@ Users/CommomSH367309_16series_103RCT6_C.uvoptx
 artifacts/
 templates/generated/
 .ruff_cache/
+__pycache__/
+*.pyc
