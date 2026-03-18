@@ -15,6 +15,7 @@ vars:
   VARS_FILE: '{{default "templates/vars.sample.json" .VARS_FILE}}'
   OPENOCD: '{{default "C:/Users/Administrator/AppData/Local/Microsoft/WinGet/Packages/xpack-dev-tools.openocd-xpack_Microsoft.Winget.Source_8wekyb3d8bbwe/xpack-openocd-0.12.0-7/bin/openocd.exe" .OPENOCD}}'
   OPENOCD_SCRIPTS: '{{default "C:/Users/Administrator/AppData/Local/Microsoft/WinGet/Packages/xpack-dev-tools.openocd-xpack_Microsoft.Winget.Source_8wekyb3d8bbwe/xpack-openocd-0.12.0-7/openocd/scripts" .OPENOCD_SCRIPTS}}'
+  STM32_PROGRAMMER: '{{default "C:/Program Files/STMicroelectronics/STM32Cube/STM32CubeProgrammer/bin/STM32_Programmer_CLI.exe" .STM32_PROGRAMMER}}'
 
 tasks:
   default:
@@ -172,9 +173,9 @@ tasks:
       - '{{.PYTHON}} scripts/flash_stlink.py --openocd "{{.OPENOCD}}" --scripts-dir "{{.OPENOCD_SCRIPTS}}" --artifact "{{.FIRMWARE_BIN}}" --address 0x08001C00'
 
   flash-stlink-monitor:
-    desc: 使用 ST-Link + OpenOCD 烧录监控版固件
+    desc: 使用 STM32CubeProgrammer 烧录监控版固件
     cmds:
-      - '{{.PYTHON}} scripts/flash_stlink.py --openocd "{{.OPENOCD}}" --scripts-dir "{{.OPENOCD_SCRIPTS}}" --artifact "artifacts/cmake/firmware-monitor/CommomSH367309_16series_030C8T6_C.bin" --address 0x08001C00'
+      - '{{.PYTHON}} scripts/flash_stm32cube.py --programmer "{{.STM32_PROGRAMMER}}" --artifact "artifacts/cmake/firmware-monitor/CommomSH367309_16series_030C8T6_C.bin" --address 0x08001C00'
 
   watch-board-stlink:
     desc: 通过 ST-Link/OpenOCD 轮询板上运行时快照并在终端持续输出

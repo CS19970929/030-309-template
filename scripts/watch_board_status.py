@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
-import ctypes
 import json
-import os
 import re
 import socket
 import subprocess
@@ -11,42 +9,29 @@ import sys
 import telnetlib
 import time
 from pathlib import Path
-from typing import Dict
 
 
 TELNET_PROMPT = b"> "
 
 
-def to_windows_short_path(path: Path) -> str:
-    path_str = str(path)
-    if os.name != "nt":
-        return path_str.replace("\\", "/")
-
-    kernel32 = ctypes.windll.kernel32
-    buffer_size = 4096
-    buffer = ctypes.create_unicode_buffer(buffer_size)
-    result = kernel32.GetShortPathNameW(path_str, buffer, buffer_size)
-    if result == 0 or result > buffer_size:
-        return path_str.replace("\\", "/")
-    return buffer.value.replace("\\", "/")
-
-
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="通过 ST-Link/OpenOCD 轮询板上运行时状态快照。")
-    parser.add_argument("--openocd", required=True, help="OpenOCD 可执行文件")
-    parser.add_argument("--scripts-dir", required=True, help="OpenOCD scripts 目录")
-    parser.add_argument("--elf", required=True, help="带运行时监控的 ELF 文件")
-    parser.add_argument("--interface", default="interface/stlink.cfg", help="OpenOCD interface 配置")
-    parser.add_argument("--target", default="target/stm32f0x.cfg", help="OpenOCD target 配置")
-    parser.add_argument("--nm", default="arm-none-eabi-nm", help="nm 工具路径")
-    parser.add_argument("--poll-ms", type=int, default=500, help="轮询周期，毫秒")
-    parser.add_argument("--duration-s", type=int, default=0, help="持续时长，0 表示持续运行直到 Ctrl+C")
-    parser.add_argument("--output", default="artifacts/board-status-watch.jsonl", help="输出 JSONL 文件")
-    parser.add_argument("--halt-sample", action="store_true", help="采样时先 halt 再 resume，侵入性更强但更稳定")
+    parser = argparse.ArgumentParser(
+        description="Poll runtime monitor state from the board through ST-Link/OpenOCD."
+    )
+    parser.add_argument("--openocd", required=True, help="OpenOCD executable path")
+    parser.add_argument("--scripts-dir", required=True, help="OpenOCD scripts directory")
+    parser.add_argument("--elf", required=True, help="Firmware ELF with runtime monitor symbols")
+    parser.add_argument("--interface", default="interface/stlink.cfg", help="OpenOCD interface config")
+    parser.add_argument("--target", default="target/stm32f0x.cfg", help="OpenOCD target config")
+    parser.add_argument("--nm", default="arm-none-eabi-nm", help="nm tool path")
+    parser.add_argument("--poll-ms", type=int, default=500, help="Polling interval in milliseconds")
+    parser.add_argument("--duration-s", type=int, default=0, help="Duration in seconds, 0 means until Ctrl+C")
+    parser.add_argument("--output", default="artifacts/board-status-watch.jsonl", help="Output JSONL path")
+    parser.add_argument("--halt-sample", action="store_true", help="Halt before sampling and resume afterwards")
     return parser.parse_args()
 
 
-def resolve_symbols(nm_tool: str, elf_path: Path) -> Dict[str, int]:
+def resolve_symbols(nm_tool: str, elf_path: Path) -> dict:
     result = subprocess.run(
         [nm_tool, str(elf_path)],
         check=True,
@@ -73,7 +58,7 @@ def resolve_symbols(nm_tool: str, elf_path: Path) -> Dict[str, int]:
     }
     missing = required - symbols.keys()
     if missing:
-        raise RuntimeError(f"ELF 缺少运行时监控符号: {', '.join(sorted(missing))}")
+        raise RuntimeError("ELF missing runtime monitor symbols: %s" % ", ".join(sorted(missing)))
     return symbols
 
 
@@ -82,13 +67,17 @@ class OpenOcdTelnet:
         self.telnet = telnetlib.Telnet(host, port, timeout=5)
         self._read_until_prompt()
 
-    def _read_until_prompt(self) -> str:
-        data = self.telnet.read_until(TELNET_PROMPT, timeout=5)
+    def _read_until_prompt(self, timeout: float = 5.0) -> str:
+        data = self.telnet.read_until(TELNET_PROMPT, timeout=timeout)
         return data.decode(errors="ignore")
 
     def command(self, text: str) -> str:
         self.telnet.write(text.encode() + b"\n")
-        return self._read_until_prompt()
+        output = self._read_until_prompt()
+        if output:
+            return output
+        time.sleep(0.1)
+        return self._read_until_prompt(timeout=8.0)
 
     def close(self) -> None:
         try:
@@ -106,13 +95,13 @@ def wait_for_port(port: int, timeout_s: float = 10.0) -> bool:
             return True
         except OSError:
             time.sleep(0.2)
-    raise TimeoutError(f"等待 OpenOCD telnet 端口 {port} 超时")
+    raise TimeoutError("Timed out waiting for OpenOCD telnet port %d" % port)
 
 
 def parse_mdw_word(output: str) -> int:
     match = re.search(r":\s*([0-9A-Fa-f]{1,8})", output)
     if not match:
-        raise RuntimeError(f"无法解析 mdw 输出: {output!r}")
+        raise RuntimeError("Unable to parse mdw output: %r" % output)
     return int(match.group(1), 16)
 
 
@@ -124,12 +113,16 @@ def read_mdw_with_retry(telnet: OpenOcdTelnet, address: int, attempts: int = 3) 
         try:
             return parse_mdw_word(output)
         except RuntimeError:
+            try:
+                telnet.command("")
+            except Exception:
+                pass
             time.sleep(0.1)
-    raise RuntimeError("无法解析 mdw 输出: %r" % last_output)
+    raise RuntimeError("Unable to parse mdw output: %r" % last_output)
 
 
 def parse_mdb_bytes(output: str) -> bytes:
-    values: list[int] = []
+    values = []
     for line in output.splitlines():
         if ":" not in line:
             continue
@@ -144,11 +137,20 @@ def ensure_parent_dir(path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
 
 
+def read_process_output(proc: subprocess.Popen) -> str:
+    if proc.stdout is None:
+        return ""
+    try:
+        return proc.stdout.read()
+    except Exception:
+        return ""
+
+
 def main() -> int:
     args = parse_args()
     elf_path = Path(args.elf).resolve()
     if not elf_path.exists():
-        print(f"ELF 不存在: {elf_path}", file=sys.stderr)
+        print("ELF not found: %s" % elf_path, file=sys.stderr)
         return 1
 
     symbols = resolve_symbols(args.nm, elf_path)
@@ -174,6 +176,7 @@ def main() -> int:
     telnet = None
     start_time = time.time()
     last_update = None
+
     try:
         try:
             telnet = OpenOcdTelnet("127.0.0.1", 4444)
@@ -184,18 +187,26 @@ def main() -> int:
                 stderr=subprocess.STDOUT,
                 universal_newlines=True,
             )
-            wait_for_port(4444)
+            try:
+                wait_for_port(4444, timeout_s=20.0)
+            except Exception:
+                output = read_process_output(proc)
+                raise RuntimeError("OpenOCD did not expose telnet 4444 in time.\n%s" % output)
+            if proc.poll() is not None:
+                output = read_process_output(proc)
+                raise RuntimeError("OpenOCD exited before telnet was ready.\n%s" % output)
             telnet = OpenOcdTelnet("127.0.0.1", 4444)
             started_local_openocd = True
+
         telnet.command("init")
         telnet.command("reset run")
         time.sleep(0.3)
         telnet.command("")
 
         print("board watch start")
-        print(f"json_addr=0x{symbols['g_app_runtime_monitor_json']:08X}")
-        print(f"len_addr=0x{symbols['g_app_runtime_monitor_json_length']:08X}")
-        print(f"cnt_addr=0x{symbols['g_app_runtime_monitor_update_count']:08X}")
+        print("json_addr=0x%08X" % symbols["g_app_runtime_monitor_json"])
+        print("len_addr=0x%08X" % symbols["g_app_runtime_monitor_json_length"])
+        print("cnt_addr=0x%08X" % symbols["g_app_runtime_monitor_update_count"])
 
         with output_path.open("w", encoding="utf-8") as output_file:
             while True:
@@ -205,16 +216,16 @@ def main() -> int:
                 if args.halt_sample:
                     telnet.command("halt")
 
-                update_count = read_mdw_with_retry(telnet, symbols['g_app_runtime_monitor_update_count'])
+                update_count = read_mdw_with_retry(telnet, symbols["g_app_runtime_monitor_update_count"])
 
                 if last_update is None:
                     last_update = update_count - 1 if update_count > 0 else 0xFFFFFFFF
 
                 if update_count != last_update:
-                    json_length = read_mdw_with_retry(telnet, symbols['g_app_runtime_monitor_json_length'])
+                    json_length = read_mdw_with_retry(telnet, symbols["g_app_runtime_monitor_json_length"])
                     if 0 < json_length < 256:
                         json_text = telnet.command(
-                            f"mdb 0x{symbols['g_app_runtime_monitor_json']:08X} {json_length}"
+                            "mdb 0x%08X %d" % (symbols["g_app_runtime_monitor_json"], json_length)
                         )
                         payload = parse_mdb_bytes(json_text)[:json_length]
                         try:
@@ -225,7 +236,7 @@ def main() -> int:
                             output_file.write(formatted + "\n")
                             output_file.flush()
                         except json.JSONDecodeError:
-                            print(f"[raw] {payload!r}")
+                            print("[raw] %r" % payload)
                     last_update = update_count
 
                 if args.halt_sample:
