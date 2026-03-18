@@ -15,22 +15,42 @@
             "cacheVariables": {
                 "BUILD_FIRMWARE": "ON",
                 "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/toolchains/arm-none-eabi-gcc.cmake"
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/toolchains/arm-none-eabi-gcc.cmake",
+                "APP_RUNTIME_MONITOR": "ON",
+                "APP_ENABLE_LTO": "OFF",
+                "APP_OPT_LEVEL": "g"
             }
         },
     {
             "name": "firmware-release",
-            "displayName": "Firmware Release",
-            "description": "Reserved Release preset for future firmware/CMakeLists.txt",
+            "displayName": "Firmware Board Safe",
+            "description": "Board-safe GCC build aligned closer to Keil behavior",
             "generator": "Ninja",
             "binaryDir": "${sourceDir}/artifacts/cmake/firmware-release",
             "cacheVariables": {
                 "BUILD_FIRMWARE": "ON",
                 "CMAKE_BUILD_TYPE": "Release",
-                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/toolchains/arm-none-eabi-gcc.cmake"
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/toolchains/arm-none-eabi-gcc.cmake",
+                "APP_RUNTIME_MONITOR": "OFF",
+                "APP_ENABLE_LTO": "OFF",
+                "APP_OPT_LEVEL": "1"
             }
-        }
-        ,
+        },
+        {
+            "name": "firmware-optimized",
+            "displayName": "Firmware Optimized",
+            "description": "Size-optimized GCC build with runtime monitor and LTO enabled",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/artifacts/cmake/firmware-optimized",
+            "cacheVariables": {
+                "BUILD_FIRMWARE": "ON",
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/toolchains/arm-none-eabi-gcc.cmake",
+                "APP_RUNTIME_MONITOR": "ON",
+                "APP_ENABLE_LTO": "ON",
+                "APP_OPT_LEVEL": "s"
+            }
+        },
         {
             "name": "host-sim-debug",
             "displayName": "Host Simulation Debug",
@@ -51,6 +71,10 @@
         {
             "name": "build-firmware-release",
             "configurePreset": "firmware-release"
+        },
+        {
+            "name": "build-firmware-optimized",
+            "configurePreset": "firmware-optimized"
         },
         {
             "name": "build-host-sim-debug",

@@ -7,6 +7,10 @@ project(stm32f030_app C ASM)
 set(PROJECT_ROOT "${CMAKE_CURRENT_LIST_DIR}/..")
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+option(APP_RUNTIME_MONITOR "Enable runtime monitor sources and macros" OFF)
+option(APP_ENABLE_LTO "Enable link time optimization for firmware build" OFF)
+set(APP_OPT_LEVEL "1" CACHE STRING "Firmware optimization level for GCC builds (0,1,2,3,s,g)")
+
 set(FIRMWARE_SOURCES
     "${PROJECT_ROOT}/Code/Drivers/stm32f0xx_it.c"
     "${PROJECT_ROOT}/Code/Drivers/system_stm32f0xx.c"
@@ -42,8 +46,6 @@ set(FIRMWARE_SOURCES
     "${PROJECT_ROOT}/Code/Source/modbus_service.c"
     "${PROJECT_ROOT}/Code/Source/BSP/bsp.c"
     "${PROJECT_ROOT}/Code/Source/BSP/bsp_timer.c"
-    "${PROJECT_ROOT}/Code/Source/BSP/app_state_snapshot.c"
-    "${PROJECT_ROOT}/Code/Source/BSP/app_runtime_monitor.c"
     "${PROJECT_ROOT}/Code/Source/BSP/Time_Triggered.c"
     "${PROJECT_ROOT}/Code/Source/NewFunc/LedBar.c"
     "${PROJECT_ROOT}/Code/Source/conf/conf.c"
@@ -73,6 +75,13 @@ set(FIRMWARE_SOURCES
     "${PROJECT_ROOT}/Code/STM32F0xx_StdPeriph_Driver/src/stm32f0xx_wwdg.c"
 )
 
+if(APP_RUNTIME_MONITOR)
+    list(APPEND FIRMWARE_SOURCES
+        "${PROJECT_ROOT}/Code/Source/BSP/app_state_snapshot.c"
+        "${PROJECT_ROOT}/Code/Source/BSP/app_runtime_monitor.c"
+    )
+endif()
+
 add_executable(${PROJECT_NAME}.elf ${FIRMWARE_SOURCES})
 
 target_include_directories(${PROJECT_NAME}.elf PRIVATE
@@ -88,8 +97,28 @@ target_include_directories(${PROJECT_NAME}.elf PRIVATE
 target_compile_definitions(${PROJECT_NAME}.elf PRIVATE
     USE_STDPERIPH_DRIVER
     STM32F0XX
-    APP_RUNTIME_MONITOR_ENABLE
 )
+
+if(APP_RUNTIME_MONITOR)
+    target_compile_definitions(${PROJECT_NAME}.elf PRIVATE
+        APP_RUNTIME_MONITOR_ENABLE
+    )
+endif()
+
+set(APP_GCC_OPT_FLAG "-O1")
+if(APP_OPT_LEVEL STREQUAL "0")
+    set(APP_GCC_OPT_FLAG "-O0")
+elseif(APP_OPT_LEVEL STREQUAL "1")
+    set(APP_GCC_OPT_FLAG "-O1")
+elseif(APP_OPT_LEVEL STREQUAL "2")
+    set(APP_GCC_OPT_FLAG "-O2")
+elseif(APP_OPT_LEVEL STREQUAL "3")
+    set(APP_GCC_OPT_FLAG "-O3")
+elseif(APP_OPT_LEVEL STREQUAL "s")
+    set(APP_GCC_OPT_FLAG "-Os")
+elseif(APP_OPT_LEVEL STREQUAL "g")
+    set(APP_GCC_OPT_FLAG "-Og")
+endif()
 
 target_compile_options(${PROJECT_NAME}.elf PRIVATE
     -mcpu=cortex-m0
@@ -98,15 +127,19 @@ target_compile_options(${PROJECT_NAME}.elf PRIVATE
     -ffunction-sections
     -fdata-sections
     -fno-common
+    -fno-strict-aliasing
     -fmessage-length=0
     -std=gnu99
-    $<$<CONFIG:Release>:-Os>
-    $<$<CONFIG:Release>:-flto>
-    $<$<CONFIG:MinSizeRel>:-Os>
-    $<$<CONFIG:MinSizeRel>:-flto>
+    $<$<OR:$<CONFIG:Release>,$<CONFIG:MinSizeRel>>:${APP_GCC_OPT_FLAG}>
     $<$<COMPILE_LANGUAGE:C>:-Wno-implicit-function-declaration>
     $<$<COMPILE_LANGUAGE:C>:-Wall>
 )
+
+if(APP_ENABLE_LTO)
+    target_compile_options(${PROJECT_NAME}.elf PRIVATE
+        $<$<OR:$<CONFIG:Release>,$<CONFIG:MinSizeRel>>:-flto>
+    )
+endif()
 
 target_link_options(${PROJECT_NAME}.elf PRIVATE
     -T${CMAKE_CURRENT_LIST_DIR}/linker/stm32f030c8_app.ld
@@ -116,9 +149,13 @@ target_link_options(${PROJECT_NAME}.elf PRIVATE
     -Wl,-Map=${CMAKE_BINARY_DIR}/stm32f030_app.map
     --specs=nano.specs
     --specs=nosys.specs
-    $<$<CONFIG:Release>:-flto>
-    $<$<CONFIG:MinSizeRel>:-flto>
 )
+
+if(APP_ENABLE_LTO)
+    target_link_options(${PROJECT_NAME}.elf PRIVATE
+        $<$<OR:$<CONFIG:Release>,$<CONFIG:MinSizeRel>>:-flto>
+    )
+endif()
 
 set_target_properties(${PROJECT_NAME}.elf PROPERTIES
     OUTPUT_NAME "CommomSH367309_16series_030C8T6_C"

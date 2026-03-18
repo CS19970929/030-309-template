@@ -34,10 +34,16 @@ tasks:
       - uv sync
 
   build:
-    desc: 使用 CMake Release Preset 构建 STM32F030 固件
+    desc: 使用板级安全 Preset 构建 STM32F030 固件，尽量贴近 Keil 行为
     cmds:
       - '"{{.CMAKE}}" --preset firmware-release'
       - '"{{.CMAKE}}" --build --preset build-firmware-release'
+
+  build-optimized:
+    desc: 使用优化 Preset 构建 STM32F030 固件，包含 LTO 与运行时监控
+    cmds:
+      - '"{{.CMAKE}}" --preset firmware-optimized'
+      - '"{{.CMAKE}}" --build --preset build-firmware-optimized'
 
   build-debug:
     desc: 使用 CMake Debug Preset 构建 STM32F030 固件
