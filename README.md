@@ -11,6 +11,7 @@
 - `task sim-replay`：回放 Modbus 帧并生成日志和 JSONL 快照
 - `task sim-protection`：回放第一版保护策略场景并生成日志和 JSONL 快照
 - `task sim-protection-suite`：顺序执行整套保护策略回归
+- `task sim-protection-suite-summary`：执行整套保护策略回归并生成摘要
 - `task map`：生成 map 摘要
 - `task flash`：生成烧录命令计划
 - `task debug`：生成调试命令计划
@@ -43,3 +44,8 @@
 3. 运行 `task init`
 4. 运行 `task test`
 5. 工具齐全后运行 `task build`
+
+## 当前建议
+
+- 调整 `heap/stack`：通过 `task build APP_HEAP_SIZE=0x400 APP_STACK_SIZE=0xC00`
+- 保护回归交给 Codex：优先使用 `task sim-protection-suite-summary`

@@ -101,8 +101,8 @@ SECTIONS
         . = ALIGN(8);
         PROVIDE(end = .);
         PROVIDE(_end = .);
-        . = . + 0x200;
-        . = . + 0x800;
+        . = . + @APP_HEAP_SIZE@;
+        . = . + @APP_STACK_SIZE@;
         . = ALIGN(8);
     } > RAM
 

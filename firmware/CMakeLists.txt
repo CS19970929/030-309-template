@@ -10,6 +10,13 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 option(APP_RUNTIME_MONITOR "Enable runtime monitor sources and macros" OFF)
 option(APP_ENABLE_LTO "Enable link time optimization for firmware build" OFF)
 set(APP_OPT_LEVEL "1" CACHE STRING "Firmware optimization level for GCC builds (0,1,2,3,s,g)")
+set(APP_HEAP_SIZE "0x200" CACHE STRING "Reserved heap bytes in linker script")
+set(APP_STACK_SIZE "0x800" CACHE STRING "Reserved stack bytes in linker script")
+
+set(APP_LINKER_TEMPLATE "${CMAKE_CURRENT_LIST_DIR}/linker/stm32f030c8_app.ld")
+set(APP_LINKER_SCRIPT "${CMAKE_BINARY_DIR}/generated/stm32f030c8_app.ld")
+file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/generated")
+configure_file("${APP_LINKER_TEMPLATE}" "${APP_LINKER_SCRIPT}" @ONLY)
 
 set(FIRMWARE_SOURCES
     "${PROJECT_ROOT}/Code/Drivers/stm32f0xx_it.c"
@@ -142,7 +149,7 @@ if(APP_ENABLE_LTO)
 endif()
 
 target_link_options(${PROJECT_NAME}.elf PRIVATE
-    -T${CMAKE_CURRENT_LIST_DIR}/linker/stm32f030c8_app.ld
+    -T${APP_LINKER_SCRIPT}
     -mcpu=cortex-m0
     -mthumb
     -Wl,--gc-sections

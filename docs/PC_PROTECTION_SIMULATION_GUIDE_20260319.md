@@ -49,6 +49,12 @@ task sim-protection-pack
 task sim-protection-suite
 ```
 
+执行整套保护回归并生成摘要：
+
+```bash
+task sim-protection-suite-summary
+```
+
 输出文件：
 
 - `artifacts/host-sim/protection-replay.log`
@@ -64,6 +70,8 @@ task sim-protection-suite
 - `artifacts/host-sim/protection-otp-utp.jsonl`
 - `artifacts/host-sim/protection-pack.log`
 - `artifacts/host-sim/protection-pack.jsonl`
+- `artifacts/host-sim/protection-suite-summary.json`
+- `artifacts/host-sim/protection-suite-summary.md`
 
 日志末尾会额外输出摘要：
 
@@ -140,6 +148,19 @@ task sim-protection-suite
 - `protection_ocp.csv` 聚焦充放电过流
 - `protection_otp_utp.csv` 聚焦温度
 - `protection_pack_soc_vdelta.csv` 聚焦整包电压、压差和 `SOC`
+
+## 对 Codex 接管的意义
+
+保护回归现在不只会落原始 `jsonl`，还会额外生成摘要：
+
+- [protection-suite-summary.json](/Users/cs/Downloads/work/todo/030-309-template/artifacts/host-sim/protection-suite-summary.json)
+- [protection-suite-summary.md](/Users/cs/Downloads/work/todo/030-309-template/artifacts/host-sim/protection-suite-summary.md)
+
+这两份文件的作用是：
+
+- 让 Codex 先读摘要，再决定是否深入到单个 `jsonl`
+- 让回归失败时先定位是哪个场景异常
+- 让后续自动化报告有稳定输入
 
 它的定位是：
 

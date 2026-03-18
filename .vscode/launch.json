@@ -235,6 +235,36 @@
       }
     },
     {
+      "name": "Host Replay: Protection",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/artifacts/cmake/host-sim-debug/host_sim/protection_host_replay",
+      "args": [
+        "--input",
+        "host_sim/scenarios/protection/protection_basic.csv",
+        "--log",
+        "artifacts/host-sim/protection-replay.log",
+        "--snapshot",
+        "artifacts/host-sim/protection-replay.jsonl"
+      ],
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "pc: protection replay",
+      "stopAtEntry": false,
+      "console": "integratedTerminal",
+      "MIMode": "lldb",
+      "miDebuggerPath": "/usr/bin/lldb",
+      "osx": {
+        "program": "${workspaceFolder}/artifacts/cmake/host-sim-debug/host_sim/protection_host_replay",
+        "MIMode": "lldb",
+        "miDebuggerPath": "/usr/bin/lldb"
+      },
+      "windows": {
+        "program": "${workspaceFolder}/artifacts/cmake/host-sim-debug/host_sim/protection_host_replay.exe",
+        "MIMode": "gdb",
+        "miDebuggerPath": "C:/qp/qtools/MinGW32/bin/gdb.exe"
+      }
+    },
+    {
       "name": "Cortex-Debug: STM32F030 (J-Link)",
       "type": "cortex-debug",
       "request": "launch",

@@ -1,0 +1,91 @@
+# Codex 接管可靠性工作流
+
+## 目标
+
+这份文档面向“让 Codex 稳定接管当前项目”的实际工作流，而不是泛泛讨论 AI。
+
+目标是让 Codex 具备以下能力：
+
+- 调整构建参数
+- 运行标准回归
+- 读取结构化摘要
+- 在异常时快速定位问题范围
+
+## 当前关键入口
+
+### 构建参数
+
+当前固件构建已经支持直接传入：
+
+- `APP_HEAP_SIZE`
+- `APP_STACK_SIZE`
+
+例如：
+
+```bash
+task build APP_HEAP_SIZE=0x400 APP_STACK_SIZE=0xC00
+```
+
+这比手工进 `Keil` 面板修改更适合：
+
+- Win/Mac 统一
+- 命令可复现
+- Codex 可直接执行
+- 参数变更可进提交记录
+
+### 保护回归
+
+当前推荐入口：
+
+```bash
+task sim-protection-suite-summary
+```
+
+该命令会顺序执行：
+
+- `sim-protection-ovp-uvp`
+- `sim-protection-ocp`
+- `sim-protection-otp-utp`
+- `sim-protection-pack`
+
+然后生成：
+
+- [protection-suite-summary.json](/Users/cs/Downloads/work/todo/030-309-template/artifacts/host-sim/protection-suite-summary.json)
+- [protection-suite-summary.md](/Users/cs/Downloads/work/todo/030-309-template/artifacts/host-sim/protection-suite-summary.md)
+
+## 为什么这套工作流适合 Codex
+
+核心原因不是“用了 CMake”，而是满足了接管的 4 个条件：
+
+1. 参数是文本化的  
+   `heap/stack` 不再藏在 IDE 面板里。
+
+2. 动作是命令化的  
+   Codex 可以稳定调用 `task`，不依赖人工点击。
+
+3. 结果是结构化的  
+   `jsonl + json + markdown` 让 Codex 能先看摘要再深入。
+
+4. 回归是分层的  
+   出问题时可以先判断是 `OVP/UVP`、`OCP`、`OTP/UTP` 还是 `pack/soc/vdelta`。
+
+## 当前建议使用顺序
+
+日常修改后，优先这样执行：
+
+1. `task build`
+2. `task sim-protection-suite-summary`
+3. 必要时再看单个 `artifacts/host-sim/protection-*.jsonl`
+
+如果是内存相关调整：
+
+1. `task build APP_HEAP_SIZE=... APP_STACK_SIZE=...`
+2. `task map`
+3. 再决定是否进入板级验证
+
+## 下一步建议
+
+要继续提升 Codex 接管能力，优先做这两件事：
+
+1. 为 `SOC` 增加同样的 `suite + summary` 入口
+2. 为 `map/RAM/Flash` 增加越界与趋势摘要

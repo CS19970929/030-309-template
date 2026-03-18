@@ -223,6 +223,36 @@
       "problemMatcher": []
     },
     {
+      "label": "pc: protection replay",
+      "type": "shell",
+      "command": "task",
+      "args": [
+        "sim-protection"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "windows": {
+        "command": "C:\\Users\\Administrator\\AppData\\Local\\Microsoft\\WinGet\\Links\\task.exe"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "pc: protection suite",
+      "type": "shell",
+      "command": "task",
+      "args": [
+        "sim-protection-suite-summary"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "windows": {
+        "command": "C:\\Users\\Administrator\\AppData\\Local\\Microsoft\\WinGet\\Links\\task.exe"
+      },
+      "problemMatcher": []
+    },
+    {
       "label": "mcu: build gcc release",
       "type": "shell",
       "command": "task",
