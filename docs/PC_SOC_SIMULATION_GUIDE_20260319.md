@@ -81,6 +81,7 @@ task sim-soc-suite-summary
 
 - `soc_drift_span_pct_x10`
 - `final_error_pct_x10`
+- `terminal_corrected_steps`
 - `restore_steps`
 
 ## 当前边界
@@ -104,6 +105,6 @@ task sim-soc-suite-summary
 
 下一阶段优先做：
 
-1. 从 [SocEnhance.c](/Users/cs/Downloads/work/todo/030-309-template/Code/Source/SocEnhance.c) 提炼第一批真实校正条件
+1. 继续从 [SocEnhance.c](/Users/cs/Downloads/work/todo/030-309-template/Code/Source/SocEnhance.c) 提炼更多真实校正条件
 2. 补“容量衰减 / 循环寿命”模型
 3. 把 `SOC` 摘要进一步和保护、构建摘要串成统一接管工作流

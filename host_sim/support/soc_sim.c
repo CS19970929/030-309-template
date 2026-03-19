@@ -21,8 +21,13 @@ void SocSim_LoadBaselineConfig(SocSimConfig *config)
     config->capacity_as_x10 = 60U * 3600U * 10U;
     config->initial_soc_pct_x10 = 800U;
     config->ocv_blend_step_pct_x10 = 15U;
-    config->idle_current_threshold_ma = 150U;
-    config->idle_blend_delay_ticks = 3U;
+    config->current_threshold_ma = 200U;
+    config->transfer_enter_ticks = 3U;
+    config->transfer_exit_ticks = 2U;
+    config->terminal_charge_near_mv = 54000U;
+    config->terminal_charge_full_mv = 54400U;
+    config->terminal_discharge_near_mv = 49000U;
+    config->terminal_discharge_empty_mv = 48500U;
 }
 
 void SocSim_Reset(const SocSimConfig *config, SocSimState *state)
@@ -38,6 +43,7 @@ void SocSim_Reset(const SocSimConfig *config, SocSimState *state)
     initial_capacity = (config->capacity_as_x10 * config->initial_soc_pct_x10) / 1000U;
     state->remaining_capacity_as_x10 = initial_capacity;
     state->soc_est_pct_x10 = config->initial_soc_pct_x10;
+    state->mode = SOC_SIM_MODE_TRANSFER;
 }
 
 void SocSim_SavePersistentState(const SocSimState *state, SocSimPersistedState *persisted)
@@ -52,6 +58,7 @@ void SocSim_SavePersistentState(const SocSimState *state, SocSimPersistedState *
     persisted->ocv_correction_count = state->ocv_correction_count;
     persisted->clamp_empty_count = state->clamp_empty_count;
     persisted->clamp_full_count = state->clamp_full_count;
+    persisted->terminal_correction_count = state->terminal_correction_count;
 }
 
 void SocSim_RestorePersistentState(const SocSimConfig *config,
@@ -69,6 +76,58 @@ void SocSim_RestorePersistentState(const SocSimConfig *config,
     state->ocv_correction_count = persisted->ocv_correction_count;
     state->clamp_empty_count = persisted->clamp_empty_count;
     state->clamp_full_count = persisted->clamp_full_count;
+    state->terminal_correction_count = persisted->terminal_correction_count;
+    state->mode = SOC_SIM_MODE_TRANSFER;
+}
+
+static void SocSim_ApplyTerminalCorrection(const SocSimConfig *config,
+                                           SocSimState *state,
+                                           const AppSimInputSnapshot *input,
+                                           AppSimOutputSnapshot *output)
+{
+    if (state->mode == SOC_SIM_MODE_CHARGE)
+    {
+        if ((input->pack_mv >= config->terminal_charge_near_mv) &&
+            (input->pack_mv < config->terminal_charge_full_mv) &&
+            (state->soc_est_pct_x10 < 950U))
+        {
+            state->soc_est_pct_x10 += 10U;
+            output->soc_state_flags |= SOC_SIM_FLAG_TERMINAL_CORRECTED;
+        }
+        else if ((input->pack_mv >= config->terminal_charge_full_mv) &&
+                 (state->soc_est_pct_x10 < 1000U))
+        {
+            state->soc_est_pct_x10 += (state->soc_est_pct_x10 >= 950U) ? 10U : 20U;
+            output->soc_state_flags |= SOC_SIM_FLAG_TERMINAL_CORRECTED;
+        }
+        if (state->soc_est_pct_x10 > 1000U)
+        {
+            state->soc_est_pct_x10 = 1000U;
+        }
+    }
+    else if (state->mode == SOC_SIM_MODE_DISCHARGE)
+    {
+        if ((input->pack_mv <= config->terminal_discharge_near_mv) &&
+            (input->pack_mv > config->terminal_discharge_empty_mv) &&
+            (state->soc_est_pct_x10 > 50U))
+        {
+            state->soc_est_pct_x10 -= 10U;
+            output->soc_state_flags |= SOC_SIM_FLAG_TERMINAL_CORRECTED;
+        }
+        else if ((input->pack_mv <= config->terminal_discharge_empty_mv) &&
+                 (state->soc_est_pct_x10 > 0U))
+        {
+            state->soc_est_pct_x10 -= (state->soc_est_pct_x10 <= 50U) ? 10U : 20U;
+            output->soc_state_flags |= SOC_SIM_FLAG_TERMINAL_CORRECTED;
+        }
+    }
+
+    if ((output->soc_state_flags & SOC_SIM_FLAG_TERMINAL_CORRECTED) != 0U)
+    {
+        state->remaining_capacity_as_x10 = (config->capacity_as_x10 * state->soc_est_pct_x10) / 1000U;
+        state->remaining_capacity_as_x10 = SocSim_ClampCapacity(state->remaining_capacity_as_x10, config->capacity_as_x10);
+        ++state->terminal_correction_count;
+    }
 }
 
 void SocSim_Step(const SocSimConfig *config,
@@ -128,7 +187,44 @@ void SocSim_Step(const SocSimConfig *config,
         output->soc_state_flags |= SOC_SIM_FLAG_DISCHARGE;
     }
 
-    if (abs_current_ma <= config->idle_current_threshold_ma)
+    if ((uint32_t)input->charge_current_ma >= config->current_threshold_ma)
+    {
+        ++state->mode_state_charge_ticks;
+        state->mode_state_discharge_ticks = 0U;
+        state->mode_state_transfer_ticks = 0U;
+        if (state->mode_state_charge_ticks >= config->transfer_enter_ticks)
+        {
+            state->mode_state_charge_ticks = 0U;
+            state->mode = SOC_SIM_MODE_CHARGE;
+        }
+    }
+    else if ((uint32_t)input->discharge_current_ma >= config->current_threshold_ma)
+    {
+        ++state->mode_state_discharge_ticks;
+        state->mode_state_charge_ticks = 0U;
+        state->mode_state_transfer_ticks = 0U;
+        if (state->mode_state_discharge_ticks >= config->transfer_enter_ticks)
+        {
+            state->mode_state_discharge_ticks = 0U;
+            state->mode = SOC_SIM_MODE_DISCHARGE;
+        }
+    }
+    else
+    {
+        ++state->mode_state_transfer_ticks;
+        state->mode_state_charge_ticks = 0U;
+        state->mode_state_discharge_ticks = 0U;
+        if (state->mode_state_transfer_ticks >= config->transfer_exit_ticks)
+        {
+            state->mode_state_transfer_ticks = 0U;
+            state->mode = SOC_SIM_MODE_TRANSFER;
+        }
+    }
+
+    SocSim_ApplyTerminalCorrection(config, state, input, output);
+
+    if ((state->mode == SOC_SIM_MODE_TRANSFER) &&
+        (abs_current_ma <= config->current_threshold_ma))
     {
         ++state->idle_ticks;
     }
@@ -139,7 +235,7 @@ void SocSim_Step(const SocSimConfig *config,
 
     ocv_soc_pct_x10 = input->soc_pct_x10;
     if ((ocv_soc_pct_x10 <= 1000U) &&
-        (state->idle_ticks >= config->idle_blend_delay_ticks))
+        (state->idle_ticks >= config->transfer_enter_ticks))
     {
         int32_t diff = (int32_t)ocv_soc_pct_x10 - (int32_t)state->soc_est_pct_x10;
         if (diff != 0)
