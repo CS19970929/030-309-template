@@ -4010,3 +4010,5 @@ task flash-stlink-monitor
 task watch-board-stlink
 
 目前工具链可以实现，telink 8251整套工具的替换吗，是否需要我提供给你telink的项目，之前使用本机的telink ide来开发，现在能否都使用当前统一工具链。
+
+项目使用hal库重构，同时直接接管cubemx2工具 或者cubeide实现自动化配置，调试
