@@ -40,6 +40,37 @@ void SocSim_Reset(const SocSimConfig *config, SocSimState *state)
     state->soc_est_pct_x10 = config->initial_soc_pct_x10;
 }
 
+void SocSim_SavePersistentState(const SocSimState *state, SocSimPersistedState *persisted)
+{
+    if ((state == NULL) || (persisted == NULL))
+    {
+        return;
+    }
+
+    persisted->remaining_capacity_as_x10 = state->remaining_capacity_as_x10;
+    persisted->soc_est_pct_x10 = state->soc_est_pct_x10;
+    persisted->ocv_correction_count = state->ocv_correction_count;
+    persisted->clamp_empty_count = state->clamp_empty_count;
+    persisted->clamp_full_count = state->clamp_full_count;
+}
+
+void SocSim_RestorePersistentState(const SocSimConfig *config,
+                                   const SocSimPersistedState *persisted,
+                                   SocSimState *state)
+{
+    if ((config == NULL) || (persisted == NULL) || (state == NULL))
+    {
+        return;
+    }
+
+    SocSim_Reset(config, state);
+    state->remaining_capacity_as_x10 = SocSim_ClampCapacity(persisted->remaining_capacity_as_x10, config->capacity_as_x10);
+    state->soc_est_pct_x10 = persisted->soc_est_pct_x10;
+    state->ocv_correction_count = persisted->ocv_correction_count;
+    state->clamp_empty_count = persisted->clamp_empty_count;
+    state->clamp_full_count = persisted->clamp_full_count;
+}
+
 void SocSim_Step(const SocSimConfig *config,
                  SocSimState *state,
                  const AppSimInputSnapshot *input,

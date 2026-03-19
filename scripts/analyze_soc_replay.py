@@ -28,7 +28,9 @@ def summarize_one(input_path: Path) -> dict:
     ocv_corrected_steps = 0
     clamp_empty_steps = 0
     clamp_full_steps = 0
+    restore_steps = 0
     first_ocv_corrected_step = None
+    first_restore_step = None
 
     for line in input_path.read_text(encoding="utf-8").splitlines():
         if not line.strip():
@@ -53,6 +55,10 @@ def summarize_one(input_path: Path) -> dict:
             clamp_empty_steps += 1
         if flags & (1 << 4):
             clamp_full_steps += 1
+        if flags & (1 << 5):
+            restore_steps += 1
+            if first_restore_step is None:
+                first_restore_step = int(item.get("step", steps))
 
     return {
         "input_file": str(input_path),
@@ -66,7 +72,9 @@ def summarize_one(input_path: Path) -> dict:
         "ocv_corrected_steps": ocv_corrected_steps,
         "clamp_empty_steps": clamp_empty_steps,
         "clamp_full_steps": clamp_full_steps,
+        "restore_steps": restore_steps,
         "first_ocv_corrected_step": first_ocv_corrected_step,
+        "first_restore_step": first_restore_step,
         "status": "ok" if steps > 0 else "empty",
     }
 
@@ -76,6 +84,7 @@ def render_markdown(report: dict) -> str:
     lines.append(f"- 总场景数：{len(report['scenarios'])}")
     lines.append(f"- 总步数：{report['totals']['steps']}")
     lines.append(f"- OCV 修正总步数：{report['totals']['ocv_corrected_steps']}")
+    lines.append(f"- 掉电恢复总步数：{report['totals']['restore_steps']}")
     lines.append(f"- 最大绝对误差：{report['totals']['max_abs_error_pct_x10']}")
     lines.append(f"- 最大漂移跨度：{report['totals']['max_drift_span_pct_x10']}")
     lines.append("")
@@ -91,9 +100,11 @@ def render_markdown(report: dict) -> str:
         lines.append(f"- `max_abs_error_pct_x10`：{item['max_abs_error_pct_x10']}")
         lines.append(f"- `final_error_pct_x10`：{item['final_error_pct_x10']}")
         lines.append(f"- `ocv_corrected_steps`：{item['ocv_corrected_steps']}")
+        lines.append(f"- `restore_steps`：{item['restore_steps']}")
         lines.append(f"- `clamp_empty_steps`：{item['clamp_empty_steps']}")
         lines.append(f"- `clamp_full_steps`：{item['clamp_full_steps']}")
         lines.append(f"- 首次 OCV 修正步：{item['first_ocv_corrected_step']}")
+        lines.append(f"- 首次掉电恢复步：{item['first_restore_step']}")
         lines.append("")
     return "\n".join(lines) + "\n"
 
@@ -112,6 +123,7 @@ def main() -> int:
         "totals": {
             "steps": sum(item["steps"] for item in scenarios),
             "ocv_corrected_steps": sum(item["ocv_corrected_steps"] for item in scenarios),
+            "restore_steps": sum(item["restore_steps"] for item in scenarios),
             "clamp_empty_steps": sum(item["clamp_empty_steps"] for item in scenarios),
             "clamp_full_steps": sum(item["clamp_full_steps"] for item in scenarios),
             "max_abs_error_pct_x10": max((item["max_abs_error_pct_x10"] for item in scenarios), default=0),

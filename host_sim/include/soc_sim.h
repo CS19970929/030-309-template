@@ -11,7 +11,9 @@ enum
     SOC_SIM_FLAG_DISCHARGE = 1U << 1,
     SOC_SIM_FLAG_OCV_CORRECTED = 1U << 2,
     SOC_SIM_FLAG_CLAMPED_EMPTY = 1U << 3,
-    SOC_SIM_FLAG_CLAMPED_FULL = 1U << 4
+    SOC_SIM_FLAG_CLAMPED_FULL = 1U << 4,
+    SOC_SIM_FLAG_POWER_RESTORE = 1U << 5,
+    SOC_SIM_FLAG_EEPROM_RESTORED = 1U << 6
 };
 
 typedef struct
@@ -27,6 +29,15 @@ typedef struct
 {
     uint32_t remaining_capacity_as_x10;
     uint16_t soc_est_pct_x10;
+    uint32_t ocv_correction_count;
+    uint32_t clamp_empty_count;
+    uint32_t clamp_full_count;
+} SocSimPersistedState;
+
+typedef struct
+{
+    uint32_t remaining_capacity_as_x10;
+    uint16_t soc_est_pct_x10;
     uint32_t last_tick_ms;
     uint16_t idle_ticks;
     uint32_t ocv_correction_count;
@@ -36,6 +47,10 @@ typedef struct
 
 void SocSim_LoadBaselineConfig(SocSimConfig *config);
 void SocSim_Reset(const SocSimConfig *config, SocSimState *state);
+void SocSim_SavePersistentState(const SocSimState *state, SocSimPersistedState *persisted);
+void SocSim_RestorePersistentState(const SocSimConfig *config,
+                                   const SocSimPersistedState *persisted,
+                                   SocSimState *state);
 void SocSim_Step(const SocSimConfig *config,
                  SocSimState *state,
                  const AppSimInputSnapshot *input,

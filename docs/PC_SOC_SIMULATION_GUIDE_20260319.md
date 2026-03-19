@@ -22,6 +22,7 @@ task sim-soc-charge
 task sim-soc-discharge
 task sim-soc-idle
 task sim-soc-mixed
+task sim-soc-restore
 task sim-soc-long
 ```
 
@@ -42,6 +43,8 @@ task sim-soc-suite-summary
   低电流静置后的 `OCV` 修正
 - `soc_mixed_cycle.csv`
   充电、放电、静置混合切换
+- `soc_power_restore.csv`
+  掉电恢复与 EEPROM 重载连续性
 - `soc_long_drift.csv`
   用小电流与静置反复回放，观察长时间漂移趋势
 
@@ -78,12 +81,13 @@ task sim-soc-suite-summary
 
 - `soc_drift_span_pct_x10`
 - `final_error_pct_x10`
+- `restore_steps`
 
 ## 当前边界
 
 这条链路当前是第一版策略骨架，边界很明确：
 
-- 还没有接入真实 `EEPROM` 恢复逻辑
+- 已有第一版 `EEPROM` 恢复骨架，但还没有一比一映射真实存储协议与磨损策略
 - 还没有接入工厂容量衰减与循环寿命模型
 - 还没有接入温度补偿
 - 还没有一比一映射 [SocEnhance.c](/Users/cs/Downloads/work/todo/030-309-template/Code/Source/SocEnhance.c)
@@ -100,6 +104,6 @@ task sim-soc-suite-summary
 
 下一阶段优先做：
 
-1. 把 `SOC` 场景继续扩成“长时间漂移”和“断电恢复”
-2. 从 [SocEnhance.c](/Users/cs/Downloads/work/todo/030-309-template/Code/Source/SocEnhance.c) 提炼第一批真实校正条件
+1. 从 [SocEnhance.c](/Users/cs/Downloads/work/todo/030-309-template/Code/Source/SocEnhance.c) 提炼第一批真实校正条件
+2. 补“容量衰减 / 循环寿命”模型
 3. 把 `SOC` 摘要进一步和保护、构建摘要串成统一接管工作流

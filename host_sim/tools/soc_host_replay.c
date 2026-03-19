@@ -27,6 +27,12 @@ typedef struct
 
 typedef struct
 {
+    AppSimInputSnapshot input;
+    uint8_t restore_event;
+} SocReplayRow;
+
+typedef struct
+{
     uint32_t steps;
     uint32_t ocv_corrected_steps;
     uint32_t clamped_empty_steps;
@@ -35,6 +41,7 @@ typedef struct
     uint16_t max_soc_est_pct_x10;
     int32_t max_abs_error_pct_x10;
     uint16_t final_soc_est_pct_x10;
+    uint32_t restore_count;
 } ReplaySummary;
 
 static void HostSim_PrintUsage(const char *program)
@@ -131,7 +138,7 @@ static int HostSim_IsBlank(const char *line)
     return 1;
 }
 
-static int HostSim_ParseLine(const char *line, AppSimInputSnapshot *input)
+static int HostSim_ParseLine(const char *line, SocReplayRow *row)
 {
     unsigned int tick_ms;
     unsigned int pack_mv;
@@ -140,6 +147,7 @@ static int HostSim_ParseLine(const char *line, AppSimInputSnapshot *input)
     int discharge_current_ma;
     unsigned int charger_present;
     unsigned int load_present;
+    unsigned int restore_event = 0U;
 
     if (line[0] == '#')
     {
@@ -155,26 +163,28 @@ static int HostSim_ParseLine(const char *line, AppSimInputSnapshot *input)
     }
 
     if (sscanf(line,
-               " %u , %u , %u , %d , %d , %u , %u",
+               " %u , %u , %u , %d , %d , %u , %u , %u",
                &tick_ms,
                &pack_mv,
                &soc_pct_x10,
                &charge_current_ma,
                &discharge_current_ma,
                &charger_present,
-               &load_present) != 7)
+               &load_present,
+               &restore_event) < 7)
     {
         return -1;
     }
 
-    memset(input, 0, sizeof(*input));
-    input->tick_ms = tick_ms;
-    input->pack_mv = (uint16_t)pack_mv;
-    input->soc_pct_x10 = (uint16_t)soc_pct_x10;
-    input->charge_current_ma = charge_current_ma;
-    input->discharge_current_ma = discharge_current_ma;
-    input->charger_present = (uint8_t)charger_present;
-    input->load_present = (uint8_t)load_present;
+    memset(row, 0, sizeof(*row));
+    row->input.tick_ms = tick_ms;
+    row->input.pack_mv = (uint16_t)pack_mv;
+    row->input.soc_pct_x10 = (uint16_t)soc_pct_x10;
+    row->input.charge_current_ma = charge_current_ma;
+    row->input.discharge_current_ma = discharge_current_ma;
+    row->input.charger_present = (uint8_t)charger_present;
+    row->input.load_present = (uint8_t)load_present;
+    row->restore_event = (uint8_t)restore_event;
     return 1;
 }
 
@@ -220,6 +230,10 @@ static void HostSim_UpdateSummary(ReplaySummary *summary, const AppSimOutputSnap
     {
         ++summary->clamped_full_steps;
     }
+    if ((output->soc_state_flags & SOC_SIM_FLAG_POWER_RESTORE) != 0U)
+    {
+        ++summary->restore_count;
+    }
     if (output->soc_est_pct_x10 < summary->min_soc_est_pct_x10)
     {
         summary->min_soc_est_pct_x10 = output->soc_est_pct_x10;
@@ -252,7 +266,9 @@ int main(int argc, char **argv)
     ReplaySummary summary;
     SocSimConfig config;
     SocSimState state;
+    SocSimPersistedState persisted;
     AppSimInputSnapshot input;
+    SocReplayRow row;
     AppSimOutputSnapshot output;
     AppSimTraceSnapshot trace;
     char json_line[512];
@@ -294,6 +310,7 @@ int main(int argc, char **argv)
 
     SocSim_LoadBaselineConfig(&config);
     SocSim_Reset(&config, &state);
+    SocSim_SavePersistentState(&state, &persisted);
 
     for (repeat_index = 0U; repeat_index < options.repeat_count; ++repeat_index)
     {
@@ -302,7 +319,7 @@ int main(int argc, char **argv)
 
         while (fgets(line, sizeof(line), input_file) != NULL)
         {
-            int parse_status = HostSim_ParseLine(line, &input);
+            int parse_status = HostSim_ParseLine(line, &row);
             ++line_index;
             if (parse_status == 0)
             {
@@ -315,11 +332,19 @@ int main(int argc, char **argv)
                 break;
             }
 
+            input = row.input;
             input.tick_ms += cycle_tick_offset;
             last_cycle_tick = input.tick_ms;
 
             memset(&output, 0, sizeof(output));
+            if (row.restore_event != 0U)
+            {
+                SocSim_RestorePersistentState(&config, &persisted, &state);
+                state.last_tick_ms = input.tick_ms;
+                output.soc_state_flags |= SOC_SIM_FLAG_POWER_RESTORE | SOC_SIM_FLAG_EEPROM_RESTORED;
+            }
             SocSim_Step(&config, &state, &input, &output);
+            SocSim_SavePersistentState(&state, &persisted);
             HostSim_UpdateSummary(&summary, &output);
 
             AppSimSnapshot_Init(&trace);
@@ -334,7 +359,7 @@ int main(int argc, char **argv)
             fputs(json_line, snapshot_file);
 
             fprintf(log_file,
-                    "[soc] cycle=%lu step=%d tick_ms=%lu pack_mv=%u ref_soc=%u est_soc=%u error=%d flags=0x%08lX\n",
+                    "[soc] cycle=%lu step=%d tick_ms=%lu pack_mv=%u ref_soc=%u est_soc=%u error=%d restore=%u flags=0x%08lX\n",
                     (unsigned long)(repeat_index + 1U),
                     step + 1,
                     (unsigned long)input.tick_ms,
@@ -342,15 +367,17 @@ int main(int argc, char **argv)
                     input.soc_pct_x10,
                     output.soc_est_pct_x10,
                     (int)output.soc_error_pct_x10,
+                    (unsigned int)row.restore_event,
                     (unsigned long)output.soc_state_flags);
 
             if (!options.quiet_console)
             {
-                printf("[soc] cycle=%lu step=%d est_soc=%u ref_soc=%u flags=0x%08lX\n",
+                printf("[soc] cycle=%lu step=%d est_soc=%u ref_soc=%u restore=%u flags=0x%08lX\n",
                        (unsigned long)(repeat_index + 1U),
                        step + 1,
                        output.soc_est_pct_x10,
                        input.soc_pct_x10,
+                       (unsigned int)row.restore_event,
                        (unsigned long)output.soc_state_flags);
             }
 
@@ -365,12 +392,13 @@ int main(int argc, char **argv)
     }
 
     fprintf(log_file,
-            "[summary] steps=%lu ocv_corrected_steps=%lu clamped_empty_steps=%lu clamped_full_steps=%lu "
+            "[summary] steps=%lu ocv_corrected_steps=%lu clamped_empty_steps=%lu clamped_full_steps=%lu restore_count=%lu "
             "min_soc_est_pct_x10=%u max_soc_est_pct_x10=%u max_abs_error_pct_x10=%ld final_soc_est_pct_x10=%u\n",
             (unsigned long)summary.steps,
             (unsigned long)summary.ocv_corrected_steps,
             (unsigned long)summary.clamped_empty_steps,
             (unsigned long)summary.clamped_full_steps,
+            (unsigned long)summary.restore_count,
             summary.min_soc_est_pct_x10,
             summary.max_soc_est_pct_x10,
             (long)summary.max_abs_error_pct_x10,
