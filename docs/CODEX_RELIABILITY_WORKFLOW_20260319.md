@@ -53,6 +53,28 @@ task sim-protection-suite-summary
 - [protection-suite-summary.json](/Users/cs/Downloads/work/todo/030-309-template/artifacts/host-sim/protection-suite-summary.json)
 - [protection-suite-summary.md](/Users/cs/Downloads/work/todo/030-309-template/artifacts/host-sim/protection-suite-summary.md)
 
+### 内存与链接摘要
+
+当前推荐入口：
+
+```bash
+task map
+```
+
+该命令会生成：
+
+- [map-summary.json](/Users/cs/Downloads/work/todo/030-309-template/artifacts/map-summary.json)
+- [map-summary.md](/Users/cs/Downloads/work/todo/030-309-template/artifacts/map-summary.md)
+
+其中会包含：
+
+- RAM 占用
+- FLASH 占用
+- `heap/stack` 预留
+- Top RAM 对象
+- Top FLASH 对象
+- 自动风险分级
+
 ## 为什么这套工作流适合 Codex
 
 核心原因不是“用了 CMake”，而是满足了接管的 4 个条件：
@@ -75,7 +97,8 @@ task sim-protection-suite-summary
 
 1. `task build`
 2. `task sim-protection-suite-summary`
-3. 必要时再看单个 `artifacts/host-sim/protection-*.jsonl`
+3. `task map`
+4. 必要时再看单个 `artifacts/host-sim/protection-*.jsonl`
 
 如果是内存相关调整：
 
@@ -88,4 +111,4 @@ task sim-protection-suite-summary
 要继续提升 Codex 接管能力，优先做这两件事：
 
 1. 为 `SOC` 增加同样的 `suite + summary` 入口
-2. 为 `map/RAM/Flash` 增加越界与趋势摘要
+2. 为 `map/RAM/Flash` 增加多版本趋势对比

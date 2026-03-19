@@ -7,7 +7,7 @@ vars:
   ARM_GNU_TOOLCHAIN_ROOT: '{{default (ternary "" (printf "%s/.local/toolchains/arm-gnu-toolchain-15.2.rel1-darwin-arm64-arm-none-eabi" (env "HOME")) (eq OS "windows")) .ARM_GNU_TOOLCHAIN_ROOT}}'
   APP_HEAP_SIZE: '{{default "0x200" .APP_HEAP_SIZE}}'
   APP_STACK_SIZE: '{{default "0x800" .APP_STACK_SIZE}}'
-  MAP_FILE: '{{default "CommomSH367309_16series_030C8T6_C.map" .MAP_FILE}}'
+  MAP_FILE: '{{default "artifacts/cmake/firmware-release/stm32f030_app.map" .MAP_FILE}}'
   TEMPLATE_NAME: '{{default "firmware-stm32f0" .TEMPLATE_NAME}}'
   PROJECT_NAME: '{{default "sample-project" .PROJECT_NAME}}'
   PRODUCT_FAMILY: '{{default "bms-family" .PRODUCT_FAMILY}}'
@@ -114,7 +114,7 @@ tasks:
   map:
     desc: 分析 map 文件热点
     cmds:
-      - '{{.PYTHON}} scripts/analyze_map.py --map "{{.MAP_FILE}}" --top 20 --json artifacts/map-summary.json'
+      - '{{.PYTHON}} scripts/analyze_map.py --map "{{.MAP_FILE}}" --top 20 --json artifacts/map-summary.json --md artifacts/map-summary.md'
 
   flash:
     desc: 生成烧录命令计划，工具存在时可扩展为直接执行
