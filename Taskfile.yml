@@ -109,6 +109,7 @@ tasks:
       - "{{.PYTHON}} scripts/analyze_map.py --help"
       - "{{.PYTHON}} scripts/analyze_build_summary.py --help"
       - "{{.PYTHON}} scripts/analyze_protection_replay.py --help"
+      - "{{.PYTHON}} scripts/analyze_soc_replay.py --help"
       - "{{.PYTHON}} scripts/debug_capture.py --help"
       - "{{.PYTHON}} scripts/check_toolchain.py"
 
@@ -241,6 +242,60 @@ tasks:
     cmds:
       - task: sim-protection-suite
       - task: sim-protection-summary
+
+  sim-soc:
+    desc: 在 PC 上回放第一版 SOC 策略场景并输出日志与快照
+    cmds:
+      - '"{{.CMAKE}}" --preset host-sim-debug'
+      - '"{{.CMAKE}}" --build --preset build-host-sim-debug'
+      - '{{.EXEC_PREFIX}}artifacts/cmake/host-sim-debug/host_sim/soc_host_replay{{if eq OS "windows"}}.exe{{end}} --input host_sim/scenarios/soc/soc_mixed_cycle.csv --log artifacts/host-sim/soc-replay.log --snapshot artifacts/host-sim/soc-replay.jsonl'
+
+  sim-soc-charge:
+    desc: 在 PC 上回放 SOC 充电场景
+    cmds:
+      - '"{{.CMAKE}}" --preset host-sim-debug'
+      - '"{{.CMAKE}}" --build --preset build-host-sim-debug'
+      - '{{.EXEC_PREFIX}}artifacts/cmake/host-sim-debug/host_sim/soc_host_replay{{if eq OS "windows"}}.exe{{end}} --input host_sim/scenarios/soc/soc_charge.csv --log artifacts/host-sim/soc-charge.log --snapshot artifacts/host-sim/soc-charge.jsonl'
+
+  sim-soc-discharge:
+    desc: 在 PC 上回放 SOC 放电场景
+    cmds:
+      - '"{{.CMAKE}}" --preset host-sim-debug'
+      - '"{{.CMAKE}}" --build --preset build-host-sim-debug'
+      - '{{.EXEC_PREFIX}}artifacts/cmake/host-sim-debug/host_sim/soc_host_replay{{if eq OS "windows"}}.exe{{end}} --input host_sim/scenarios/soc/soc_discharge.csv --log artifacts/host-sim/soc-discharge.log --snapshot artifacts/host-sim/soc-discharge.jsonl'
+
+  sim-soc-idle:
+    desc: 在 PC 上回放 SOC 静置 OCV 修正场景
+    cmds:
+      - '"{{.CMAKE}}" --preset host-sim-debug'
+      - '"{{.CMAKE}}" --build --preset build-host-sim-debug'
+      - '{{.EXEC_PREFIX}}artifacts/cmake/host-sim-debug/host_sim/soc_host_replay{{if eq OS "windows"}}.exe{{end}} --input host_sim/scenarios/soc/soc_idle_ocv.csv --log artifacts/host-sim/soc-idle.log --snapshot artifacts/host-sim/soc-idle.jsonl'
+
+  sim-soc-mixed:
+    desc: 在 PC 上回放 SOC 充放切换与静置混合场景
+    cmds:
+      - '"{{.CMAKE}}" --preset host-sim-debug'
+      - '"{{.CMAKE}}" --build --preset build-host-sim-debug'
+      - '{{.EXEC_PREFIX}}artifacts/cmake/host-sim-debug/host_sim/soc_host_replay{{if eq OS "windows"}}.exe{{end}} --input host_sim/scenarios/soc/soc_mixed_cycle.csv --log artifacts/host-sim/soc-mixed.log --snapshot artifacts/host-sim/soc-mixed.jsonl'
+
+  sim-soc-suite:
+    desc: 在 PC 上顺序执行整套 SOC 回归
+    cmds:
+      - task: sim-soc-charge
+      - task: sim-soc-discharge
+      - task: sim-soc-idle
+      - task: sim-soc-mixed
+
+  sim-soc-summary:
+    desc: 汇总整套 SOC 回归结果，生成可供 Codex 读取的摘要
+    cmds:
+      - '{{.PYTHON}} scripts/analyze_soc_replay.py --input artifacts/host-sim/soc-charge.jsonl --input artifacts/host-sim/soc-discharge.jsonl --input artifacts/host-sim/soc-idle.jsonl --input artifacts/host-sim/soc-mixed.jsonl --json artifacts/host-sim/soc-suite-summary.json --markdown artifacts/host-sim/soc-suite-summary.md'
+
+  sim-soc-suite-summary:
+    desc: 顺序执行整套 SOC 回归并生成摘要
+    cmds:
+      - task: sim-soc-suite
+      - task: sim-soc-summary
 
   flash-stlink:
     desc: 使用 ST-Link + OpenOCD 烧录 GCC 生成的固件

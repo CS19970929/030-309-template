@@ -1,0 +1,97 @@
+# PC SOC 仿真指南
+
+## 目标
+
+这份文档说明当前仓库里第一版 `SOC` 主机侧回放链路如何使用。
+
+目标不是一比一复刻量产 `SOC` 全逻辑，而是先给 Codex 和你自己一条稳定的策略级入口，用于验证：
+
+- 充电积分趋势
+- 放电积分趋势
+- 静置后的 `OCV` 修正趋势
+- 充放切换后的 `SOC` 连续性
+- `SOC` 边界钳位行为
+
+## 当前入口
+
+### 单场景
+
+```bash
+task sim-soc
+task sim-soc-charge
+task sim-soc-discharge
+task sim-soc-idle
+task sim-soc-mixed
+```
+
+### 套件与摘要
+
+```bash
+task sim-soc-suite
+task sim-soc-suite-summary
+```
+
+## 当前场景
+
+- `soc_charge.csv`
+  充电积分与后段静置
+- `soc_discharge.csv`
+  放电积分与放空边界趋势
+- `soc_idle_ocv.csv`
+  低电流静置后的 `OCV` 修正
+- `soc_mixed_cycle.csv`
+  充电、放电、静置混合切换
+
+## 产物
+
+套件摘要默认输出：
+
+- [soc-suite-summary.json](/Users/cs/Downloads/work/todo/030-309-template/artifacts/host-sim/soc-suite-summary.json)
+- [soc-suite-summary.md](/Users/cs/Downloads/work/todo/030-309-template/artifacts/host-sim/soc-suite-summary.md)
+
+单场景会输出：
+
+- `artifacts/host-sim/soc-*.log`
+- `artifacts/host-sim/soc-*.jsonl`
+
+## 当前输出字段
+
+当前 `jsonl` 已包含：
+
+- `soc_est_pct_x10`
+- `soc_ocv_pct_x10`
+- `soc_error_pct_x10`
+- `soc_state_flags`
+
+其中 `soc_state_flags` 当前表示：
+
+- `charge`
+- `discharge`
+- `ocv_corrected`
+- `clamped_empty`
+- `clamped_full`
+
+## 当前边界
+
+这条链路当前是第一版策略骨架，边界很明确：
+
+- 还没有接入真实 `EEPROM` 恢复逻辑
+- 还没有接入工厂容量衰减与循环寿命模型
+- 还没有接入温度补偿
+- 还没有一比一映射 [SocEnhance.c](/Users/cs/Downloads/work/todo/030-309-template/Code/Source/SocEnhance.c)
+
+所以它目前更适合做：
+
+- 趋势检查
+- 回归入口
+- Codex 自动分析输入
+
+而不是直接当作量产 `SOC` 结论模型。
+
+## 后续建议
+
+下一阶段优先做：
+
+1. 把 `SOC` 场景继续扩成“长时间漂移”和“断电恢复”
+2. 从 [SocEnhance.c](/Users/cs/Downloads/work/todo/030-309-template/Code/Source/SocEnhance.c) 提炼第一批真实校正条件
+3. 把 `SOC` 摘要进一步和保护、构建摘要串成统一接管工作流

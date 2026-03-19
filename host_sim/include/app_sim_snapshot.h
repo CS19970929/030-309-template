@@ -30,6 +30,10 @@ typedef struct
     uint32_t fault_third;
     uint8_t charge_mos_off;
     uint8_t discharge_mos_off;
+    uint16_t soc_est_pct_x10;
+    uint16_t soc_ocv_pct_x10;
+    int16_t soc_error_pct_x10;
+    uint32_t soc_state_flags;
 } AppSimOutputSnapshot;
 
 typedef struct

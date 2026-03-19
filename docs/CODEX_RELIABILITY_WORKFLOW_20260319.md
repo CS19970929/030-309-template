@@ -75,6 +75,26 @@ task sim-protection-suite-summary
 - [protection-suite-summary.json](/Users/cs/Downloads/work/todo/030-309-template/artifacts/host-sim/protection-suite-summary.json)
 - [protection-suite-summary.md](/Users/cs/Downloads/work/todo/030-309-template/artifacts/host-sim/protection-suite-summary.md)
 
+### SOC 回归
+
+当前推荐入口：
+
+```bash
+task sim-soc-suite-summary
+```
+
+该命令会生成：
+
+- [soc-suite-summary.json](/Users/cs/Downloads/work/todo/030-309-template/artifacts/host-sim/soc-suite-summary.json)
+- [soc-suite-summary.md](/Users/cs/Downloads/work/todo/030-309-template/artifacts/host-sim/soc-suite-summary.md)
+
+其中会包含：
+
+- 各场景的 `SOC` 趋势范围
+- `OCV` 修正步数
+- 最大绝对误差
+- 边界钳位次数
+
 ### 内存与链接摘要
 
 当前推荐入口：
@@ -119,7 +139,8 @@ task map
 
 1. `task build-summary`
 2. `task sim-protection-suite-summary`
-3. 必要时再看单个 `artifacts/host-sim/protection-*.jsonl`
+3. `task sim-soc-suite-summary`
+4. 必要时再看单个 `artifacts/host-sim/*.jsonl`
 
 如果是内存相关调整：
 
@@ -132,4 +153,5 @@ task map
 要继续提升 Codex 接管能力，优先做这两件事：
 
 1. 为 `SOC` 增加同样的 `suite + summary` 入口
-2. 为 `map/RAM/Flash` 增加多版本趋势对比
+2. 为 `SOC` 增加长时间漂移与断电恢复场景
+3. 为 `map/RAM/Flash` 增加多版本趋势对比

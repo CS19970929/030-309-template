@@ -14,6 +14,7 @@
 - Modbus 主机仿真：`task sim-modbus`
 - 回放日志仿真：`task sim-replay`
 - 保护策略回归：`task sim-protection-suite-summary`
+- SOC 策略回归：`task sim-soc-suite-summary`
 - 模板化起项目：`task new`
 
 当前仓库已经具备的核心能力：
@@ -23,6 +24,7 @@
 - `heap/stack` 参数化
 - `map` 与 `build` 的结构化摘要
 - 保护策略 `PC` 回放与摘要
+- SOC 策略 `PC` 回放与摘要
 - 适合个人多项目维护的模板骨架
 - 适合 Codex 审查与自动分析的输入产物
 
@@ -64,6 +66,7 @@
 - [PC_SIMULATION_GUIDE_20260318.md](/Users/cs/Downloads/work/todo/030-309-template/docs/PC_SIMULATION_GUIDE_20260318.md)
 - [PC_STRATEGY_SIMULATION_ARCHITECTURE_20260318.md](/Users/cs/Downloads/work/todo/030-309-template/docs/PC_STRATEGY_SIMULATION_ARCHITECTURE_20260318.md)
 - [PC_PROTECTION_SIMULATION_GUIDE_20260319.md](/Users/cs/Downloads/work/todo/030-309-template/docs/PC_PROTECTION_SIMULATION_GUIDE_20260319.md)
+- [PC_SOC_SIMULATION_GUIDE_20260319.md](/Users/cs/Downloads/work/todo/030-309-template/docs/PC_SOC_SIMULATION_GUIDE_20260319.md)
 - [HOST_REPLAY_LOGGING_GUIDE_20260318.md](/Users/cs/Downloads/work/todo/030-309-template/docs/HOST_REPLAY_LOGGING_GUIDE_20260318.md)
 - [HOST_SCHEDULER_SIMULATION_GUIDE_20260318.md](/Users/cs/Downloads/work/todo/030-309-template/docs/HOST_SCHEDULER_SIMULATION_GUIDE_20260318.md)
 - [SAME_CODE_SIMULATION_STRATEGY_20260318.md](/Users/cs/Downloads/work/todo/030-309-template/docs/SAME_CODE_SIMULATION_STRATEGY_20260318.md)

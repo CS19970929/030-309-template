@@ -49,7 +49,9 @@ int AppSimSnapshot_ToJsonLine(const AppSimTraceSnapshot *snapshot, char *buffer,
         "\"temp_chg_max_c_x10\":%d,\"temp_dsg_min_c_x10\":%d,\"temp_mos_c_x10\":%d,"
         "\"charger_present\":%u,\"load_present\":%u,"
         "\"fault_first\":%lu,\"fault_second\":%lu,\"fault_third\":%lu,"
-        "\"charge_mos_off\":%u,\"discharge_mos_off\":%u}\n",
+        "\"charge_mos_off\":%u,\"discharge_mos_off\":%u,"
+        "\"soc_est_pct_x10\":%u,\"soc_ocv_pct_x10\":%u,"
+        "\"soc_error_pct_x10\":%d,\"soc_state_flags\":%lu}\n",
         snapshot->source,
         (unsigned long)snapshot->cycle,
         (unsigned long)snapshot->step,
@@ -71,5 +73,9 @@ int AppSimSnapshot_ToJsonLine(const AppSimTraceSnapshot *snapshot, char *buffer,
         (unsigned long)snapshot->output.fault_second,
         (unsigned long)snapshot->output.fault_third,
         snapshot->output.charge_mos_off,
-        snapshot->output.discharge_mos_off);
+        snapshot->output.discharge_mos_off,
+        snapshot->output.soc_est_pct_x10,
+        snapshot->output.soc_ocv_pct_x10,
+        (int)snapshot->output.soc_error_pct_x10,
+        (unsigned long)snapshot->output.soc_state_flags);
 }

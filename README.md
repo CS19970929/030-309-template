@@ -13,6 +13,7 @@
 - `task sim-protection`：回放第一版保护策略场景并生成日志和 JSONL 快照
 - `task sim-protection-suite`：顺序执行整套保护策略回归
 - `task sim-protection-suite-summary`：执行整套保护策略回归并生成摘要
+- `task sim-soc-suite-summary`：执行整套 SOC 回归并生成摘要
 - `task map`：生成 map 摘要
 - `task flash`：生成烧录命令计划
 - `task debug`：生成调试命令计划
@@ -35,6 +36,7 @@
 - [`docs/CODEX_AUTOMATION_HANDBOOK_20260318.md`](docs/CODEX_AUTOMATION_HANDBOOK_20260318.md)
 - [`docs/PC_SIMULATION_GUIDE_20260318.md`](docs/PC_SIMULATION_GUIDE_20260318.md)
 - [`docs/PC_PROTECTION_SIMULATION_GUIDE_20260319.md`](docs/PC_PROTECTION_SIMULATION_GUIDE_20260319.md)
+- [`docs/PC_SOC_SIMULATION_GUIDE_20260319.md`](docs/PC_SOC_SIMULATION_GUIDE_20260319.md)
 - [`docs/SAME_CODE_SIMULATION_STRATEGY_20260318.md`](docs/SAME_CODE_SIMULATION_STRATEGY_20260318.md)
 - [`docs/LOGGING_AND_MONITORING_PLAN_20260318.md`](docs/LOGGING_AND_MONITORING_PLAN_20260318.md)
 
@@ -60,4 +62,5 @@
 - 调整 `heap/stack`：通过 `task build APP_HEAP_SIZE=0x400 APP_STACK_SIZE=0xC00`
 - 构建 warning/链接风险交给 Codex：优先使用 `task build-summary`
 - 保护回归交给 Codex：优先使用 `task sim-protection-suite-summary`
+- SOC 回归交给 Codex：优先使用 `task sim-soc-suite-summary`
 - 内存/链接风险交给 Codex：构建后优先运行 `task map`
