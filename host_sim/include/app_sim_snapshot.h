@@ -21,6 +21,8 @@ typedef struct
     int16_t temp_mos_c_x10;
     uint8_t charger_present;
     uint8_t load_present;
+    uint8_t ext_wake_event;
+    uint8_t force_sleep_level;
 } AppSimInputSnapshot;
 
 typedef struct
@@ -35,6 +37,8 @@ typedef struct
     int16_t soc_error_pct_x10;
     uint16_t soc_dsg_cycle_acc_pct_x10;
     uint32_t soc_cycle_times_x100;
+    uint8_t power_mode;
+    uint32_t power_state_flags;
     uint32_t soc_state_flags;
 } AppSimOutputSnapshot;
 

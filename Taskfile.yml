@@ -321,6 +321,60 @@ tasks:
       - task: sim-soc-suite
       - task: sim-soc-summary
 
+  sim-low-power:
+    desc: 在 PC 上回放第一版低功耗策略场景并输出日志与快照
+    cmds:
+      - '"{{.CMAKE}}" --preset host-sim-debug'
+      - '"{{.CMAKE}}" --build --preset build-host-sim-debug'
+      - '{{.EXEC_PREFIX}}artifacts/cmake/host-sim-debug/host_sim/low_power_host_replay{{if eq OS "windows"}}.exe{{end}} --input host_sim/scenarios/low_power/low_power_normal.csv --log artifacts/host-sim/low-power-replay.log --snapshot artifacts/host-sim/low-power-replay.jsonl'
+
+  sim-low-power-normal:
+    desc: 在 PC 上回放正常静置进入低功耗场景
+    cmds:
+      - '"{{.CMAKE}}" --preset host-sim-debug'
+      - '"{{.CMAKE}}" --build --preset build-host-sim-debug'
+      - '{{.EXEC_PREFIX}}artifacts/cmake/host-sim-debug/host_sim/low_power_host_replay{{if eq OS "windows"}}.exe{{end}} --input host_sim/scenarios/low_power/low_power_normal.csv --log artifacts/host-sim/low-power-normal.log --snapshot artifacts/host-sim/low-power-normal.jsonl'
+
+  sim-low-power-low-v:
+    desc: 在 PC 上回放低压静置进入低功耗场景
+    cmds:
+      - '"{{.CMAKE}}" --preset host-sim-debug'
+      - '"{{.CMAKE}}" --build --preset build-host-sim-debug'
+      - '{{.EXEC_PREFIX}}artifacts/cmake/host-sim-debug/host_sim/low_power_host_replay{{if eq OS "windows"}}.exe{{end}} --input host_sim/scenarios/low_power/low_power_low_v.csv --log artifacts/host-sim/low-power-low-v.log --snapshot artifacts/host-sim/low-power-low-v.jsonl'
+
+  sim-low-power-wake:
+    desc: 在 PC 上回放低功耗唤醒场景
+    cmds:
+      - '"{{.CMAKE}}" --preset host-sim-debug'
+      - '"{{.CMAKE}}" --build --preset build-host-sim-debug'
+      - '{{.EXEC_PREFIX}}artifacts/cmake/host-sim-debug/host_sim/low_power_host_replay{{if eq OS "windows"}}.exe{{end}} --input host_sim/scenarios/low_power/low_power_wake.csv --log artifacts/host-sim/low-power-wake.log --snapshot artifacts/host-sim/low-power-wake.jsonl'
+
+  sim-low-power-deep:
+    desc: 在 PC 上回放低电压深度休眠场景
+    cmds:
+      - '"{{.CMAKE}}" --preset host-sim-debug'
+      - '"{{.CMAKE}}" --build --preset build-host-sim-debug'
+      - '{{.EXEC_PREFIX}}artifacts/cmake/host-sim-debug/host_sim/low_power_host_replay{{if eq OS "windows"}}.exe{{end}} --input host_sim/scenarios/low_power/low_power_deep.csv --log artifacts/host-sim/low-power-deep.log --snapshot artifacts/host-sim/low-power-deep.jsonl'
+
+  sim-low-power-suite:
+    desc: 在 PC 上顺序执行整套低功耗回归
+    cmds:
+      - task: sim-low-power-normal
+      - task: sim-low-power-low-v
+      - task: sim-low-power-wake
+      - task: sim-low-power-deep
+
+  sim-low-power-summary:
+    desc: 汇总整套低功耗回归结果，生成可供 Codex 读取的摘要
+    cmds:
+      - '{{.PYTHON}} scripts/analyze_low_power_replay.py --input artifacts/host-sim/low-power-normal.jsonl --input artifacts/host-sim/low-power-low-v.jsonl --input artifacts/host-sim/low-power-wake.jsonl --input artifacts/host-sim/low-power-deep.jsonl --json artifacts/host-sim/low-power-suite-summary.json --markdown artifacts/host-sim/low-power-suite-summary.md'
+
+  sim-low-power-suite-summary:
+    desc: 顺序执行整套低功耗回归并生成摘要
+    cmds:
+      - task: sim-low-power-suite
+      - task: sim-low-power-summary
+
   flash-stlink:
     desc: 使用 ST-Link + OpenOCD 烧录 GCC 生成的固件
     cmds:

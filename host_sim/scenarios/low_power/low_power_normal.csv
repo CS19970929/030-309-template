@@ -1,0 +1,9 @@
+tick_ms,cell_min_mv,charge_current_ma,discharge_current_ma,ext_wake_event,force_sleep_level
+0,3300,0,0,0,0
+1000,3300,0,0,0,0
+2000,3300,0,0,0,0
+3000,3300,0,0,0,0
+4000,3300,0,0,0,0
+5000,3300,0,0,0,0
+6000,3300,0,0,0,0
+7000,3300,0,0,0,0

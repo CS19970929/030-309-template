@@ -15,6 +15,7 @@
 - 回放日志仿真：`task sim-replay`
 - 保护策略回归：`task sim-protection-suite-summary`
 - SOC 策略回归：`task sim-soc-suite-summary`
+- 低功耗策略回归：`task sim-low-power-suite-summary`
 - 模板化起项目：`task new`
 
 当前仓库已经具备的核心能力：
@@ -67,6 +68,7 @@
 - [PC_STRATEGY_SIMULATION_ARCHITECTURE_20260318.md](/Users/cs/Downloads/work/todo/030-309-template/docs/PC_STRATEGY_SIMULATION_ARCHITECTURE_20260318.md)
 - [PC_PROTECTION_SIMULATION_GUIDE_20260319.md](/Users/cs/Downloads/work/todo/030-309-template/docs/PC_PROTECTION_SIMULATION_GUIDE_20260319.md)
 - [PC_SOC_SIMULATION_GUIDE_20260319.md](/Users/cs/Downloads/work/todo/030-309-template/docs/PC_SOC_SIMULATION_GUIDE_20260319.md)
+- [PC_LOW_POWER_SIMULATION_GUIDE_20260319.md](/Users/cs/Downloads/work/todo/030-309-template/docs/PC_LOW_POWER_SIMULATION_GUIDE_20260319.md)
 - [HOST_REPLAY_LOGGING_GUIDE_20260318.md](/Users/cs/Downloads/work/todo/030-309-template/docs/HOST_REPLAY_LOGGING_GUIDE_20260318.md)
 - [HOST_SCHEDULER_SIMULATION_GUIDE_20260318.md](/Users/cs/Downloads/work/todo/030-309-template/docs/HOST_SCHEDULER_SIMULATION_GUIDE_20260318.md)
 - [SAME_CODE_SIMULATION_STRATEGY_20260318.md](/Users/cs/Downloads/work/todo/030-309-template/docs/SAME_CODE_SIMULATION_STRATEGY_20260318.md)
