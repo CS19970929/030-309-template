@@ -4002,3 +4002,11 @@ app_runtime_monitor模块是用来干什么的
 codex auto review
 
 commit，只想合并到另一个分支的某个commit，而不是最新的commit
+
+
+//todo 卡死了？？？，直接调通？功能是怎样的
+task build-monitor
+task flash-stlink-monitor
+task watch-board-stlink
+
+目前工具链可以实现，telink 8251整套工具的替换吗，是否需要我提供给你telink的项目，之前使用本机的telink ide来开发，现在能否都使用当前统一工具链。
