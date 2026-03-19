@@ -15,6 +15,8 @@
 - `task sim-protection-suite-summary`：执行整套保护策略回归并生成摘要
 - `task sim-soc-suite-summary`：执行整套 SOC 回归并生成摘要
 - `task sim-low-power-suite-summary`：执行整套低功耗回归并生成摘要
+- `task codex-overview`：聚合当前关键摘要，生成 Codex 接管总览
+- `task codex-overview-refresh`：刷新关键摘要后生成 Codex 接管总览
 - `task map`：生成 map 摘要
 - `task flash`：生成烧录命令计划
 - `task debug`：生成调试命令计划
@@ -30,6 +32,7 @@
 - [`docs/CODEX_FULL_TAKEOVER_BLUEPRINT_20260318.md`](docs/CODEX_FULL_TAKEOVER_BLUEPRINT_20260318.md)
 - [`docs/CODEX_PR_REVIEW_WORKFLOW_20260319.md`](docs/CODEX_PR_REVIEW_WORKFLOW_20260319.md)
 - [`docs/CODEX_RELIABILITY_WORKFLOW_20260319.md`](docs/CODEX_RELIABILITY_WORKFLOW_20260319.md)
+- [`docs/CODEX_OVERVIEW_GUIDE_20260319.md`](docs/CODEX_OVERVIEW_GUIDE_20260319.md)
 - [`docs/INDIVIDUAL_MULTI_PROJECT_MANAGEMENT_20260319.md`](docs/INDIVIDUAL_MULTI_PROJECT_MANAGEMENT_20260319.md)
 - [`docs/TEMPLATE_PROJECT_FAMILY_GUIDE_20260319.md`](docs/TEMPLATE_PROJECT_FAMILY_GUIDE_20260319.md)
 - [`docs/MAP_SUMMARY_AUTOMATION_GUIDE_20260319.md`](docs/MAP_SUMMARY_AUTOMATION_GUIDE_20260319.md)
@@ -66,4 +69,5 @@
 - 保护回归交给 Codex：优先使用 `task sim-protection-suite-summary`
 - SOC 回归交给 Codex：优先使用 `task sim-soc-suite-summary`
 - 低功耗回归交给 Codex：优先使用 `task sim-low-power-suite-summary`
+- 想快速看全局：优先使用 `task codex-overview`
 - 内存/链接风险交给 Codex：构建后优先运行 `task map`

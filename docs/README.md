@@ -16,6 +16,7 @@
 - 保护策略回归：`task sim-protection-suite-summary`
 - SOC 策略回归：`task sim-soc-suite-summary`
 - 低功耗策略回归：`task sim-low-power-suite-summary`
+- 接管总览：`task codex-overview` / `task codex-overview-refresh`
 - 模板化起项目：`task new`
 
 当前仓库已经具备的核心能力：
@@ -76,6 +77,7 @@
 ### Codex 接管与流程
 
 - [CODEX_RELIABILITY_WORKFLOW_20260319.md](/Users/cs/Downloads/work/todo/030-309-template/docs/CODEX_RELIABILITY_WORKFLOW_20260319.md)
+- [CODEX_OVERVIEW_GUIDE_20260319.md](/Users/cs/Downloads/work/todo/030-309-template/docs/CODEX_OVERVIEW_GUIDE_20260319.md)
 - [CODEX_PR_REVIEW_WORKFLOW_20260319.md](/Users/cs/Downloads/work/todo/030-309-template/docs/CODEX_PR_REVIEW_WORKFLOW_20260319.md)
 - [INDIVIDUAL_MULTI_PROJECT_MANAGEMENT_20260319.md](/Users/cs/Downloads/work/todo/030-309-template/docs/INDIVIDUAL_MULTI_PROJECT_MANAGEMENT_20260319.md)
 

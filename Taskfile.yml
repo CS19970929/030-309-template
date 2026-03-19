@@ -110,6 +110,8 @@ tasks:
       - "{{.PYTHON}} scripts/analyze_build_summary.py --help"
       - "{{.PYTHON}} scripts/analyze_protection_replay.py --help"
       - "{{.PYTHON}} scripts/analyze_soc_replay.py --help"
+      - "{{.PYTHON}} scripts/analyze_low_power_replay.py --help"
+      - "{{.PYTHON}} scripts/analyze_codex_overview.py --help"
       - "{{.PYTHON}} scripts/debug_capture.py --help"
       - "{{.PYTHON}} scripts/check_toolchain.py"
 
@@ -122,6 +124,21 @@ tasks:
     desc: 执行固件构建并生成 build warning/error 摘要
     cmds:
       - '{{.PYTHON}} scripts/analyze_build_summary.py --cmake "{{.CMAKE}}" --configure-preset firmware-release --build-preset build-firmware-release {{if .ARM_GNU_TOOLCHAIN_ROOT}}--arm-gnu-toolchain-root "{{.ARM_GNU_TOOLCHAIN_ROOT}}"{{end}} --app-heap-size "{{.APP_HEAP_SIZE}}" --app-stack-size "{{.APP_STACK_SIZE}}" --map "{{.MAP_FILE}}" --log artifacts/build-summary.log --json artifacts/build-summary.json --md artifacts/build-summary.md'
+
+  codex-overview:
+    desc: 汇总 build/map/protection/soc/low-power 摘要，生成 Codex 接管总览
+    cmds:
+      - '{{.PYTHON}} scripts/analyze_codex_overview.py --build-summary artifacts/build-summary.json --map-summary artifacts/map-summary.json --protection-summary artifacts/host-sim/protection-suite-summary.json --soc-summary artifacts/host-sim/soc-suite-summary.json --low-power-summary artifacts/host-sim/low-power-suite-summary.json --json artifacts/codex-overview.json --markdown artifacts/codex-overview.md'
+
+  codex-overview-refresh:
+    desc: 刷新关键摘要后生成 Codex 接管总览
+    cmds:
+      - task: build-summary
+      - task: map
+      - task: sim-protection-suite-summary
+      - task: sim-soc-suite-summary
+      - task: sim-low-power-suite-summary
+      - task: codex-overview
 
   flash:
     desc: 生成烧录命令计划，工具存在时可扩展为直接执行

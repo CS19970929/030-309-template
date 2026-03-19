@@ -95,6 +95,32 @@ task sim-soc-suite-summary
 - 最大绝对误差
 - 边界钳位次数
 
+### 低功耗回归
+
+当前推荐入口：
+
+```bash
+task sim-low-power-suite-summary
+```
+
+该命令会生成：
+
+- [low-power-suite-summary.json](/Users/cs/Downloads/work/todo/030-309-template/artifacts/host-sim/low-power-suite-summary.json)
+- [low-power-suite-summary.md](/Users/cs/Downloads/work/todo/030-309-template/artifacts/host-sim/low-power-suite-summary.md)
+
+### 接管总览
+
+当前推荐入口：
+
+```bash
+task codex-overview
+```
+
+该命令会生成：
+
+- [codex-overview.json](/Users/cs/Downloads/work/todo/030-309-template/artifacts/codex-overview.json)
+- [codex-overview.md](/Users/cs/Downloads/work/todo/030-309-template/artifacts/codex-overview.md)
+
 ### 内存与链接摘要
 
 当前推荐入口：
@@ -140,6 +166,8 @@ task map
 1. `task build-summary`
 2. `task sim-protection-suite-summary`
 3. `task sim-soc-suite-summary`
+4. `task sim-low-power-suite-summary`
+5. `task codex-overview`
 4. 必要时再看单个 `artifacts/host-sim/*.jsonl`
 
 如果是内存相关调整：
