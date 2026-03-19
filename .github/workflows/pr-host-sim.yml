@@ -58,6 +58,91 @@ jobs:
             --json artifacts/host-sim/protection-suite-summary.json \
             --markdown artifacts/host-sim/protection-suite-summary.md
 
+      - name: Host Sim SOC Suite Summary
+        run: |
+          cmake --preset host-sim-debug
+          cmake --build --preset build-host-sim-debug
+          ./artifacts/cmake/host-sim-debug/host_sim/soc_host_replay \
+            --input host_sim/scenarios/soc/soc_charge.csv \
+            --log artifacts/host-sim/soc-charge.log \
+            --snapshot artifacts/host-sim/soc-charge.jsonl
+          ./artifacts/cmake/host-sim-debug/host_sim/soc_host_replay \
+            --input host_sim/scenarios/soc/soc_discharge.csv \
+            --log artifacts/host-sim/soc-discharge.log \
+            --snapshot artifacts/host-sim/soc-discharge.jsonl
+          ./artifacts/cmake/host-sim-debug/host_sim/soc_host_replay \
+            --input host_sim/scenarios/soc/soc_idle_ocv.csv \
+            --log artifacts/host-sim/soc-idle.log \
+            --snapshot artifacts/host-sim/soc-idle.jsonl
+          ./artifacts/cmake/host-sim-debug/host_sim/soc_host_replay \
+            --input host_sim/scenarios/soc/soc_mixed_cycle.csv \
+            --log artifacts/host-sim/soc-mixed.log \
+            --snapshot artifacts/host-sim/soc-mixed.jsonl
+          ./artifacts/cmake/host-sim-debug/host_sim/soc_host_replay \
+            --input host_sim/scenarios/soc/soc_power_restore.csv \
+            --log artifacts/host-sim/soc-restore.log \
+            --snapshot artifacts/host-sim/soc-restore.jsonl
+          ./artifacts/cmake/host-sim-debug/host_sim/soc_host_replay \
+            --input host_sim/scenarios/soc/soc_long_drift.csv \
+            --repeat 20 \
+            --log artifacts/host-sim/soc-long.log \
+            --snapshot artifacts/host-sim/soc-long.jsonl \
+            --quiet-console
+          ./artifacts/cmake/host-sim-debug/host_sim/soc_host_replay \
+            --input host_sim/scenarios/soc/soc_cycle_counter.csv \
+            --initial-soc-pct-x10 1000 \
+            --log artifacts/host-sim/soc-cycle.log \
+            --snapshot artifacts/host-sim/soc-cycle.jsonl
+          python3 scripts/analyze_soc_replay.py \
+            --input artifacts/host-sim/soc-charge.jsonl \
+            --input artifacts/host-sim/soc-discharge.jsonl \
+            --input artifacts/host-sim/soc-idle.jsonl \
+            --input artifacts/host-sim/soc-mixed.jsonl \
+            --input artifacts/host-sim/soc-restore.jsonl \
+            --input artifacts/host-sim/soc-long.jsonl \
+            --input artifacts/host-sim/soc-cycle.jsonl \
+            --json artifacts/host-sim/soc-suite-summary.json \
+            --markdown artifacts/host-sim/soc-suite-summary.md
+
+      - name: Host Sim Low Power Suite Summary
+        run: |
+          cmake --preset host-sim-debug
+          cmake --build --preset build-host-sim-debug
+          ./artifacts/cmake/host-sim-debug/host_sim/low_power_host_replay \
+            --input host_sim/scenarios/low_power/low_power_normal.csv \
+            --log artifacts/host-sim/low-power-normal.log \
+            --snapshot artifacts/host-sim/low-power-normal.jsonl
+          ./artifacts/cmake/host-sim-debug/host_sim/low_power_host_replay \
+            --input host_sim/scenarios/low_power/low_power_low_v.csv \
+            --log artifacts/host-sim/low-power-low-v.log \
+            --snapshot artifacts/host-sim/low-power-low-v.jsonl
+          ./artifacts/cmake/host-sim-debug/host_sim/low_power_host_replay \
+            --input host_sim/scenarios/low_power/low_power_wake.csv \
+            --log artifacts/host-sim/low-power-wake.log \
+            --snapshot artifacts/host-sim/low-power-wake.jsonl
+          ./artifacts/cmake/host-sim-debug/host_sim/low_power_host_replay \
+            --input host_sim/scenarios/low_power/low_power_deep.csv \
+            --log artifacts/host-sim/low-power-deep.log \
+            --snapshot artifacts/host-sim/low-power-deep.jsonl
+          python3 scripts/analyze_low_power_replay.py \
+            --input artifacts/host-sim/low-power-normal.jsonl \
+            --input artifacts/host-sim/low-power-low-v.jsonl \
+            --input artifacts/host-sim/low-power-wake.jsonl \
+            --input artifacts/host-sim/low-power-deep.jsonl \
+            --json artifacts/host-sim/low-power-suite-summary.json \
+            --markdown artifacts/host-sim/low-power-suite-summary.md
+
+      - name: Codex Overview Summary
+        run: |
+          python3 scripts/analyze_codex_overview.py \
+            --build-summary artifacts/build-summary.json \
+            --map-summary artifacts/map-summary.json \
+            --protection-summary artifacts/host-sim/protection-suite-summary.json \
+            --soc-summary artifacts/host-sim/soc-suite-summary.json \
+            --low-power-summary artifacts/host-sim/low-power-suite-summary.json \
+            --json artifacts/codex-overview.json \
+            --markdown artifacts/codex-overview.md
+
       - name: Upload Host Sim Artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -67,3 +152,13 @@ jobs:
             artifacts/host-sim/protection-*.jsonl
             artifacts/host-sim/protection-suite-summary.json
             artifacts/host-sim/protection-suite-summary.md
+            artifacts/host-sim/soc-*.log
+            artifacts/host-sim/soc-*.jsonl
+            artifacts/host-sim/soc-suite-summary.json
+            artifacts/host-sim/soc-suite-summary.md
+            artifacts/host-sim/low-power-*.log
+            artifacts/host-sim/low-power-*.jsonl
+            artifacts/host-sim/low-power-suite-summary.json
+            artifacts/host-sim/low-power-suite-summary.md
+            artifacts/codex-overview.json
+            artifacts/codex-overview.md

@@ -26,7 +26,29 @@ def load_json(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def load_json_or_missing(path: Path, kind: str) -> dict:
+    if path.exists():
+        return load_json(path)
+    return {
+        "status": "missing",
+        "missing": True,
+        "kind": kind,
+        "path": str(path),
+        "warning_count": 0,
+        "error_count": 0,
+        "recommendations": [f"{kind} 摘要当前缺失，相关风险只能部分判断。"],
+        "warnings": [f"{kind} 摘要当前缺失，相关风险只能部分判断。"],
+        "ram": {"used_percent": 0, "risk": {"level": "unknown"}},
+        "flash": {"used_percent": 0, "risk": {"level": "unknown"}},
+        "totals": {},
+        "scenario_count": 0,
+    }
+
+
 def classify_host_suite(name: str, data: dict) -> tuple[str, list[str]]:
+    if data.get("missing"):
+        return "missing", [f"{name} 摘要当前缺失，相关风险只能部分判断。"]
+
     totals = data.get("totals", {})
     notes: list[str] = []
     status = "ok"
@@ -57,6 +79,8 @@ def merge_status(values: list[str]) -> str:
         return "failed"
     if any(value == "attention" for value in values):
         return "attention"
+    if any(value == "missing" for value in values):
+        return "partial"
     return "ok"
 
 
@@ -115,15 +139,11 @@ def main() -> int:
     soc_path = normalize_path(args.soc_summary)
     low_power_path = normalize_path(args.low_power_summary)
 
-    for path in [build_path, map_path, protection_path, soc_path, low_power_path]:
-        if not path.exists():
-            raise SystemExit(f"摘要文件不存在：{path}")
-
-    build_data = load_json(build_path)
-    map_data = load_json(map_path)
-    protection_data = load_json(protection_path)
-    soc_data = load_json(soc_path)
-    low_power_data = load_json(low_power_path)
+    build_data = load_json_or_missing(build_path, "build")
+    map_data = load_json_or_missing(map_path, "map")
+    protection_data = load_json_or_missing(protection_path, "protection")
+    soc_data = load_json_or_missing(soc_path, "soc")
+    low_power_data = load_json_or_missing(low_power_path, "low_power")
 
     build_status = build_data.get("status", "unknown")
     map_status = map_data.get("status", "unknown")

@@ -20,12 +20,21 @@
 - [ ] `task sim-modbus`
 - [ ] `task sim-replay`
 - [ ] `task sim-protection-suite-summary`
+- [ ] `task sim-soc-suite-summary`
+- [ ] `task sim-low-power-suite-summary`
+- [ ] `task codex-overview`
 - [ ] 其他：请写明
 
 ## 关键产物
 
 - `artifacts/host-sim/protection-suite-summary.json`
 - `artifacts/host-sim/protection-suite-summary.md`
+- `artifacts/host-sim/soc-suite-summary.json`
+- `artifacts/host-sim/soc-suite-summary.md`
+- `artifacts/host-sim/low-power-suite-summary.json`
+- `artifacts/host-sim/low-power-suite-summary.md`
+- `artifacts/codex-overview.json`
+- `artifacts/codex-overview.md`
 - `artifacts/map-summary.json`
 
 ## 对 Codex 的审查要求
