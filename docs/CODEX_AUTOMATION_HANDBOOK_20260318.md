@@ -25,16 +25,18 @@
 
 ### `docs/`
 
+- `README.md`
+  当前文档导航与主入口。
 - `TOOLCHAIN_MIGRATION_BLUEPRINT_20260318.md`
   总蓝图。
-- `STAGE_A_AUTOMATION_BOOTSTRAP_20260318.md`
-  自动化骨架说明。
-- `STAGE_B_FIRMWARE_CMAKE_BOOTSTRAP_20260318.md`
-  固件 CMake 骨架说明。
 - `CROSS_PLATFORM_SETUP_GUIDE_20260318.md`
   Win/Mac 环境安装指南。
 - `CODEX_AUTOMATION_HANDBOOK_20260318.md`
   本手册，面向日后使用与学习。
+- `archive/20260318/STAGE_A_AUTOMATION_BOOTSTRAP_20260318.md`
+  阶段 A 自动化骨架归档记录。
+- `archive/20260318/STAGE_B_FIRMWARE_CMAKE_BOOTSTRAP_20260318.md`
+  阶段 B 固件 CMake 骨架归档记录。
 
 ### `scripts/`
 
