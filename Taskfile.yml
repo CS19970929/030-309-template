@@ -107,6 +107,7 @@ tasks:
     cmds:
       - "{{.PYTHON}} scripts/new_project.py --help"
       - "{{.PYTHON}} scripts/analyze_map.py --help"
+      - "{{.PYTHON}} scripts/analyze_build_summary.py --help"
       - "{{.PYTHON}} scripts/analyze_protection_replay.py --help"
       - "{{.PYTHON}} scripts/debug_capture.py --help"
       - "{{.PYTHON}} scripts/check_toolchain.py"
@@ -115,6 +116,11 @@ tasks:
     desc: 分析 map 文件热点
     cmds:
       - '{{.PYTHON}} scripts/analyze_map.py --map "{{.MAP_FILE}}" --top 20 --json artifacts/map-summary.json --md artifacts/map-summary.md'
+
+  build-summary:
+    desc: 执行固件构建并生成 build warning/error 摘要
+    cmds:
+      - '{{.PYTHON}} scripts/analyze_build_summary.py --cmake "{{.CMAKE}}" --configure-preset firmware-release --build-preset build-firmware-release {{if .ARM_GNU_TOOLCHAIN_ROOT}}--arm-gnu-toolchain-root "{{.ARM_GNU_TOOLCHAIN_ROOT}}"{{end}} --app-heap-size "{{.APP_HEAP_SIZE}}" --app-stack-size "{{.APP_STACK_SIZE}}" --map "{{.MAP_FILE}}" --log artifacts/build-summary.log --json artifacts/build-summary.json --md artifacts/build-summary.md'
 
   flash:
     desc: 生成烧录命令计划，工具存在时可扩展为直接执行

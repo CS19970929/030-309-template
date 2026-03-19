@@ -7,6 +7,7 @@
 - `task doctor`：检查当前机器缺哪些工具
 - `task init`：初始化 Python 工具环境
 - `task build`：走 CMake Preset 构建固件
+- `task build-summary`：执行固件构建并生成结构化 warning/error 摘要
 - `task sim-modbus`：运行 Modbus 解析主机侧自检
 - `task sim-replay`：回放 Modbus 帧并生成日志和 JSONL 快照
 - `task sim-protection`：回放第一版保护策略场景并生成日志和 JSONL 快照
@@ -28,6 +29,7 @@
 - [`docs/INDIVIDUAL_MULTI_PROJECT_MANAGEMENT_20260319.md`](docs/INDIVIDUAL_MULTI_PROJECT_MANAGEMENT_20260319.md)
 - [`docs/TEMPLATE_PROJECT_FAMILY_GUIDE_20260319.md`](docs/TEMPLATE_PROJECT_FAMILY_GUIDE_20260319.md)
 - [`docs/MAP_SUMMARY_AUTOMATION_GUIDE_20260319.md`](docs/MAP_SUMMARY_AUTOMATION_GUIDE_20260319.md)
+- [`docs/BUILD_SUMMARY_AUTOMATION_GUIDE_20260319.md`](docs/BUILD_SUMMARY_AUTOMATION_GUIDE_20260319.md)
 - [`docs/CODEX_AUTOMATION_HANDBOOK_20260318.md`](E:/TODO/030%20+%20309/docs/CODEX_AUTOMATION_HANDBOOK_20260318.md)
 - [`docs/PC_SIMULATION_GUIDE_20260318.md`](E:/TODO/030%20+%20309/docs/PC_SIMULATION_GUIDE_20260318.md)
 - [`docs/PC_PROTECTION_SIMULATION_GUIDE_20260319.md`](docs/PC_PROTECTION_SIMULATION_GUIDE_20260319.md)
@@ -52,5 +54,6 @@
 ## 当前建议
 
 - 调整 `heap/stack`：通过 `task build APP_HEAP_SIZE=0x400 APP_STACK_SIZE=0xC00`
+- 构建 warning/链接风险交给 Codex：优先使用 `task build-summary`
 - 保护回归交给 Codex：优先使用 `task sim-protection-suite-summary`
 - 内存/链接风险交给 Codex：构建后优先运行 `task map`

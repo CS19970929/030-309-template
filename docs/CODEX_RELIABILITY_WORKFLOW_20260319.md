@@ -33,6 +33,28 @@ task build APP_HEAP_SIZE=0x400 APP_STACK_SIZE=0xC00
 - Codex 可直接执行
 - 参数变更可进提交记录
 
+### 构建摘要
+
+当前推荐入口：
+
+```bash
+task build-summary
+```
+
+该命令会生成：
+
+- [build-summary.log](/Users/cs/Downloads/work/todo/030-309-template/artifacts/build-summary.log)
+- [build-summary.json](/Users/cs/Downloads/work/todo/030-309-template/artifacts/build-summary.json)
+- [build-summary.md](/Users/cs/Downloads/work/todo/030-309-template/artifacts/build-summary.md)
+
+其中会包含：
+
+- configure/build 返回码
+- warning/error 数量
+- warning/error 分类
+- 推荐动作
+- 关联的 `map` 摘要
+
 ### 保护回归
 
 当前推荐入口：
@@ -95,15 +117,14 @@ task map
 
 日常修改后，优先这样执行：
 
-1. `task build`
+1. `task build-summary`
 2. `task sim-protection-suite-summary`
-3. `task map`
-4. 必要时再看单个 `artifacts/host-sim/protection-*.jsonl`
+3. 必要时再看单个 `artifacts/host-sim/protection-*.jsonl`
 
 如果是内存相关调整：
 
-1. `task build APP_HEAP_SIZE=... APP_STACK_SIZE=...`
-2. `task map`
+1. `task build-summary APP_HEAP_SIZE=... APP_STACK_SIZE=...`
+2. 必要时再单独运行 `task map`
 3. 再决定是否进入板级验证
 
 ## 下一步建议
