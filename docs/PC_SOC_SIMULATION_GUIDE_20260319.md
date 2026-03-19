@@ -22,6 +22,7 @@ task sim-soc-charge
 task sim-soc-discharge
 task sim-soc-idle
 task sim-soc-mixed
+task sim-soc-long
 ```
 
 ### 套件与摘要
@@ -41,6 +42,8 @@ task sim-soc-suite-summary
   低电流静置后的 `OCV` 修正
 - `soc_mixed_cycle.csv`
   充电、放电、静置混合切换
+- `soc_long_drift.csv`
+  用小电流与静置反复回放，观察长时间漂移趋势
 
 ## 产物
 
@@ -70,6 +73,11 @@ task sim-soc-suite-summary
 - `ocv_corrected`
 - `clamped_empty`
 - `clamped_full`
+
+摘要还会额外给出：
+
+- `soc_drift_span_pct_x10`
+- `final_error_pct_x10`
 
 ## 当前边界
 

@@ -22,6 +22,7 @@ typedef struct
     const char *log_path;
     const char *snapshot_path;
     int quiet_console;
+    uint32_t repeat_count;
 } ReplayOptions;
 
 typedef struct
@@ -51,6 +52,7 @@ static int HostSim_ParseArgs(int argc, char **argv, ReplayOptions *options)
     options->log_path = "artifacts/host-sim/soc-replay.log";
     options->snapshot_path = "artifacts/host-sim/soc-replay.jsonl";
     options->quiet_console = 0;
+    options->repeat_count = 1U;
 
     for (i = 1; i < argc; ++i)
     {
@@ -69,6 +71,14 @@ static int HostSim_ParseArgs(int argc, char **argv, ReplayOptions *options)
         else if (strcmp(argv[i], "--quiet-console") == 0)
         {
             options->quiet_console = 1;
+        }
+        else if ((strcmp(argv[i], "--repeat") == 0) && (i + 1 < argc))
+        {
+            options->repeat_count = (uint32_t)strtoul(argv[++i], NULL, 10);
+            if (options->repeat_count == 0U)
+            {
+                options->repeat_count = 1U;
+            }
         }
         else
         {
@@ -236,6 +246,9 @@ int main(int argc, char **argv)
     int line_index = 0;
     int step = 0;
     int failures = 0;
+    uint32_t repeat_index;
+    uint32_t cycle_tick_offset = 0U;
+    uint32_t last_cycle_tick = 0U;
     ReplaySummary summary;
     SocSimConfig config;
     SocSimState state;
@@ -282,56 +295,73 @@ int main(int argc, char **argv)
     SocSim_LoadBaselineConfig(&config);
     SocSim_Reset(&config, &state);
 
-    while (fgets(line, sizeof(line), input_file) != NULL)
+    for (repeat_index = 0U; repeat_index < options.repeat_count; ++repeat_index)
     {
-        int parse_status = HostSim_ParseLine(line, &input);
-        ++line_index;
-        if (parse_status == 0)
+        rewind(input_file);
+        line_index = 0;
+
+        while (fgets(line, sizeof(line), input_file) != NULL)
         {
-            continue;
+            int parse_status = HostSim_ParseLine(line, &input);
+            ++line_index;
+            if (parse_status == 0)
+            {
+                continue;
+            }
+            if (parse_status < 0)
+            {
+                fprintf(stderr, "invalid scenario line %d: %s", line_index, line);
+                ++failures;
+                break;
+            }
+
+            input.tick_ms += cycle_tick_offset;
+            last_cycle_tick = input.tick_ms;
+
+            memset(&output, 0, sizeof(output));
+            SocSim_Step(&config, &state, &input, &output);
+            HostSim_UpdateSummary(&summary, &output);
+
+            AppSimSnapshot_Init(&trace);
+            trace.cycle = repeat_index + 1U;
+            trace.step = (uint32_t)(step + 1);
+            trace.input = input;
+            trace.output = output;
+            AppSimSnapshot_SetText(trace.source, sizeof(trace.source), "soc_replay");
+            AppSimSnapshot_SetText(trace.result, sizeof(trace.result), HostSim_ResultName(&output));
+
+            AppSimSnapshot_ToJsonLine(&trace, json_line, sizeof(json_line));
+            fputs(json_line, snapshot_file);
+
+            fprintf(log_file,
+                    "[soc] cycle=%lu step=%d tick_ms=%lu pack_mv=%u ref_soc=%u est_soc=%u error=%d flags=0x%08lX\n",
+                    (unsigned long)(repeat_index + 1U),
+                    step + 1,
+                    (unsigned long)input.tick_ms,
+                    input.pack_mv,
+                    input.soc_pct_x10,
+                    output.soc_est_pct_x10,
+                    (int)output.soc_error_pct_x10,
+                    (unsigned long)output.soc_state_flags);
+
+            if (!options.quiet_console)
+            {
+                printf("[soc] cycle=%lu step=%d est_soc=%u ref_soc=%u flags=0x%08lX\n",
+                       (unsigned long)(repeat_index + 1U),
+                       step + 1,
+                       output.soc_est_pct_x10,
+                       input.soc_pct_x10,
+                       (unsigned long)output.soc_state_flags);
+            }
+
+            ++step;
         }
-        if (parse_status < 0)
+
+        if (failures != 0)
         {
-            fprintf(stderr, "invalid scenario line %d: %s", line_index, line);
-            ++failures;
             break;
         }
-
-        memset(&output, 0, sizeof(output));
-        SocSim_Step(&config, &state, &input, &output);
-        HostSim_UpdateSummary(&summary, &output);
-
-        AppSimSnapshot_Init(&trace);
-        trace.cycle = (uint32_t)(step + 1);
-        trace.step = (uint32_t)(step + 1);
-        trace.input = input;
-        trace.output = output;
-        AppSimSnapshot_SetText(trace.source, sizeof(trace.source), "soc_replay");
-        AppSimSnapshot_SetText(trace.result, sizeof(trace.result), HostSim_ResultName(&output));
-
-        AppSimSnapshot_ToJsonLine(&trace, json_line, sizeof(json_line));
-        fputs(json_line, snapshot_file);
-
-        fprintf(log_file,
-                "[soc] step=%d tick_ms=%lu pack_mv=%u ref_soc=%u est_soc=%u error=%d flags=0x%08lX\n",
-                step + 1,
-                (unsigned long)input.tick_ms,
-                input.pack_mv,
-                input.soc_pct_x10,
-                output.soc_est_pct_x10,
-                (int)output.soc_error_pct_x10,
-                (unsigned long)output.soc_state_flags);
-
-        if (!options.quiet_console)
-        {
-            printf("[soc] step=%d est_soc=%u ref_soc=%u flags=0x%08lX\n",
-                   step + 1,
-                   output.soc_est_pct_x10,
-                   input.soc_pct_x10,
-                   (unsigned long)output.soc_state_flags);
-        }
-
-        ++step;
+        cycle_tick_offset = last_cycle_tick + 1000U;
     }
 
     fprintf(log_file,

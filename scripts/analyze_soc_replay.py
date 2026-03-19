@@ -24,6 +24,7 @@ def summarize_one(input_path: Path) -> dict:
     max_soc_est = None
     final_soc_est = None
     max_abs_error = 0
+    final_error = None
     ocv_corrected_steps = 0
     clamp_empty_steps = 0
     clamp_full_steps = 0
@@ -41,12 +42,13 @@ def summarize_one(input_path: Path) -> dict:
         min_soc_est = soc_est if min_soc_est is None else min(min_soc_est, soc_est)
         max_soc_est = soc_est if max_soc_est is None else max(max_soc_est, soc_est)
         final_soc_est = soc_est
+        final_error = int(item.get("soc_error_pct_x10", 0))
         max_abs_error = max(max_abs_error, abs_error)
 
         if flags & (1 << 2):
             ocv_corrected_steps += 1
             if first_ocv_corrected_step is None:
-                first_ocv_corrected_step = int(item.get("cycle", steps))
+                first_ocv_corrected_step = int(item.get("step", steps))
         if flags & (1 << 3):
             clamp_empty_steps += 1
         if flags & (1 << 4):
@@ -58,7 +60,9 @@ def summarize_one(input_path: Path) -> dict:
         "min_soc_est_pct_x10": min_soc_est,
         "max_soc_est_pct_x10": max_soc_est,
         "final_soc_est_pct_x10": final_soc_est,
+        "soc_drift_span_pct_x10": None if (min_soc_est is None or max_soc_est is None) else (max_soc_est - min_soc_est),
         "max_abs_error_pct_x10": max_abs_error,
+        "final_error_pct_x10": final_error,
         "ocv_corrected_steps": ocv_corrected_steps,
         "clamp_empty_steps": clamp_empty_steps,
         "clamp_full_steps": clamp_full_steps,
@@ -73,6 +77,7 @@ def render_markdown(report: dict) -> str:
     lines.append(f"- 总步数：{report['totals']['steps']}")
     lines.append(f"- OCV 修正总步数：{report['totals']['ocv_corrected_steps']}")
     lines.append(f"- 最大绝对误差：{report['totals']['max_abs_error_pct_x10']}")
+    lines.append(f"- 最大漂移跨度：{report['totals']['max_drift_span_pct_x10']}")
     lines.append("")
     lines.append("## 分场景")
     lines.append("")
@@ -82,7 +87,9 @@ def render_markdown(report: dict) -> str:
         lines.append(f"- `min_soc_est_pct_x10`：{item['min_soc_est_pct_x10']}")
         lines.append(f"- `max_soc_est_pct_x10`：{item['max_soc_est_pct_x10']}")
         lines.append(f"- `final_soc_est_pct_x10`：{item['final_soc_est_pct_x10']}")
+        lines.append(f"- `soc_drift_span_pct_x10`：{item['soc_drift_span_pct_x10']}")
         lines.append(f"- `max_abs_error_pct_x10`：{item['max_abs_error_pct_x10']}")
+        lines.append(f"- `final_error_pct_x10`：{item['final_error_pct_x10']}")
         lines.append(f"- `ocv_corrected_steps`：{item['ocv_corrected_steps']}")
         lines.append(f"- `clamp_empty_steps`：{item['clamp_empty_steps']}")
         lines.append(f"- `clamp_full_steps`：{item['clamp_full_steps']}")
@@ -108,6 +115,7 @@ def main() -> int:
             "clamp_empty_steps": sum(item["clamp_empty_steps"] for item in scenarios),
             "clamp_full_steps": sum(item["clamp_full_steps"] for item in scenarios),
             "max_abs_error_pct_x10": max((item["max_abs_error_pct_x10"] for item in scenarios), default=0),
+            "max_drift_span_pct_x10": max((item["soc_drift_span_pct_x10"] or 0 for item in scenarios), default=0),
         },
     }
 

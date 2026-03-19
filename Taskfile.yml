@@ -278,6 +278,13 @@ tasks:
       - '"{{.CMAKE}}" --build --preset build-host-sim-debug'
       - '{{.EXEC_PREFIX}}artifacts/cmake/host-sim-debug/host_sim/soc_host_replay{{if eq OS "windows"}}.exe{{end}} --input host_sim/scenarios/soc/soc_mixed_cycle.csv --log artifacts/host-sim/soc-mixed.log --snapshot artifacts/host-sim/soc-mixed.jsonl'
 
+  sim-soc-long:
+    desc: 在 PC 上长时间回放 SOC 漂移场景
+    cmds:
+      - '"{{.CMAKE}}" --preset host-sim-debug'
+      - '"{{.CMAKE}}" --build --preset build-host-sim-debug'
+      - '{{.EXEC_PREFIX}}artifacts/cmake/host-sim-debug/host_sim/soc_host_replay{{if eq OS "windows"}}.exe{{end}} --input host_sim/scenarios/soc/soc_long_drift.csv --repeat 20 --log artifacts/host-sim/soc-long.log --snapshot artifacts/host-sim/soc-long.jsonl --quiet-console'
+
   sim-soc-suite:
     desc: 在 PC 上顺序执行整套 SOC 回归
     cmds:
@@ -285,11 +292,12 @@ tasks:
       - task: sim-soc-discharge
       - task: sim-soc-idle
       - task: sim-soc-mixed
+      - task: sim-soc-long
 
   sim-soc-summary:
     desc: 汇总整套 SOC 回归结果，生成可供 Codex 读取的摘要
     cmds:
-      - '{{.PYTHON}} scripts/analyze_soc_replay.py --input artifacts/host-sim/soc-charge.jsonl --input artifacts/host-sim/soc-discharge.jsonl --input artifacts/host-sim/soc-idle.jsonl --input artifacts/host-sim/soc-mixed.jsonl --json artifacts/host-sim/soc-suite-summary.json --markdown artifacts/host-sim/soc-suite-summary.md'
+      - '{{.PYTHON}} scripts/analyze_soc_replay.py --input artifacts/host-sim/soc-charge.jsonl --input artifacts/host-sim/soc-discharge.jsonl --input artifacts/host-sim/soc-idle.jsonl --input artifacts/host-sim/soc-mixed.jsonl --input artifacts/host-sim/soc-long.jsonl --json artifacts/host-sim/soc-suite-summary.json --markdown artifacts/host-sim/soc-suite-summary.md'
 
   sim-soc-suite-summary:
     desc: 顺序执行整套 SOC 回归并生成摘要
