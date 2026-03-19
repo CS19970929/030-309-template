@@ -24,6 +24,7 @@ task sim-soc-idle
 task sim-soc-mixed
 task sim-soc-restore
 task sim-soc-long
+task sim-soc-cycle
 ```
 
 ### 套件与摘要
@@ -47,6 +48,9 @@ task sim-soc-suite-summary
   掉电恢复与 EEPROM 重载连续性
 - `soc_long_drift.csv`
   用小电流与静置反复回放，观察长时间漂移趋势
+- `soc_cycle_counter.csv`
+  用重放电场景验证 `DSG_SOC_Int / Cycle_times` 循环统计
+  这个场景会单独把回放初始 `SOC` 设为 `1000`，避免默认 `80%` 基线无法打满一圈
 
 ## 产物
 
@@ -67,6 +71,8 @@ task sim-soc-suite-summary
 - `soc_est_pct_x10`
 - `soc_ocv_pct_x10`
 - `soc_error_pct_x10`
+- `soc_dsg_cycle_acc_pct_x10`
+- `soc_cycle_times_x100`
 - `soc_state_flags`
 
 其中 `soc_state_flags` 当前表示：
@@ -76,6 +82,10 @@ task sim-soc-suite-summary
 - `ocv_corrected`
 - `clamped_empty`
 - `clamped_full`
+- `power_restore`
+- `eeprom_restored`
+- `terminal_corrected`
+- `cycle_incremented`
 
 摘要还会额外给出：
 
@@ -83,13 +93,15 @@ task sim-soc-suite-summary
 - `final_error_pct_x10`
 - `terminal_corrected_steps`
 - `restore_steps`
+- `cycle_increment_steps`
+- `final_cycle_times_x100`
 
 ## 当前边界
 
 这条链路当前是第一版策略骨架，边界很明确：
 
 - 已有第一版 `EEPROM` 恢复骨架，但还没有一比一映射真实存储协议与磨损策略
-- 还没有接入工厂容量衰减与循环寿命模型
+- 已接入第一版 `DSG_SOC_Int / Cycle_times` 循环统计骨架，但还没有接入工厂容量衰减与 `SOH` 模型
 - 还没有接入温度补偿
 - 还没有一比一映射 [SocEnhance.c](/Users/cs/Downloads/work/todo/030-309-template/Code/Source/SocEnhance.c)
 
@@ -105,6 +117,6 @@ task sim-soc-suite-summary
 
 下一阶段优先做：
 
-1. 继续从 [SocEnhance.c](/Users/cs/Downloads/work/todo/030-309-template/Code/Source/SocEnhance.c) 提炼更多真实校正条件
-2. 补“容量衰减 / 循环寿命”模型
+1. 继续从 [SocEnhance.c](/Users/cs/Downloads/work/todo/030-309-template/Code/Source/SocEnhance.c) 提炼更多真实校正与持久化条件
+2. 补“容量衰减 / `SOH` / 循环寿命”模型
 3. 把 `SOC` 摘要进一步和保护、构建摘要串成统一接管工作流

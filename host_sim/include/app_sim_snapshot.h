@@ -33,6 +33,8 @@ typedef struct
     uint16_t soc_est_pct_x10;
     uint16_t soc_ocv_pct_x10;
     int16_t soc_error_pct_x10;
+    uint16_t soc_dsg_cycle_acc_pct_x10;
+    uint32_t soc_cycle_times_x100;
     uint32_t soc_state_flags;
 } AppSimOutputSnapshot;
 

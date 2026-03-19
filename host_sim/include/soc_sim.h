@@ -14,7 +14,8 @@ enum
     SOC_SIM_FLAG_CLAMPED_FULL = 1U << 4,
     SOC_SIM_FLAG_POWER_RESTORE = 1U << 5,
     SOC_SIM_FLAG_EEPROM_RESTORED = 1U << 6,
-    SOC_SIM_FLAG_TERMINAL_CORRECTED = 1U << 7
+    SOC_SIM_FLAG_TERMINAL_CORRECTED = 1U << 7,
+    SOC_SIM_FLAG_CYCLE_INCREMENTED = 1U << 8
 };
 
 enum
@@ -36,6 +37,7 @@ typedef struct
     uint16_t terminal_charge_full_mv;
     uint16_t terminal_discharge_near_mv;
     uint16_t terminal_discharge_empty_mv;
+    uint16_t cycle_count_threshold_pct_x10;
 } SocSimConfig;
 
 typedef struct
@@ -46,6 +48,8 @@ typedef struct
     uint32_t clamp_empty_count;
     uint32_t clamp_full_count;
     uint32_t terminal_correction_count;
+    uint16_t dsg_cycle_acc_pct_x10;
+    uint32_t cycle_times_x100;
 } SocSimPersistedState;
 
 typedef struct
@@ -62,6 +66,8 @@ typedef struct
     uint32_t clamp_empty_count;
     uint32_t clamp_full_count;
     uint32_t terminal_correction_count;
+    uint16_t dsg_cycle_acc_pct_x10;
+    uint32_t cycle_times_x100;
 } SocSimState;
 
 void SocSim_LoadBaselineConfig(SocSimConfig *config);

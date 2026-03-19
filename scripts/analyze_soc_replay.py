@@ -30,9 +30,14 @@ def summarize_one(input_path: Path) -> dict:
     clamp_empty_steps = 0
     clamp_full_steps = 0
     restore_steps = 0
+    cycle_increment_steps = 0
+    max_dsg_cycle_acc = 0
+    final_dsg_cycle_acc = None
+    final_cycle_times = None
     first_ocv_corrected_step = None
     first_terminal_corrected_step = None
     first_restore_step = None
+    first_cycle_increment_step = None
 
     for line in input_path.read_text(encoding="utf-8").splitlines():
         if not line.strip():
@@ -42,12 +47,17 @@ def summarize_one(input_path: Path) -> dict:
         soc_est = int(item.get("soc_est_pct_x10", 0))
         abs_error = abs(int(item.get("soc_error_pct_x10", 0)))
         flags = int(item.get("soc_state_flags", 0))
+        dsg_cycle_acc = int(item.get("soc_dsg_cycle_acc_pct_x10", 0))
+        cycle_times = int(item.get("soc_cycle_times_x100", 0))
 
         min_soc_est = soc_est if min_soc_est is None else min(min_soc_est, soc_est)
         max_soc_est = soc_est if max_soc_est is None else max(max_soc_est, soc_est)
         final_soc_est = soc_est
         final_error = int(item.get("soc_error_pct_x10", 0))
         max_abs_error = max(max_abs_error, abs_error)
+        max_dsg_cycle_acc = max(max_dsg_cycle_acc, dsg_cycle_acc)
+        final_dsg_cycle_acc = dsg_cycle_acc
+        final_cycle_times = cycle_times
 
         if flags & (1 << 2):
             ocv_corrected_steps += 1
@@ -65,6 +75,10 @@ def summarize_one(input_path: Path) -> dict:
             restore_steps += 1
             if first_restore_step is None:
                 first_restore_step = int(item.get("step", steps))
+        if flags & (1 << 8):
+            cycle_increment_steps += 1
+            if first_cycle_increment_step is None:
+                first_cycle_increment_step = int(item.get("step", steps))
 
     return {
         "input_file": str(input_path),
@@ -80,9 +94,14 @@ def summarize_one(input_path: Path) -> dict:
         "clamp_empty_steps": clamp_empty_steps,
         "clamp_full_steps": clamp_full_steps,
         "restore_steps": restore_steps,
+        "cycle_increment_steps": cycle_increment_steps,
+        "max_dsg_cycle_acc_pct_x10": max_dsg_cycle_acc,
+        "final_dsg_cycle_acc_pct_x10": final_dsg_cycle_acc,
+        "final_cycle_times_x100": final_cycle_times,
         "first_ocv_corrected_step": first_ocv_corrected_step,
         "first_terminal_corrected_step": first_terminal_corrected_step,
         "first_restore_step": first_restore_step,
+        "first_cycle_increment_step": first_cycle_increment_step,
         "status": "ok" if steps > 0 else "empty",
     }
 
@@ -94,8 +113,11 @@ def render_markdown(report: dict) -> str:
     lines.append(f"- OCV 修正总步数：{report['totals']['ocv_corrected_steps']}")
     lines.append(f"- 末端校正总步数：{report['totals']['terminal_corrected_steps']}")
     lines.append(f"- 掉电恢复总步数：{report['totals']['restore_steps']}")
+    lines.append(f"- 循环计数触发总步数：{report['totals']['cycle_increment_steps']}")
     lines.append(f"- 最大绝对误差：{report['totals']['max_abs_error_pct_x10']}")
     lines.append(f"- 最大漂移跨度：{report['totals']['max_drift_span_pct_x10']}")
+    lines.append(f"- 最大放电累计百分比：{report['totals']['max_dsg_cycle_acc_pct_x10']}")
+    lines.append(f"- 最终循环次数(x100)：{report['totals']['max_final_cycle_times_x100']}")
     lines.append("")
     lines.append("## 分场景")
     lines.append("")
@@ -111,11 +133,16 @@ def render_markdown(report: dict) -> str:
         lines.append(f"- `ocv_corrected_steps`：{item['ocv_corrected_steps']}")
         lines.append(f"- `terminal_corrected_steps`：{item['terminal_corrected_steps']}")
         lines.append(f"- `restore_steps`：{item['restore_steps']}")
+        lines.append(f"- `cycle_increment_steps`：{item['cycle_increment_steps']}")
         lines.append(f"- `clamp_empty_steps`：{item['clamp_empty_steps']}")
         lines.append(f"- `clamp_full_steps`：{item['clamp_full_steps']}")
+        lines.append(f"- `max_dsg_cycle_acc_pct_x10`：{item['max_dsg_cycle_acc_pct_x10']}")
+        lines.append(f"- `final_dsg_cycle_acc_pct_x10`：{item['final_dsg_cycle_acc_pct_x10']}")
+        lines.append(f"- `final_cycle_times_x100`：{item['final_cycle_times_x100']}")
         lines.append(f"- 首次 OCV 修正步：{item['first_ocv_corrected_step']}")
         lines.append(f"- 首次末端校正步：{item['first_terminal_corrected_step']}")
         lines.append(f"- 首次掉电恢复步：{item['first_restore_step']}")
+        lines.append(f"- 首次循环计数步：{item['first_cycle_increment_step']}")
         lines.append("")
     return "\n".join(lines) + "\n"
 
@@ -136,10 +163,13 @@ def main() -> int:
             "ocv_corrected_steps": sum(item["ocv_corrected_steps"] for item in scenarios),
             "terminal_corrected_steps": sum(item["terminal_corrected_steps"] for item in scenarios),
             "restore_steps": sum(item["restore_steps"] for item in scenarios),
+            "cycle_increment_steps": sum(item["cycle_increment_steps"] for item in scenarios),
             "clamp_empty_steps": sum(item["clamp_empty_steps"] for item in scenarios),
             "clamp_full_steps": sum(item["clamp_full_steps"] for item in scenarios),
             "max_abs_error_pct_x10": max((item["max_abs_error_pct_x10"] for item in scenarios), default=0),
             "max_drift_span_pct_x10": max((item["soc_drift_span_pct_x10"] or 0 for item in scenarios), default=0),
+            "max_dsg_cycle_acc_pct_x10": max((item["max_dsg_cycle_acc_pct_x10"] for item in scenarios), default=0),
+            "max_final_cycle_times_x100": max(((item["final_cycle_times_x100"] or 0) for item in scenarios), default=0),
         },
     }
 

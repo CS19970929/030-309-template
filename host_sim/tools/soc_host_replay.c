@@ -23,6 +23,7 @@ typedef struct
     const char *snapshot_path;
     int quiet_console;
     uint32_t repeat_count;
+    uint16_t initial_soc_pct_x10;
 } ReplayOptions;
 
 typedef struct
@@ -35,13 +36,17 @@ typedef struct
 {
     uint32_t steps;
     uint32_t ocv_corrected_steps;
+    uint32_t terminal_corrected_steps;
     uint32_t clamped_empty_steps;
     uint32_t clamped_full_steps;
+    uint32_t cycle_increment_steps;
     uint16_t min_soc_est_pct_x10;
     uint16_t max_soc_est_pct_x10;
     int32_t max_abs_error_pct_x10;
     uint16_t final_soc_est_pct_x10;
     uint32_t restore_count;
+    uint16_t final_dsg_cycle_acc_pct_x10;
+    uint32_t final_cycle_times_x100;
 } ReplaySummary;
 
 static void HostSim_PrintUsage(const char *program)
@@ -60,6 +65,7 @@ static int HostSim_ParseArgs(int argc, char **argv, ReplayOptions *options)
     options->snapshot_path = "artifacts/host-sim/soc-replay.jsonl";
     options->quiet_console = 0;
     options->repeat_count = 1U;
+    options->initial_soc_pct_x10 = 0U;
 
     for (i = 1; i < argc; ++i)
     {
@@ -85,6 +91,14 @@ static int HostSim_ParseArgs(int argc, char **argv, ReplayOptions *options)
             if (options->repeat_count == 0U)
             {
                 options->repeat_count = 1U;
+            }
+        }
+        else if ((strcmp(argv[i], "--initial-soc-pct-x10") == 0) && (i + 1 < argc))
+        {
+            options->initial_soc_pct_x10 = (uint16_t)strtoul(argv[++i], NULL, 10);
+            if (options->initial_soc_pct_x10 > 1000U)
+            {
+                options->initial_soc_pct_x10 = 1000U;
             }
         }
         else
@@ -222,6 +236,10 @@ static void HostSim_UpdateSummary(ReplaySummary *summary, const AppSimOutputSnap
     {
         ++summary->ocv_corrected_steps;
     }
+    if ((output->soc_state_flags & SOC_SIM_FLAG_TERMINAL_CORRECTED) != 0U)
+    {
+        ++summary->terminal_corrected_steps;
+    }
     if ((output->soc_state_flags & SOC_SIM_FLAG_CLAMPED_EMPTY) != 0U)
     {
         ++summary->clamped_empty_steps;
@@ -233,6 +251,10 @@ static void HostSim_UpdateSummary(ReplaySummary *summary, const AppSimOutputSnap
     if ((output->soc_state_flags & SOC_SIM_FLAG_POWER_RESTORE) != 0U)
     {
         ++summary->restore_count;
+    }
+    if ((output->soc_state_flags & SOC_SIM_FLAG_CYCLE_INCREMENTED) != 0U)
+    {
+        ++summary->cycle_increment_steps;
     }
     if (output->soc_est_pct_x10 < summary->min_soc_est_pct_x10)
     {
@@ -248,6 +270,8 @@ static void HostSim_UpdateSummary(ReplaySummary *summary, const AppSimOutputSnap
         summary->max_abs_error_pct_x10 = abs_error;
     }
     summary->final_soc_est_pct_x10 = output->soc_est_pct_x10;
+    summary->final_dsg_cycle_acc_pct_x10 = output->soc_dsg_cycle_acc_pct_x10;
+    summary->final_cycle_times_x100 = output->soc_cycle_times_x100;
 }
 
 int main(int argc, char **argv)
@@ -271,7 +295,7 @@ int main(int argc, char **argv)
     SocReplayRow row;
     AppSimOutputSnapshot output;
     AppSimTraceSnapshot trace;
-    char json_line[512];
+    char json_line[1024];
 
     if (!HostSim_ParseArgs(argc, argv, &options))
     {
@@ -309,6 +333,10 @@ int main(int argc, char **argv)
     summary.min_soc_est_pct_x10 = 1000U;
 
     SocSim_LoadBaselineConfig(&config);
+    if (options.initial_soc_pct_x10 != 0U)
+    {
+        config.initial_soc_pct_x10 = options.initial_soc_pct_x10;
+    }
     SocSim_Reset(&config, &state);
     SocSim_SavePersistentState(&state, &persisted);
 
@@ -393,12 +421,17 @@ int main(int argc, char **argv)
 
     fprintf(log_file,
             "[summary] steps=%lu ocv_corrected_steps=%lu clamped_empty_steps=%lu clamped_full_steps=%lu restore_count=%lu "
+            "terminal_corrected_steps=%lu cycle_increment_steps=%lu final_dsg_cycle_acc_pct_x10=%u final_cycle_times_x100=%lu "
             "min_soc_est_pct_x10=%u max_soc_est_pct_x10=%u max_abs_error_pct_x10=%ld final_soc_est_pct_x10=%u\n",
             (unsigned long)summary.steps,
             (unsigned long)summary.ocv_corrected_steps,
             (unsigned long)summary.clamped_empty_steps,
             (unsigned long)summary.clamped_full_steps,
             (unsigned long)summary.restore_count,
+            (unsigned long)summary.terminal_corrected_steps,
+            (unsigned long)summary.cycle_increment_steps,
+            summary.final_dsg_cycle_acc_pct_x10,
+            (unsigned long)summary.final_cycle_times_x100,
             summary.min_soc_est_pct_x10,
             summary.max_soc_est_pct_x10,
             (long)summary.max_abs_error_pct_x10,

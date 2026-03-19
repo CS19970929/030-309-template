@@ -28,6 +28,7 @@ void SocSim_LoadBaselineConfig(SocSimConfig *config)
     config->terminal_charge_full_mv = 54400U;
     config->terminal_discharge_near_mv = 49000U;
     config->terminal_discharge_empty_mv = 48500U;
+    config->cycle_count_threshold_pct_x10 = 800U;
 }
 
 void SocSim_Reset(const SocSimConfig *config, SocSimState *state)
@@ -59,6 +60,8 @@ void SocSim_SavePersistentState(const SocSimState *state, SocSimPersistedState *
     persisted->clamp_empty_count = state->clamp_empty_count;
     persisted->clamp_full_count = state->clamp_full_count;
     persisted->terminal_correction_count = state->terminal_correction_count;
+    persisted->dsg_cycle_acc_pct_x10 = state->dsg_cycle_acc_pct_x10;
+    persisted->cycle_times_x100 = state->cycle_times_x100;
 }
 
 void SocSim_RestorePersistentState(const SocSimConfig *config,
@@ -77,6 +80,8 @@ void SocSim_RestorePersistentState(const SocSimConfig *config,
     state->clamp_empty_count = persisted->clamp_empty_count;
     state->clamp_full_count = persisted->clamp_full_count;
     state->terminal_correction_count = persisted->terminal_correction_count;
+    state->dsg_cycle_acc_pct_x10 = persisted->dsg_cycle_acc_pct_x10;
+    state->cycle_times_x100 = persisted->cycle_times_x100;
     state->mode = SOC_SIM_MODE_TRANSFER;
 }
 
@@ -139,6 +144,7 @@ void SocSim_Step(const SocSimConfig *config,
     int32_t net_current_ma;
     uint32_t abs_current_ma;
     int32_t delta_capacity_as_x10;
+    uint32_t discharge_delta_capacity_as_x10;
     int32_t next_capacity_as_x10;
     uint16_t ocv_soc_pct_x10;
 
@@ -161,6 +167,11 @@ void SocSim_Step(const SocSimConfig *config,
     {
         delta_capacity_as_x10 = (int32_t)(((int64_t)net_current_ma * (int64_t)delta_ms) / 100U);
         next_capacity_as_x10 = (int32_t)state->remaining_capacity_as_x10 + delta_capacity_as_x10;
+        discharge_delta_capacity_as_x10 = 0U;
+        if (net_current_ma < 0)
+        {
+            discharge_delta_capacity_as_x10 = (uint32_t)(-delta_capacity_as_x10);
+        }
         if (next_capacity_as_x10 < 0)
         {
             next_capacity_as_x10 = 0;
@@ -174,6 +185,29 @@ void SocSim_Step(const SocSimConfig *config,
             output->soc_state_flags |= SOC_SIM_FLAG_CLAMPED_FULL;
         }
         state->remaining_capacity_as_x10 = (uint32_t)next_capacity_as_x10;
+
+        if ((state->mode == SOC_SIM_MODE_DISCHARGE) &&
+            (state->soc_est_pct_x10 != 0U) &&
+            (discharge_delta_capacity_as_x10 != 0U))
+        {
+            uint32_t discharge_delta_pct_x10 =
+                (discharge_delta_capacity_as_x10 * 1000U) / config->capacity_as_x10;
+            if (discharge_delta_pct_x10 != 0U)
+            {
+                uint32_t next_dsg_cycle_acc_pct_x10 =
+                    (uint32_t)state->dsg_cycle_acc_pct_x10 + discharge_delta_pct_x10;
+                if (next_dsg_cycle_acc_pct_x10 >= config->cycle_count_threshold_pct_x10)
+                {
+                    state->dsg_cycle_acc_pct_x10 = 0U;
+                    state->cycle_times_x100 += 100U;
+                    output->soc_state_flags |= SOC_SIM_FLAG_CYCLE_INCREMENTED;
+                }
+                else
+                {
+                    state->dsg_cycle_acc_pct_x10 = (uint16_t)next_dsg_cycle_acc_pct_x10;
+                }
+            }
+        }
     }
 
     state->soc_est_pct_x10 = (uint16_t)((state->remaining_capacity_as_x10 * 1000U) / config->capacity_as_x10);
@@ -256,4 +290,6 @@ void SocSim_Step(const SocSimConfig *config,
     output->soc_est_pct_x10 = state->soc_est_pct_x10;
     output->soc_ocv_pct_x10 = ocv_soc_pct_x10;
     output->soc_error_pct_x10 = (int16_t)((int32_t)state->soc_est_pct_x10 - (int32_t)ocv_soc_pct_x10);
+    output->soc_dsg_cycle_acc_pct_x10 = state->dsg_cycle_acc_pct_x10;
+    output->soc_cycle_times_x100 = state->cycle_times_x100;
 }
