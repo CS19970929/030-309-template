@@ -53,17 +53,13 @@ static const AppTaskConfig g_app_core_tasks[] = {
 	{AppRuntimeMonitor_RunTask, 11, 1000},
 };
 
-#ifndef _DEBUG_CODE
 static const AppTaskConfig g_app_release_tasks[] = {
-#ifndef APP_DEBUG_DISABLE_AUTO_SLEEP
 	{App_SleepDeal, 7, 1000},
-#endif
 #ifdef __FUNC__HEAT__
 	{App_Heat_Cool_Ctrl, 9, 1000},
 #endif
 	{App_ChargerLoad_Det, 9, 1000},
 };
-#endif
 
 int main(void)
 {
@@ -197,7 +193,7 @@ UINT8 App_AFEshutdown(void)
 
 void InitSystemWakeUp(void)
 {
-	/* 保留当前唤醒时序接口，便于后�?按硬件版�?扩展�? */
+	/* 保留当剝唤醒时庝接坣，便于坎�?按硬件版�?扩展�? */
 }
 
 

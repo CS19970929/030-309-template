@@ -755,3 +755,5 @@ void EEPROM_test(void)
 	g_stCellInfoReport.u16VCell[6] = ReadEEPROM_Byte(0x22);
 #endif
 }
+
+
