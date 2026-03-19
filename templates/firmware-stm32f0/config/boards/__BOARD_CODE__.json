@@ -1,0 +1,15 @@
+{
+  "board_code": "__BOARD_CODE__",
+  "product_family": "__PRODUCT_FAMILY__",
+  "mcu": "__DEVICE_CODE__",
+  "afe": "__AFE_CODE__",
+  "platform_layer": {
+    "adc_profile": "todo",
+    "gpio_profile": "todo",
+    "rtc_profile": "todo",
+    "wakeup_profile": "todo"
+  },
+  "io_notes": [
+    "在这里记录板级 IO 差异，不要散落在业务代码注释里。"
+  ]
+}

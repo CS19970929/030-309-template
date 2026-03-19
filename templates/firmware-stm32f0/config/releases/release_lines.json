@@ -1,0 +1,12 @@
+{
+  "project_slug": "__PROJECT_SLUG__",
+  "release_line": "release/__PROJECT_SLUG__",
+  "develop_line": "develop/__PROJECT_SLUG__",
+  "hotfix_rule": "hotfix/__PROJECT_SLUG__-yyyymmdd-issue",
+  "workflow": [
+    "稳定出货问题从 release 切 hotfix。",
+    "热修复完成后先回并 release，再回并 develop。",
+    "长期重构和新研发默认在 develop。",
+    "Codex 的局部任务建议在 codex/* 工作分支完成。"
+  ]
+}

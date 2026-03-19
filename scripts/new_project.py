@@ -32,6 +32,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--template", required=True, help="Template name under templates/")
     parser.add_argument("--project-name", required=True, help="New project name")
     parser.add_argument("--output", required=True, help="Output directory")
+    parser.add_argument("--product-family", default="bms-family", help="Product family identifier")
+    parser.add_argument("--board-code", default="board-default", help="Board code")
+    parser.add_argument("--afe-code", default="afe-default", help="AFE code")
     parser.add_argument("--device-code", default="STM32F030C8", help="Target device code")
     parser.add_argument("--protocol-variant", default="default", help="Protocol variant")
     parser.add_argument("--customer-code", default="common", help="Customer code")
@@ -48,6 +51,9 @@ def load_template_manifest(template_dir: Path) -> dict:
 def build_replacements(args, manifest: dict) -> dict:
     replacements = {
         "__PROJECT_SLUG__": args.project_name,
+        "__PRODUCT_FAMILY__": args.product_family,
+        "__BOARD_CODE__": args.board_code,
+        "__AFE_CODE__": args.afe_code,
         "__DEVICE_CODE__": args.device_code,
         "__PROTOCOL_VARIANT__": args.protocol_variant,
         "__CUSTOMER_CODE__": args.customer_code,
@@ -111,6 +117,9 @@ def main() -> int:
     metadata = {
         "template": args.template,
         "project_name": args.project_name,
+        "product_family": args.product_family,
+        "board_code": args.board_code,
+        "afe_code": args.afe_code,
         "device_code": args.device_code,
         "protocol_variant": args.protocol_variant,
         "customer_code": args.customer_code,

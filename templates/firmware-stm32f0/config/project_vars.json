@@ -1,6 +1,11 @@
 {
   "project_slug": "__PROJECT_SLUG__",
+  "product_family": "__PRODUCT_FAMILY__",
+  "board_code": "__BOARD_CODE__",
+  "afe_code": "__AFE_CODE__",
   "device_code": "__DEVICE_CODE__",
   "protocol_variant": "__PROTOCOL_VARIANT__",
-  "customer_code": "__CUSTOMER_CODE__"
+  "customer_code": "__CUSTOMER_CODE__",
+  "release_branch": "release/__PROJECT_SLUG__",
+  "develop_branch": "develop/__PROJECT_SLUG__"
 }
