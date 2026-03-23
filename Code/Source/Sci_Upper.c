@@ -46,6 +46,117 @@ void Sci_WrReg_0x06_SwitchOFF(struct RS485MSG *s);
 void Sci_WrReg_0x06_BMS_FunctionON(struct RS485MSG *s);
 void Sci_WrReg_0x06_BMS_FunctionOFF(struct RS485MSG *s);
 void Sci_WrReg_0x06_SetSocOnce(struct RS485MSG *s);
+void Sci_WrReg_0x06_Reset_AFE_Parameters(struct RS485MSG *s);
+void Sci_WrReg_0x06_Reset_EventRecord(struct RS485MSG *s);
+
+typedef void (*SciWriteSingleHandler)(struct RS485MSG *s);
+typedef void (*SciWriteMultiNoAddrHandler)(struct RS485MSG *s);
+
+typedef struct
+{
+	UINT16 addr;
+	SciWriteSingleHandler handler;
+} SSciWriteSingleMap;
+
+typedef struct
+{
+	UINT16 addr;
+	SciWriteMultiNoAddrHandler handler;
+} SSciWriteMultiMap;
+
+typedef struct
+{
+	UINT16 threshold;
+	UINT16 offset;
+} SSciReadAddrMap;
+
+static UINT8 Sci_IsCalibRangeAddr(UINT16 addr)
+{
+	return ((addr >= RS485_CMD_ADDR_VC1CALIB_K) && (addr <= RS485_CMD_ADDR_VC32CALIB_K)) ||
+		   ((addr >= RS485_CMD_ADDR_AFE1CALIB_K) && (addr <= RS485_CMD_ADDR_TEMP_MOS_CALIB_K));
+}
+
+static UINT16 Sci_NormalizeReadAddr(UINT16 addr)
+{
+	static const SSciReadAddrMap kReadAddrMap[] = {
+		{RS485_ADDR_RO_START2, (RS485_ADDR_RO_START2 - 63 - 33)},
+		{RS485_ADDR_RO_START1, (RS485_ADDR_RO_START1 - 63)},
+		{RS485_ADDR_RO_START0, RS485_ADDR_RO_START0},
+		{RS485_ADDR_RO_LCD, RS485_ADDR_RO_LCD},
+		{RS485_ADDR_RW_AFE_PARAMETER, RS485_ADDR_RW_AFE_PARAMETER},
+		{RS485_ADDR_RW_OTHER_CANADD, RS485_ADDR_RW_OTHER_CANADD},
+		{RS485_ADDR_RW_OTHER, RS485_ADDR_RW_OTHER},
+		{RS485_ADDR_RW_PORTECT, RS485_ADDR_RW_PORTECT},
+		{RS485_ADDR_RW_CALIB, RS485_ADDR_RW_CALIB},
+	};
+	UINT8 i;
+
+	for (i = 0; i < (sizeof(kReadAddrMap) / sizeof(kReadAddrMap[0])); ++i)
+	{
+		if (addr >= kReadAddrMap[i].threshold)
+		{
+			return addr - kReadAddrMap[i].offset;
+		}
+	}
+
+	return addr;
+}
+
+static SciWriteSingleHandler Sci_FindWrReg0x06Handler(UINT16 addr)
+{
+	static const SSciWriteSingleMap kWrRegMap[] = {
+		{RS485_CMD_ADDR_RESET_CALIB_COEF, Sci_WrReg_0x06_Reset_CalibCoef},
+		{RS485_CMD_ADDR_RESET_PROTECT_RECORD, Sci_WrReg_0x06_Reset_ProtectRecord},
+		{RS485_CMD_ADDR_RESET_PROTECT_ELEMENT, Sci_WrReg_0x06_Reset_ProtectElement},
+		{RS485_CMD_ADDR_RESET_OTHER_CANADD, Sci_WrReg_0x06_Reset_OtherCanAdd},
+		{RS485_CMD_ADDR_RESET_HEAT_COOL, Sci_WrReg_0x06_Reset_HeatCool},
+		{RS485_CMD_ADDR_SWITCH_ON, Sci_WrReg_0x06_SwitchON},
+		{RS485_CMD_ADDR_SWITCH_OFF, Sci_WrReg_0x06_SwitchOFF},
+		{RS485_CMD_ADDR_SYSTEM_FUNCTION_ON, Sci_WrReg_0x06_BMS_FunctionON},
+		{RS485_CMD_ADDR_SYSTEM_FUNCTION_OFF, Sci_WrReg_0x06_BMS_FunctionOFF},
+		{RS485_CMD_ADDR_SET_ONCE_SOC, Sci_WrReg_0x06_SetSocOnce},
+		{RS485_CMD_ADDR_RESET_AFE_PARAMETERS, Sci_WrReg_0x06_Reset_AFE_Parameters},
+		{RS485_CMD_ADDR_RESET_EVENT_RECORD, Sci_WrReg_0x06_Reset_EventRecord},
+	};
+	UINT8 i;
+
+	for (i = 0; i < (sizeof(kWrRegMap) / sizeof(kWrRegMap[0])); ++i)
+	{
+		if (kWrRegMap[i].addr == addr)
+		{
+			return kWrRegMap[i].handler;
+		}
+	}
+
+	return 0;
+}
+
+static SciWriteMultiNoAddrHandler Sci_FindWrRegs0x10Handler(UINT16 addr)
+{
+	static const SSciWriteMultiMap kWrRegsMap[] = {
+		{RS485_CMD_ADDR_SOC_VOLTAGE1, Sci_WrRegs_0x10_SocTable},
+		{RS485_CMD_ADDR_COPPERLOSS1, Sci_WrRegs_0x10_CopperLoss},
+		{RS485_CMD_ADDR_RTC_TIME_YEAR, Sci_WrRegs_0x10_RTC},
+		{RS485_CMD_ADDR_BALANCE_OV, Sci_WrRegs_0x10_Balance},
+		{RS485_CMD_ADDR_CS_CUR_CHGMAX, Sci_WrRegs_0x10_SysOther},
+		{RS485_CMD_ADDR_SLEEP_V_NORMAL, Sci_WrRegs_0x10_SleepElement},
+		{RS485_CMD_ADDR_SOC_AH, Sci_WrRegs_0x10_SocElement},
+		{RS485_CMD_ADDR_SYS_SERIES_NUM, Sci_WrRegs_0x10_SystemElement},
+		{RS485_CMD_ADDR_HEAT_DSG_HIGH, Sci_WrRegs_0x10_HeatCoolElement},
+		{RS485_CMD_ADDR_FLASH_CONNECT, Sci_WrRegs_0x10_FlashConnect},
+	};
+	UINT8 i;
+
+	for (i = 0; i < (sizeof(kWrRegsMap) / sizeof(kWrRegsMap[0])); ++i)
+	{
+		if (kWrRegsMap[i].addr == addr)
+		{
+			return kWrRegsMap[i].handler;
+		}
+	}
+
+	return 0;
+}
 
 void Sci_DataInit(struct RS485MSG *s)
 {
@@ -89,110 +200,26 @@ void Sci_Deal_ReadRegs_0x03(struct RS485MSG *s)
 
 	t_u16Temp = s->u16Buffer[3] + (s->u16Buffer[2] << 8);
 	s->u16RdRegStartAddrActure = t_u16Temp;
-
-	if (t_u16Temp >= RS485_ADDR_RO_START2)
-	{ // 1个字
-		t_u16Temp -= (RS485_ADDR_RO_START2 - 63 - 33);
-	}
-
-	else if (t_u16Temp >= RS485_ADDR_RO_START1)
-	{ // 33个字
-		t_u16Temp -= (RS485_ADDR_RO_START1 - 63);
-	}
-
-	else if (t_u16Temp >= RS485_ADDR_RO_START0)
-	{ // 63个字
-		t_u16Temp -= RS485_ADDR_RO_START0;
-	}
-	// 新加进来的
-	else if (t_u16Temp >= RS485_ADDR_RO_LCD)
-	{
-		t_u16Temp -= RS485_ADDR_RO_LCD; // LCD，有一次顺序乱了，显示数据不对导致找不到原因
-	}
-	else if (t_u16Temp >= RS485_ADDR_RW_AFE_PARAMETER)
-	{
-		t_u16Temp -= RS485_ADDR_RW_AFE_PARAMETER; // AFE，耕耘代码添加，前面出问题是忘了这里要添加
-	}
-	else if (t_u16Temp >= RS485_ADDR_RW_OTHER_CANADD)
-	{
-		t_u16Temp -= RS485_ADDR_RW_OTHER_CANADD;
-	}
-	else if (t_u16Temp >= RS485_ADDR_RW_OTHER)
-	{
-		t_u16Temp -= RS485_ADDR_RW_OTHER;
-	}
-	else if (t_u16Temp >= RS485_ADDR_RW_PORTECT)
-	{
-		t_u16Temp -= RS485_ADDR_RW_PORTECT;
-	}
-	else if (t_u16Temp >= RS485_ADDR_RW_CALIB)
-	{
-		t_u16Temp -= RS485_ADDR_RW_CALIB;
-	}
-
-	s->u16RdRegStartAddr = t_u16Temp;
+	s->u16RdRegStartAddr = Sci_NormalizeReadAddr(t_u16Temp);
 	s->u16RdRegByteNum = (s->u16Buffer[5] + (s->u16Buffer[4] << 8)) << 1;
 }
 
 void Sci_Deal_WrReg_0x06(struct RS485MSG *s)
 {
 	UINT16 u16SciRegAddr;
+	SciWriteSingleHandler handler;
+
 	u16SciRegAddr = s->u16Buffer[3] + (s->u16Buffer[2] << 8);
-	switch (u16SciRegAddr)
+
+	handler = Sci_FindWrReg0x06Handler(u16SciRegAddr);
+	if (handler != 0)
 	{
-	case RS485_CMD_ADDR_RESET_CALIB_COEF:
-		Sci_WrReg_0x06_Reset_CalibCoef(s);
-		break;
-
-	case RS485_CMD_ADDR_RESET_PROTECT_RECORD:
-		Sci_WrReg_0x06_Reset_ProtectRecord(s);
-		break;
-
-	case RS485_CMD_ADDR_RESET_PROTECT_ELEMENT:
-		Sci_WrReg_0x06_Reset_ProtectElement(s);
-		break;
-
-	case RS485_CMD_ADDR_RESET_OTHER_CANADD:
-		Sci_WrReg_0x06_Reset_OtherCanAdd(s);
-		break;
-
-	case RS485_CMD_ADDR_RESET_HEAT_COOL:
-		Sci_WrReg_0x06_Reset_HeatCool(s);
-		break;
-
-	case RS485_CMD_ADDR_SWITCH_ON:
-		Sci_WrReg_0x06_SwitchON(s);
-		break;
-
-	case RS485_CMD_ADDR_SWITCH_OFF:
-		Sci_WrReg_0x06_SwitchOFF(s);
-		break;
-
-	case RS485_CMD_ADDR_SYSTEM_FUNCTION_ON:
-		Sci_WrReg_0x06_BMS_FunctionON(s);
-		break;
-
-	case RS485_CMD_ADDR_SYSTEM_FUNCTION_OFF:
-		Sci_WrReg_0x06_BMS_FunctionOFF(s);
-		break;
-
-	case RS485_CMD_ADDR_SET_ONCE_SOC:
-		Sci_WrReg_0x06_SetSocOnce(s);
-		break;
-
-	// 中颖AFE参数可读可写新增
-	case RS485_CMD_ADDR_RESET_AFE_PARAMETERS:
-		Sci_WrReg_0x06_Reset_AFE_Parameters(s);
-		break;
-
-	case RS485_CMD_ADDR_RESET_EVENT_RECORD:
-		Sci_WrReg_0x06_Reset_EventRecord(s);
-		break;
-
-	default:
+		handler(s);
+	}
+	else
+	{
 		s->AckType = RS485_ACK_NEG;
 		s->ErrorType = RS485_ERROR_NO_PERMISSION;
-		break;
 	}
 }
 
@@ -200,6 +227,7 @@ void Sci_Deal_WrReg_0x06(struct RS485MSG *s)
 void Sci_Deal_WrRegs_0x10(struct RS485MSG *s)
 {
 	UINT16 u16SciRegStartAddr;
+	SciWriteMultiNoAddrHandler handler;
 	u16SciRegStartAddr = s->u16Buffer[3] + (s->u16Buffer[2] << 8);
 
 	// if (Sci_WrRegs_0x10_AFE_Parameters(u16SciRegStartAddr, s))
@@ -207,123 +235,44 @@ void Sci_Deal_WrRegs_0x10(struct RS485MSG *s)
 	// 	return;
 	// }
 
-	switch (u16SciRegStartAddr)
+	if (Sci_IsCalibRangeAddr(u16SciRegStartAddr))
 	{
-	case RS485_CMD_ADDR_VC1CALIB_K:
-	case RS485_CMD_ADDR_VC2CALIB_K:
-	case RS485_CMD_ADDR_VC3CALIB_K:
-	case RS485_CMD_ADDR_VC4CALIB_K:
-	case RS485_CMD_ADDR_VC5CALIB_K:
-	case RS485_CMD_ADDR_VC6CALIB_K:
-	case RS485_CMD_ADDR_VC7CALIB_K:
-	case RS485_CMD_ADDR_VC8CALIB_K:
-	case RS485_CMD_ADDR_VC9CALIB_K:
-	case RS485_CMD_ADDR_VC10CALIB_K:
-	case RS485_CMD_ADDR_VC11CALIB_K:
-	case RS485_CMD_ADDR_VC12CALIB_K:
-	case RS485_CMD_ADDR_VC13CALIB_K:
-	case RS485_CMD_ADDR_VC14CALIB_K:
-	case RS485_CMD_ADDR_VC15CALIB_K:
-	case RS485_CMD_ADDR_VC16CALIB_K:
-	case RS485_CMD_ADDR_VC17CALIB_K:
-	case RS485_CMD_ADDR_VC18CALIB_K:
-	case RS485_CMD_ADDR_VC19CALIB_K:
-	case RS485_CMD_ADDR_VC20CALIB_K:
-	case RS485_CMD_ADDR_VC21CALIB_K:
-	case RS485_CMD_ADDR_VC22CALIB_K:
-	case RS485_CMD_ADDR_VC23CALIB_K:
-	case RS485_CMD_ADDR_VC24CALIB_K:
-	case RS485_CMD_ADDR_VC25CALIB_K:
-	case RS485_CMD_ADDR_VC26CALIB_K:
-	case RS485_CMD_ADDR_VC27CALIB_K:
-	case RS485_CMD_ADDR_VC28CALIB_K:
-	case RS485_CMD_ADDR_VC29CALIB_K:
-	case RS485_CMD_ADDR_VC30CALIB_K:
-	case RS485_CMD_ADDR_VC31CALIB_K:
-	case RS485_CMD_ADDR_VC32CALIB_K:
-	case RS485_CMD_ADDR_AFE1CALIB_K:
-	case RS485_CMD_ADDR_AFE2CALIB_K:
-	case RS485_CMD_ADDR_VBUSCALIB_K:
-	case RS485_CMD_ADDR_ICHGCALIB_K:
-	case RS485_CMD_ADDR_IDISCHGCALIB_K:
-	case RS485_CMD_ADDR_TEMP1_CALIB_K:
-	case RS485_CMD_ADDR_TEMP2_CALIB_K:
-	case RS485_CMD_ADDR_TEMP3_CALIB_K:
-	case RS485_CMD_ADDR_TEMP4_CALIB_K:
-	case RS485_CMD_ADDR_TEMP5_CALIB_K:
-	case RS485_CMD_ADDR_TEMP6_CALIB_K:
-	case RS485_CMD_ADDR_TEMP_ENV1_CALIB_K:
-	case RS485_CMD_ADDR_TEMP_ENV2_CALIB_K:
-	case RS485_CMD_ADDR_TEMP_ENV3_CALIB_K:
-	case RS485_CMD_ADDR_TEMP_MOS_CALIB_K:
 		Sci_WrRegs_0x10_CalibCoef(u16SciRegStartAddr, s);
-		break;
-
-	case RS485_CMD_ADDR_VCELL_OVP_FIRST:
-	case RS485_CMD_ADDR_VCELL_UVP_FIRST:
-	case RS485_CMD_ADDR_VBUS_OVP_FIRST:
-	case RS485_CMD_ADDR_VBUS_UVP_FIRST:
-	case RS485_CMD_ADDR_ICHG_OCP_FIRST:
-	case RS485_CMD_ADDR_IDSG_OCP_FIRST:
-	case RS485_CMD_ADDR_TCHG_OTP_FIRST:
-	case RS485_CMD_ADDR_TCHG_UTP_FIRST:
-	case RS485_CMD_ADDR_TDSG_OTP_FIRST:
-	case RS485_CMD_ADDR_TDSG_UTP_FIRST:
-	case RS485_CMD_ADDR_TMOS_OTP_FIRST:
-	case RS485_CMD_ADDR_VDELTA_OP_FIRST:
-	case RS485_CMD_ADDR_SOC_UP_FIRST:
+	}
+	else if ((u16SciRegStartAddr == RS485_CMD_ADDR_VCELL_OVP_FIRST) ||
+			 (u16SciRegStartAddr == RS485_CMD_ADDR_VCELL_UVP_FIRST) ||
+			 (u16SciRegStartAddr == RS485_CMD_ADDR_VBUS_OVP_FIRST) ||
+			 (u16SciRegStartAddr == RS485_CMD_ADDR_VBUS_UVP_FIRST) ||
+			 (u16SciRegStartAddr == RS485_CMD_ADDR_ICHG_OCP_FIRST) ||
+			 (u16SciRegStartAddr == RS485_CMD_ADDR_IDSG_OCP_FIRST) ||
+			 (u16SciRegStartAddr == RS485_CMD_ADDR_TCHG_OTP_FIRST) ||
+			 (u16SciRegStartAddr == RS485_CMD_ADDR_TCHG_UTP_FIRST) ||
+			 (u16SciRegStartAddr == RS485_CMD_ADDR_TDSG_OTP_FIRST) ||
+			 (u16SciRegStartAddr == RS485_CMD_ADDR_TDSG_UTP_FIRST) ||
+			 (u16SciRegStartAddr == RS485_CMD_ADDR_TMOS_OTP_FIRST) ||
+			 (u16SciRegStartAddr == RS485_CMD_ADDR_VDELTA_OP_FIRST) ||
+			 (u16SciRegStartAddr == RS485_CMD_ADDR_SOC_UP_FIRST))
+	{
 		Sci_WrRegs_0x10_Protect(u16SciRegStartAddr, s);
-		break;
-
-	case RS485_CMD_ADDR_SOC_VOLTAGE1:
-		Sci_WrRegs_0x10_SocTable(s);
-		break;
-
-	case RS485_CMD_ADDR_COPPERLOSS1:
-		Sci_WrRegs_0x10_CopperLoss(s);
-		break;
-
-	case RS485_CMD_ADDR_RTC_TIME_YEAR:
-		Sci_WrRegs_0x10_RTC(s);
-		break;
-
-	case RS485_CMD_ADDR_BALANCE_OV:
-		Sci_WrRegs_0x10_Balance(s);
-		break;
-
-	case RS485_CMD_ADDR_CS_CUR_CHGMAX:
-		Sci_WrRegs_0x10_SysOther(s);
-		break;
-
-	case RS485_CMD_ADDR_SLEEP_V_NORMAL:
-		Sci_WrRegs_0x10_SleepElement(s);
-		break;
-
-	case RS485_CMD_ADDR_SOC_AH:
-		Sci_WrRegs_0x10_SocElement(s);
-		break;
-
-	case RS485_CMD_ADDR_SYS_SERIES_NUM:
-		Sci_WrRegs_0x10_SystemElement(s);
-		break;
-
-	case RS485_CMD_ADDR_HEAT_DSG_HIGH:
-		Sci_WrRegs_0x10_HeatCoolElement(s);
-		break;
-
-	case RS485_ADDR_SN_SERIAL_NUM:
-	case RS485_ADDR_SN_HAEDWARE_VER:
-	case RS485_ADDR_SN_SOFTWARE_VER:
+	}
+	else if ((u16SciRegStartAddr == RS485_ADDR_SN_SERIAL_NUM) ||
+			 (u16SciRegStartAddr == RS485_ADDR_SN_HAEDWARE_VER) ||
+			 (u16SciRegStartAddr == RS485_ADDR_SN_SOFTWARE_VER))
+	{
 		Sci_WrRegs_0x10_SN_Version(u16SciRegStartAddr, s);
-		break;
-
-	case RS485_CMD_ADDR_FLASH_CONNECT:
-		Sci_WrRegs_0x10_FlashConnect(s);
-		break; // 少了个BREAK导致OVER。
-	default:
-		s->AckType = RS485_ACK_NEG;
-		s->ErrorType = RS485_ERROR_CMD_INVALID;
-		break;
+	}
+	else
+	{
+		handler = Sci_FindWrRegs0x10Handler(u16SciRegStartAddr);
+		if (handler != 0)
+		{
+			handler(s);
+		}
+		else
+		{
+			s->AckType = RS485_ACK_NEG;
+			s->ErrorType = RS485_ERROR_CMD_INVALID;
+		}
 	}
 }
 
