@@ -514,6 +514,11 @@
               <FilePath>.\Code\Source\Sci_Upper.c</FilePath>
             </File>
             <File>
+              <FileName>ascii_slave.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Code\Source\ascii_slave.c</FilePath>
+            </File>
+            <File>
               <FileName>SH367309_DataDeal.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\Code\Source\SH367309_DataDeal.c</FilePath>
