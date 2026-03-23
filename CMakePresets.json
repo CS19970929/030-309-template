@@ -1,0 +1,44 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 25,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "firmware-release",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/artifacts/cmake/firmware-release",
+      "cacheVariables": {
+        "BUILD_FIRMWARE": "ON",
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/toolchains/arm-none-eabi-gcc.cmake",
+        "APP_ENABLE_LTO": "ON",
+        "APP_OPT_LEVEL": "s"
+      }
+    },
+    {
+      "name": "firmware-debug",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/artifacts/cmake/firmware-debug",
+      "cacheVariables": {
+        "BUILD_FIRMWARE": "ON",
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/toolchains/arm-none-eabi-gcc.cmake",
+        "APP_ENABLE_LTO": "ON",
+        "APP_OPT_LEVEL": "s"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "build-firmware-release",
+      "configurePreset": "firmware-release"
+    },
+    {
+      "name": "build-firmware-debug",
+      "configurePreset": "firmware-debug"
+    }
+  ]
+}

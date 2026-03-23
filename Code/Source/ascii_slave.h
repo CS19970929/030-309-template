@@ -1,6 +1,6 @@
 #ifndef _ascii_slave_h_
 #define _ascii_slave_h_
-#include "main.h"
+#include "stm32f0xx.h"
 
 /************************* 协议固定宏定义 *************************/
 // 帧首尾固定值
@@ -31,9 +31,9 @@
 #define CELL_MAX_NUM            16         // 最大电芯数量（48V电池16串）
 // RS485控制引脚定义
 #define RS485_CTRL_PORT         GPIOA
-#define RS485_CTRL_PIN          LL_GPIO_PIN_8
-#define RS485_TX_ENABLE()       LL_GPIO_SetOutputPin(RS485_CTRL_PORT, RS485_CTRL_PIN)
-#define RS485_RX_ENABLE()       LL_GPIO_ResetOutputPin(RS485_CTRL_PORT, RS485_CTRL_PIN)
+#define RS485_CTRL_PIN          GPIO_Pin_8
+#define RS485_TX_ENABLE()       GPIO_SetBits(RS485_CTRL_PORT, RS485_CTRL_PIN)
+#define RS485_RX_ENABLE()       GPIO_ResetBits(RS485_CTRL_PORT, RS485_CTRL_PIN)
 
 /************************* 数据结构体定义 *************************/
 
@@ -125,10 +125,10 @@ uint16_t Cmd_Handle_Manufactory_Info(uint8_t *tx_buf);
 uint16_t Cmd_Handle_Analog_Value(uint8_t *tx_buf);
 uint16_t Cmd_Handle_Alarm_Info(uint8_t *tx_buf);
 uint16_t Cmd_Handle_Charge_Dis_Info(uint8_t *tx_buf);
-void Frame_Parse_Process(uint8_t *rx_buf, uint16_t rx_len, UART_TypeDef *UARTx);
+void Frame_Parse_Process(uint8_t *rx_buf, uint16_t rx_len, USART_TypeDef *UARTx);
 
-void Ascii_Send_Byte(uint8_t Modbus_byte,UART_TypeDef *UARTx);
-void Ascii_Send_NByte(uint8_t *buff,uint16_t len,UART_TypeDef *UARTx);
+void Ascii_Send_Byte(uint8_t Modbus_byte,USART_TypeDef *UARTx);
+void Ascii_Send_NByte(uint8_t *buff,uint16_t len,USART_TypeDef *UARTx);
 
 
 #endif

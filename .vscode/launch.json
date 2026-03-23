@@ -1,0 +1,20 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "STM32 Debug (ST-Link/OpenOCD)",
+      "type": "cortex-debug",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "servertype": "openocd",
+      "device": "STM32F030C8",
+      "interface": "swd",
+      "executable": "${workspaceFolder}/artifacts/cmake/firmware-debug/CommomSH367309_16series_030C8T6_C.elf",
+      "configFiles": [
+        "interface/stlink.cfg",
+        "target/stm32f0x.cfg"
+      ],
+      "preLaunchTask": "mcu: build gcc debug"
+    }
+  ]
+}

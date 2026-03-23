@@ -1,11 +1,7 @@
 #include "main.h"
 #include "stdio.h"
 #include "ascii_slave.h"
-#include "uart.h"
-#include "modbus_host.h"
-#include "CRC.h"
 #include "string.h"
-#include "led.h"
 
 
 /************************* 全局变量定义 *************************/
@@ -423,7 +419,7 @@ uint16_t Cmd_Handle_Charge_Dis_Info(uint8_t *tx_buf)
 /**
  * @brief  接收帧解析与命令分发
  */
-void Frame_Parse_Process(uint8_t *rx_buf, uint16_t rx_len, UART_TypeDef *UARTx)
+void Frame_Parse_Process(uint8_t *rx_buf, uint16_t rx_len, USART_TypeDef *UARTx)
 {
     uint8_t tx_buf[MAX_FRAME_LEN] = {0};
     uint16_t tx_len = 0;
@@ -500,35 +496,32 @@ void Frame_Parse_Process(uint8_t *rx_buf, uint16_t rx_len, UART_TypeDef *UARTx)
     // 8. 发送响应帧
     if(tx_len > 0)
     {
-        LED_L4851_ON();
         Ascii_Send_NByte(tx_buf, tx_len, UARTx);
     }
     // 清空接收缓冲区
 }
 
 //Ascii串口发送一个字节数据
-void Ascii_Send_Byte(uint8_t Modbus_byte,UART_TypeDef *UARTx)
+void Ascii_Send_Byte(uint8_t Modbus_byte,USART_TypeDef *UARTx)
 {  
-	LL_UART_TransmitData8(UARTx, Modbus_byte);   
-	while (!LL_UART_IsActiveFlag_TXCF(UARTx));
-	LL_UART_ClearFlag_TXCF(UARTx);                 
+	USART_SendData(UARTx, Modbus_byte);   
+	while (USART_GetFlagStatus(UARTx, USART_FLAG_TC) == RESET);
 }     
 
 
 //Ascii串口发送N个字节数据
-void Ascii_Send_NByte(uint8_t *buff,uint16_t len,UART_TypeDef *UARTx)
+void Ascii_Send_NByte(uint8_t *buff,uint16_t len,USART_TypeDef *UARTx)
 {    
 	uint16_t t;
     RS485_TX_ENABLE();
-	LL_mDelay(1); // 确保DE引脚稳定
+	Delay1ms(1); // 确保DE引脚稳定
 	for(t=0;t<len;t++)
 	{
-		while (!LL_UART_IsActiveFlag_TXEF(UARTx));
-		LL_UART_TransmitData8(UARTx, buff[t]);   
-		while (!LL_UART_IsActiveFlag_TXCF(UARTx));
-		LL_UART_ClearFlag_TXCF(UARTx);
+		while (USART_GetFlagStatus(UARTx, USART_FLAG_TXE) == RESET);
+		USART_SendData(UARTx, buff[t]);   
+		while (USART_GetFlagStatus(UARTx, USART_FLAG_TC) == RESET);
 	}		
-	LL_mDelay(1); // 确保DE引脚稳定
+	Delay1ms(1); // 确保DE引脚稳定
     RS485_RX_ENABLE();
 }
 

@@ -1,0 +1,49 @@
+version: "3"
+
+vars:
+  PYTHON: '{{default (ternary "py -3.12" "python3" (eq OS "windows")) .PYTHON}}'
+  CMAKE: '{{default (ternary "C:/Program Files/CMake/bin/cmake.exe" "cmake" (eq OS "windows")) .CMAKE}}'
+  OPENOCD: '{{default (ternary "C:/Users/Administrator/AppData/Local/Microsoft/WinGet/Packages/xpack-dev-tools.openocd-xpack_Microsoft.Winget.Source_8wekyb3d8bbwe/xpack-openocd-0.12.0-7/bin/openocd.exe" "openocd" (eq OS "windows")) .OPENOCD}}'
+  OPENOCD_SCRIPTS: '{{default (ternary "C:/Users/Administrator/AppData/Local/Microsoft/WinGet/Packages/xpack-dev-tools.openocd-xpack_Microsoft.Winget.Source_8wekyb3d8bbwe/xpack-openocd-0.12.0-7/openocd/scripts" "" (eq OS "windows")) .OPENOCD_SCRIPTS}}'
+  STM32_PROGRAMMER: '{{default "C:/Program Files/STMicroelectronics/STM32Cube/STM32CubeProgrammer/bin/STM32_Programmer_CLI.exe" .STM32_PROGRAMMER}}'
+  MAP_FILE: '{{default "artifacts/cmake/firmware-release/CommomSH367309_16series_030C8T6_C.map" .MAP_FILE}}'
+  FIRMWARE_BIN: '{{default "artifacts/cmake/firmware-release/CommomSH367309_16series_030C8T6_C.bin" .FIRMWARE_BIN}}'
+  DEVICE: '{{default "STM32F030C8" .DEVICE}}'
+
+tasks:
+  default:
+    cmds:
+      - task --list
+
+  doctor:
+    cmds:
+      - "{{.PYTHON}} scripts/check_toolchain.py"
+
+  build:
+    cmds:
+      - '"{{.CMAKE}}" --fresh --preset firmware-release'
+      - '"{{.CMAKE}}" --build --preset build-firmware-release'
+
+  build-debug:
+    cmds:
+      - '"{{.CMAKE}}" --fresh --preset firmware-debug'
+      - '"{{.CMAKE}}" --build --preset build-firmware-debug'
+
+  map:
+    cmds:
+      - '{{.PYTHON}} scripts/analyze_map.py --map "{{.MAP_FILE}}" --top 20 --json artifacts/map-summary.json'
+
+  flash-stlink:
+    cmds:
+      - '{{.PYTHON}} scripts/flash_stlink.py --openocd "{{.OPENOCD}}" --scripts-dir "{{.OPENOCD_SCRIPTS}}" --artifact "{{.FIRMWARE_BIN}}" --address 0x08001C00'
+
+  flash-stm32cube:
+    cmds:
+      - '{{.PYTHON}} scripts/flash_stm32cube.py --programmer "{{.STM32_PROGRAMMER}}" --artifact "{{.FIRMWARE_BIN}}" --address 0x08001C00'
+
+  test:
+    cmds:
+      - "{{.PYTHON}} scripts/check_toolchain.py"
+      - "{{.PYTHON}} scripts/analyze_map.py --help"
+      - "{{.PYTHON}} scripts/flash_stlink.py --help"
+      - "{{.PYTHON}} scripts/flash_stm32cube.py --help"
