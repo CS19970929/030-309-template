@@ -194,6 +194,7 @@ void bsp_RunPer200ms(void)
 void bsp_RunPer1ms(void)
 {
     SCH_Update();
+    CommomUpper_1msTick();
 }
 
 /*
