@@ -47,16 +47,16 @@ typedef union __LOG_RECORD_FLAG {
 extern LOG_RECORD_FLAG LogRecord_Flag;
 extern UINT8 gu8_Reset_EventRecord;
 
-//ÓÃÍêÉ¾³ý
+//ç”¨å®Œåˆ é™¤
 //extern UINT8 BMS_LOG_POINT;
 //extern UINT8 BMS_LOG_RECORD[100][2];
 
 
 void App_LogRecord(void);
+void LogEvent_Record(UINT8 temp, LogEventArray event, UINT32 *Time_S_Cnt);
 void Sci_ACK_0x03_ReadRegs_EventRecord(UINT8 t_u8BuffTemp[]);
 void Sci_WrReg_0x06_Reset_EventRecord(struct RS485MSG *s);
 void EEPROM_ResetData_EventRecord_ToDefault(void);
 void ReadEEPROM_EventRecord_Parameters(void);
 
 #endif	/* LOG_RECORD_H */
-

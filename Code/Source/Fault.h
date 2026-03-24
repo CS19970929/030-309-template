@@ -49,6 +49,9 @@ enum FaultFlag {
 	CellSocUp_Third
 };
 
+void FaultWarnRecord(enum FaultFlag num);
+void FaultWarnRecord2(enum FaultFlag num);
+
 
 union FAULT_FLAG_FIRST {
     UINT16 all;
@@ -411,4 +414,3 @@ extern UINT8  FaultPoint_Third2;
 void App_WarnCtrl(void);
 
 #endif	/* FAULT_H */
-
