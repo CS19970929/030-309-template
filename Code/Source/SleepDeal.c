@@ -382,6 +382,15 @@ void SleepDeal_Continue(void)
 
 	if (u8FlashWriteOK_flag)
 	{
+		// SH367309_DriverMos_Ctrl(GPIO_CHG, 0);
+		// SH367309_DriverMos_Ctrl(GPIO_DSG, 0);
+
+		// if (MTPRead(MTP_BALANCEH, 5, &SH367309_Reg_Store.u8_MTP_BALANCEH))
+		// {
+		// 	SystemStatus.bits.b1Status_MOS_CHG = SH367309_Reg_Store.REG_BSTATUS3.bits.CHG_FET;
+		// 	SystemStatus.bits.b1Status_MOS_DSG = SH367309_Reg_Store.REG_BSTATUS3.bits.DSG_FET;
+		// }
+		// todo 回读 309不需要了，ctld
 		InitAFE1_Sleep(0);
 		AFE_Sleep();
 		MCU_RESET();
@@ -1038,10 +1047,10 @@ void App_SleepDeal(void)
 		Sleep_Mode.bits.b1_ToSleepFlag = 0;
 	}
 
-	if (g_stCellInfoReport.u16VCellMin < 2600 && !g_stCellInfoReport.u16Ichg)
+	if (g_stCellInfoReport.u16VCellMin < 2500)
 	{
 		++force_sleep_delay;
-		if (force_sleep_delay >= 60)
+		if (force_sleep_delay >= (60 * 60))
 		{
 			entersleep(DEEP_MODE);
 		}
@@ -1054,7 +1063,7 @@ void App_SleepDeal(void)
 	if ((Sleep_Mode.all & 0x00ff))
 	{
 		extern UINT32 su32_Interval_S_Tcnt;
-		
+
 		LogRecord_Flag.bits.Log_Sleep = 1;
 		LogEvent_Record(LogRecord_Flag.bits.Log_Sleep, BMS_SLEEP, &su32_Interval_S_Tcnt);
 		SleepDeal_Continue();

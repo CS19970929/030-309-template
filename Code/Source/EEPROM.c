@@ -653,6 +653,7 @@ static void LoadE2promRuntimeData(void)
 	UINT16 offset_value;
 
 	g_u32CS_Res_AFE = ((UINT32)OtherElement.u16Sys_CS_Res_Num * 1000) / OtherElement.u16Sys_CS_Res;
+	//todo 仔细考虑下eeprom、flash、备份域等等
 	if (ReadCurrentOffset_E2prom(&offset_value) != 0)
 	{
 		offset_value = FlashReadOneHalfWord(FLASH_ADDR_SH367309_VALUE);
@@ -735,23 +736,3 @@ void App_E2promDeal(void)
 	}
 }
 
-// 问题找出来，就是BC区写不进去，返回0xFF
-void EEPROM_test(void)
-{
-#if 1
-	WriteEEPROM_Word_NoZone(0x20, EEPROM_VALUE_FLASHUPDATE);
-	g_stCellInfoReport.u16VCell[30] = ReadEEPROM_Word_NoZone(0x20);
-
-	WriteEEPROM_Word_NoZone(0x22, EEPROM_VALUE_FLASHUPDATE_RESET);
-	g_stCellInfoReport.u16VCell[31] = ReadEEPROM_Word_NoZone(0x22) & 0x000F;
-// g_stCellInfoReport.u16VCell[31] = 111;
-#endif
-
-#if 0
-	WriteEEPROM_Byte(0x20, 0x11);
-	g_stCellInfoReport.u16VCell[5] = ReadEEPROM_Byte(0x20);
-
-	WriteEEPROM_Byte(0x22, 0x12);
-	g_stCellInfoReport.u16VCell[6] = ReadEEPROM_Byte(0x22);
-#endif
-}

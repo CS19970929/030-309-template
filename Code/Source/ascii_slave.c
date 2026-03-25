@@ -140,22 +140,22 @@ uint16_t Build_Response_Frame(uint8_t *tx_buf, uint16_t tx_capacity, uint8_t ver
     uint16_t frame_len;
     uint8_t value;
 
-#define APPEND_HEX_BYTE(v)            \
-    do                                \
-    {                                 \
-        value = (uint8_t)(v);         \
-        tx_buf[idx++] = Hex_To_Ascii((uint8_t)(value >> 4)); \
+#define APPEND_HEX_BYTE(v)                                     \
+    do                                                         \
+    {                                                          \
+        value = (uint8_t)(v);                                  \
+        tx_buf[idx++] = Hex_To_Ascii((uint8_t)(value >> 4));   \
         tx_buf[idx++] = Hex_To_Ascii((uint8_t)(value & 0x0F)); \
     } while (0)
 
-#define APPEND_HEX_U16(v)             \
-    do                                \
-    {                                 \
-        chksum = (uint16_t)(v);       \
-        tx_buf[idx++] = Hex_To_Ascii((uint8_t)(chksum >> 12)); \
+#define APPEND_HEX_U16(v)                                              \
+    do                                                                 \
+    {                                                                  \
+        chksum = (uint16_t)(v);                                        \
+        tx_buf[idx++] = Hex_To_Ascii((uint8_t)(chksum >> 12));         \
         tx_buf[idx++] = Hex_To_Ascii((uint8_t)((chksum >> 8) & 0x0F)); \
         tx_buf[idx++] = Hex_To_Ascii((uint8_t)((chksum >> 4) & 0x0F)); \
-        tx_buf[idx++] = Hex_To_Ascii((uint8_t)(chksum & 0x0F)); \
+        tx_buf[idx++] = Hex_To_Ascii((uint8_t)(chksum & 0x0F));        \
     } while (0)
 
     frame_len = (uint16_t)(18U + (uint16_t)(info_hex_len * 2U));
@@ -206,6 +206,98 @@ static uint16_t Ascii_BuildAnalogData(uint8_t *tx_buf)
     uint16_t idx;
 
     idx = BmsComm_BuildAnalogPayload(info_buf, sizeof(info_buf));
+
+    return Build_Response_Frame(tx_buf, MAX_FRAME_LEN, PROTOCOL_VERSION, SLAVE_ADDRESS, RTN_OK, info_buf, idx);
+}
+
+extern uint16_t BmsComm_EncodePylonTemperature(int16_t temp_c_x10);
+
+uint16_t Cmd_Handle_Analog2_Value(uint8_t *tx_buf, uint8_t cmd)
+{
+    // 校验Command与本机地址匹配
+    if (cmd != SLAVE_ADDRESS)
+    {
+        return Build_Response_Frame(tx_buf, MAX_FRAME_LEN ,PROTOCOL_VERSION, SLAVE_ADDRESS, RTN_ADR_ERROR, NULL, 0);
+    }
+    uint8_t info_buf[128] = {0};
+    uint16_t idx = 0;
+    // INFOFLAG固定值
+    info_buf[idx++] = 0x00;
+    // Command值
+    info_buf[idx++] = cmd;
+    // 电芯节数
+    uint8_t cell_num = SNum;
+    info_buf[idx++] = cell_num;
+    // 电芯电压
+    for (uint8_t i = 0; i < cell_num; i++)
+    {
+        info_buf[idx++] = (g_stCellInfoReport.u16VCell[i] >> 8) & 0xFF;
+        info_buf[idx++] = g_stCellInfoReport.u16VCell[i] & 0xFF;
+    }
+    // 温度点数量
+    uint8_t temp_num = 2;
+    info_buf[idx++] = temp_num;
+    // 温度值
+    for (uint8_t i = 0; i < temp_num; i++)
+    {
+        uint16_t temp = BmsComm_EncodePylonTemperature((int16_t)g_stCellInfoReport.u16Temperature[i] - 400);
+        ;
+        info_buf[idx++] = (temp >> 8) & 0xFF;
+        info_buf[idx++] = temp & 0xFF;
+    }
+    // 电流
+    int16_t pack_current = (g_stCellInfoReport.u16Ichg > 0U) ? (int16_t)g_stCellInfoReport.u16Ichg : (int16_t)(-((int16_t)g_stCellInfoReport.u16IDischg));
+    info_buf[idx++] = (pack_current >> 8) & 0xFF;
+    info_buf[idx++] = pack_current & 0xFF;
+    // 模块电压
+    uint16_t vtotle = g_stCellInfoReport.u16VCellTotle * 10;
+    info_buf[idx++] = (vtotle >> 8) & 0xFF;
+    info_buf[idx++] = vtotle & 0xFF;
+    // 剩余容量
+    uint32_t cap_res = g_stCellInfoReport.SocElement.u16CapacityNow * 10;
+    uint32_t cap_full = g_stCellInfoReport.SocElement.u16CapacityFactory * 10;
+    if (cap_full <= 65000)
+    {
+        info_buf[idx++] = (cap_res >> 8) & 0xFF;
+        info_buf[idx++] = cap_res & 0xFF;
+        // 用户自定义个数
+        info_buf[idx++] = 2;
+        // 总容量
+        info_buf[idx++] = (cap_full >> 8) & 0xFF;
+        info_buf[idx++] = cap_full & 0xFF;
+        // 循环次数
+        info_buf[idx++] = (g_stCellInfoReport.SocElement.u16Cycle_times >> 8) & 0xFF;
+        info_buf[idx++] = g_stCellInfoReport.SocElement.u16Cycle_times & 0xFF;
+        // 满充容量
+        info_buf[idx++] = 0xff;
+        info_buf[idx++] = 0xff;
+        info_buf[idx++] = 0xff;
+
+        info_buf[idx++] = 0xff;
+        info_buf[idx++] = 0xff;
+        info_buf[idx++] = 0xff;
+    }
+    else
+    {
+        info_buf[idx++] = 0xff;
+        info_buf[idx++] = 0xff;
+        // 用户自定义个数
+        info_buf[idx++] = 4;
+        // 总容量
+        info_buf[idx++] = 0xff;
+        info_buf[idx++] = 0xff;
+        // 循环次数
+        info_buf[idx++] = (g_stCellInfoReport.SocElement.u16Cycle_times >> 8) & 0xFF;
+        info_buf[idx++] = g_stCellInfoReport.SocElement.u16Cycle_times & 0xFF;
+        // 满充容量
+        info_buf[idx++] = (cap_res >> 16) & 0xff;
+        info_buf[idx++] = (cap_res >> 8) & 0xff;
+        info_buf[idx++] = cap_res & 0xff;
+
+        info_buf[idx++] = (cap_full >> 16) & 0xff;
+        info_buf[idx++] = (cap_full >> 8) & 0xff;
+        info_buf[idx++] = cap_full & 0xff;
+    }
 
     return Build_Response_Frame(tx_buf, MAX_FRAME_LEN, PROTOCOL_VERSION, SLAVE_ADDRESS, RTN_OK, info_buf, idx);
 }
@@ -355,13 +447,25 @@ uint16_t Ascii_HandleFrame(const uint8_t *rx_buf, uint16_t rx_len, uint8_t *tx_b
         return Build_Response_Frame(tx_buf, tx_capacity, PROTOCOL_VERSION, SLAVE_ADDRESS, RTN_CHKSUM_ERROR, NULL, 0);
     }
 
+    // 7. 解析INFO域（ASCII转HEX）
+    uint8_t info_hex_buf[256] = {0};
+    uint16_t info_hex_len = lenid / 2;
+    for (uint16_t i = 0; i < info_hex_len; i++)
+    {
+        info_hex_buf[i] = (Ascii_To_Hex(rx_buf[13 + i * 2]) << 4) | Ascii_To_Hex(rx_buf[13 + i * 2 + 1]);
+    }
+    uint8_t cmd = info_hex_buf[0]; // INFO第一个字节为Command
+
 #if 1
     switch (cid2)
     {
     case CMD_GET_BATTERY_INFO:
         return Ascii_BuildBaseInfo(tx_buf);
-    case CMD_GET_ANALOG_DATA:
+    case CMD_GET_ANALOG1_DATA:
         return Ascii_BuildAnalogData(tx_buf);
+    case CMD_GET_ANALOG2_DATA:
+        return Cmd_Handle_Analog2_Value(tx_buf, cmd);
+        break;
     case CMD_GET_ALARM_INFO:
         return Ascii_BuildAlarmInfo(tx_buf);
     case CMD_GET_CHARGE_DIS_INFO:
@@ -370,5 +474,5 @@ uint16_t Ascii_HandleFrame(const uint8_t *rx_buf, uint16_t rx_len, uint8_t *tx_b
         return Build_Response_Frame(tx_buf, tx_capacity, PROTOCOL_VERSION, SLAVE_ADDRESS, RTN_CID2_INVALID, NULL, 0);
     }
 #endif
-        // return Build_Response_Frame(tx_buf, tx_capacity, PROTOCOL_VERSION, SLAVE_ADDRESS, RTN_CID2_INVALID, NULL, 0);
+    // return Build_Response_Frame(tx_buf, tx_capacity, PROTOCOL_VERSION, SLAVE_ADDRESS, RTN_CID2_INVALID, NULL, 0);
 }

@@ -181,7 +181,6 @@ void USART1_IRQHandler(void)
   Comm_PortIrqHandler(&g_comm_port1);
 #endif
 }
-
 void USART2_IRQHandler(void)
 {
 #ifdef _COMMOM_UPPER_SCI2

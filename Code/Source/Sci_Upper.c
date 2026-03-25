@@ -357,30 +357,30 @@ void Sci_ACK_0x03_ReadRegs_LCD(struct RS485MSG *s, UINT8 t_u8BuffTemp[])
 	i = 0;
 	switch (s->u16RdRegStartAddr)
 	{
-	case 0: // LCD
-		i = Sci_FillDisplaySummary(t_u8BuffTemp, i);
-		break;
+	// case 0: // LCD
+	// 	i = Sci_FillDisplaySummary(t_u8BuffTemp, i);
+	// 	break;
 
-	case 1: // 上位机第三级保护，60+10=70个
-		for (j = 0; j < Record_len; j++)
-		{
-			k = FaultPoint_Third - 1 - j;
-			if (k < 0)
-			{
-				k = Record_len + k;
-			}
-			u16SciTemp = Fault_record_Third[k];
-			t_u8BuffTemp[i++] = (u16SciTemp >> 8) & 0x00FF;
-			t_u8BuffTemp[i++] = u16SciTemp & 0x00FF;
+	// case 1: // 上位机第三级保护，60+10=70个
+	// 	for (j = 0; j < Record_len; j++)
+	// 	{
+	// 		k = FaultPoint_Third - 1 - j;
+	// 		if (k < 0)
+	// 		{
+	// 			k = Record_len + k;
+	// 		}
+	// 		u16SciTemp = Fault_record_Third[k];
+	// 		t_u8BuffTemp[i++] = (u16SciTemp >> 8) & 0x00FF;
+	// 		t_u8BuffTemp[i++] = u16SciTemp & 0x00FF;
 
-			for (x = 0; x < 6; ++x)
-			{
-				u16SciTemp = RTC_Fault_record_Third[k][x];
-				t_u8BuffTemp[i++] = (u16SciTemp >> 8) & 0x00FF;
-				t_u8BuffTemp[i++] = u16SciTemp & 0x00FF;
-			}
-		}
-		break;
+	// 		for (x = 0; x < 6; ++x)
+	// 		{
+	// 			u16SciTemp = RTC_Fault_record_Third[k][x];
+	// 			t_u8BuffTemp[i++] = (u16SciTemp >> 8) & 0x00FF;
+	// 			t_u8BuffTemp[i++] = u16SciTemp & 0x00FF;
+	// 		}
+	// 	}
+	// 	break;
 
 	case 2: // 序列号，硬件版本号，软件版本号
 		i = Sci_AppendBytes(t_u8BuffTemp, i, ProductionInfor.BMS_SerialNumber, PRODUCT_ID_LENGTH_MAX);
@@ -388,70 +388,70 @@ void Sci_ACK_0x03_ReadRegs_LCD(struct RS485MSG *s, UINT8 t_u8BuffTemp[])
 		i = Sci_AppendBytes(t_u8BuffTemp, i, ProductionInfor.BMS_SoftWareVersion, PRODUCT_ID_LENGTH_MAX);
 		break;
 
-	case 3: // 三级安全状态
-		u16SciTemp = 1;
-		t_u8BuffTemp[i++] = (u16SciTemp >> 8) & 0x00FF;
-		t_u8BuffTemp[i++] = u16SciTemp & 0x00FF;
+	// case 3: // 三级安全状态
+	// 	u16SciTemp = 1;
+	// 	t_u8BuffTemp[i++] = (u16SciTemp >> 8) & 0x00FF;
+	// 	t_u8BuffTemp[i++] = u16SciTemp & 0x00FF;
 
-		u16SciTemp = (g_stCellInfoReport.u16VCellTotle + 50) / 100; // // v *100
-		t_u8BuffTemp[i++] = (u16SciTemp >> 8) & 0x00FF;
-		t_u8BuffTemp[i++] = u16SciTemp & 0x00FF;
+	// 	u16SciTemp = (g_stCellInfoReport.u16VCellTotle + 50) / 100; // // v *100
+	// 	t_u8BuffTemp[i++] = (u16SciTemp >> 8) & 0x00FF;
+	// 	t_u8BuffTemp[i++] = u16SciTemp & 0x00FF;
 
-		if (g_stCellInfoReport.u16Ichg > 0)
-		{
-			u16SciTemp = (g_stCellInfoReport.u16Ichg + 5005) / 10; // 总电流？
-		}
-		else
-		{
-			u16SciTemp = (5000 - g_stCellInfoReport.u16IDischg) / 10; // A *10
-		}
-		t_u8BuffTemp[i++] = (u16SciTemp >> 8) & 0x00FF;
-		t_u8BuffTemp[i++] = u16SciTemp & 0x00FF;
+	// 	if (g_stCellInfoReport.u16Ichg > 0)
+	// 	{
+	// 		u16SciTemp = (g_stCellInfoReport.u16Ichg + 5005) / 10; // 总电流？
+	// 	}
+	// 	else
+	// 	{
+	// 		u16SciTemp = (5000 - g_stCellInfoReport.u16IDischg) / 10; // A *10
+	// 	}
+	// 	t_u8BuffTemp[i++] = (u16SciTemp >> 8) & 0x00FF;
+	// 	t_u8BuffTemp[i++] = u16SciTemp & 0x00FF;
 
-		u16SciTemp = (g_stCellInfoReport.u16TempMax + 5) / 10; // 最大温度
-		t_u8BuffTemp[i++] = (u16SciTemp >> 8) & 0x00FF;
-		t_u8BuffTemp[i++] = u16SciTemp & 0x00FF;
+	// 	u16SciTemp = (g_stCellInfoReport.u16TempMax + 5) / 10; // 最大温度
+	// 	t_u8BuffTemp[i++] = (u16SciTemp >> 8) & 0x00FF;
+	// 	t_u8BuffTemp[i++] = u16SciTemp & 0x00FF;
 
-		u16SciTemp = g_stCellInfoReport.SocElement.u16Soc; // 当前电池SOC     0—100 为相对容量百分比
-		t_u8BuffTemp[i++] = (u16SciTemp >> 8) & 0x00FF;
-		t_u8BuffTemp[i++] = u16SciTemp & 0x00FF;
+	// 	u16SciTemp = g_stCellInfoReport.SocElement.u16Soc; // 当前电池SOC     0—100 为相对容量百分比
+	// 	t_u8BuffTemp[i++] = (u16SciTemp >> 8) & 0x00FF;
+	// 	t_u8BuffTemp[i++] = u16SciTemp & 0x00FF;
 
-		// SuspendFlag1 = SuspendFlag2;
-		// SuspendFlag2 = RTC_ExtComCnt1;
-		// // 蓝牙
-		// if (SuspendFlag1 != SuspendFlag2)
-		// {
-		// 	BlueToothFlag = 1;
-		// }
-		// else
-		// {
-		// 	BlueToothFlag = 0;
-		// }
-		u16SciTemp = BlueToothFlag; // 蓝牙
-		t_u8BuffTemp[i++] = (u16SciTemp >> 8) & 0x00FF;
-		t_u8BuffTemp[i++] = u16SciTemp & 0x00FF;
+	// 	// SuspendFlag1 = SuspendFlag2;
+	// 	// SuspendFlag2 = RTC_ExtComCnt1;
+	// 	// // 蓝牙
+	// 	// if (SuspendFlag1 != SuspendFlag2)
+	// 	// {
+	// 	// 	BlueToothFlag = 1;
+	// 	// }
+	// 	// else
+	// 	// {
+	// 	// 	BlueToothFlag = 0;
+	// 	// }
+	// 	u16SciTemp = BlueToothFlag; // 蓝牙
+	// 	t_u8BuffTemp[i++] = (u16SciTemp >> 8) & 0x00FF;
+	// 	t_u8BuffTemp[i++] = u16SciTemp & 0x00FF;
 
-		// u16SciTemp = System_OnOFF_Func.bits.b1OnOFF_Heat; // 加热
-		u16SciTemp = SystemStatus.bits.b1Status_Heat; // 加热
-		t_u8BuffTemp[i++] = (u16SciTemp >> 8) & 0x00FF;
-		t_u8BuffTemp[i++] = u16SciTemp & 0x00FF;
+	// 	// u16SciTemp = System_OnOFF_Func.bits.b1OnOFF_Heat; // 加热
+	// 	u16SciTemp = SystemStatus.bits.b1Status_Heat; // 加热
+	// 	t_u8BuffTemp[i++] = (u16SciTemp >> 8) & 0x00FF;
+	// 	t_u8BuffTemp[i++] = u16SciTemp & 0x00FF;
 
-		for (j = 0; j < 12; j++)
-		{																															   // 实时信息		两个拼在一起
-			u16SciTemp = ((*(&System_ErrFlag.u8ErrFlag_Com_AFE1 + 2 * j)) << 8) | (*(&System_ErrFlag.u8ErrFlag_Com_AFE1 + 2 * j + 1)); // 结构体
-			t_u8BuffTemp[i++] = (u16SciTemp >> 8) & 0x00FF;
-			t_u8BuffTemp[i++] = u16SciTemp & 0x00FF;
-		}
+	// 	for (j = 0; j < 12; j++)
+	// 	{																															   // 实时信息		两个拼在一起
+	// 		u16SciTemp = ((*(&System_ErrFlag.u8ErrFlag_Com_AFE1 + 2 * j)) << 8) | (*(&System_ErrFlag.u8ErrFlag_Com_AFE1 + 2 * j + 1)); // 结构体
+	// 		t_u8BuffTemp[i++] = (u16SciTemp >> 8) & 0x00FF;
+	// 		t_u8BuffTemp[i++] = u16SciTemp & 0x00FF;
+	// 	}
 
-		u16SciTemp = (g_stCellInfoReport.unMdlFault_Third.all); // 三级状态
-		t_u8BuffTemp[i++] = (u16SciTemp >> 8) & 0x00FF;
-		t_u8BuffTemp[i++] = u16SciTemp & 0x00FF;
+	// 	u16SciTemp = (g_stCellInfoReport.unMdlFault_Third.all); // 三级状态
+	// 	t_u8BuffTemp[i++] = (u16SciTemp >> 8) & 0x00FF;
+	// 	t_u8BuffTemp[i++] = u16SciTemp & 0x00FF;
 
-		u16SciTemp = (g_stCellInfoReport.u16VCellTotle + 50) / 10;
-		t_u8BuffTemp[i++] = (u16SciTemp >> 8) & 0x00FF;
-		t_u8BuffTemp[i++] = u16SciTemp & 0x00FF;
+	// 	u16SciTemp = (g_stCellInfoReport.u16VCellTotle + 50) / 10;
+	// 	t_u8BuffTemp[i++] = (u16SciTemp >> 8) & 0x00FF;
+	// 	t_u8BuffTemp[i++] = u16SciTemp & 0x00FF;
 
-		break;
+	// 	break;
 
 	case 8:
 		Sci_ACK_0x03_ReadRegs_EventRecord(t_u8BuffTemp);

@@ -12,7 +12,8 @@
 #define CID1_BAT_DATA           0x46       // 电池数据类固定CID1
 // 4种核心命令CID2定义
 #define CMD_GET_BATTERY_INFO    0x60       // 获取电池组系统基本信息
-#define CMD_GET_ANALOG_DATA     0x61       // 获取电池系统运行模拟量信息
+#define CMD_GET_ANALOG1_DATA    0x61       // 获取电池系统运行模拟量信息
+#define CMD_GET_ANALOG2_DATA    0x42       // 获取电池系统运行模拟量信息
 #define CMD_GET_ALARM_INFO      0x62       // 获取电池组系统状态告警量信息
 #define CMD_GET_CHARGE_DIS_INFO 0x63       // 获取电池组系统充放电管理交互信息
    
@@ -28,7 +29,8 @@
 #define RTN_COMM_ERROR          0x91       // 内部通信错误
 // 从机配置
 #define PROTOCOL_VERSION        0x20       //协议版本号
-#define SLAVE_ADDRESS           0x12       // 本机从机地址（协议要求从2开始）
+// #define SLAVE_ADDRESS           0x12       // 本机从机地址（协议要求从2开始）
+#define SLAVE_ADDRESS           0x02       // 本机从机地址（协议要求从2开始）
 #define MAX_FRAME_LEN           350
 //#define MAX_FRAME_LEN           350        // 最大帧长度
 #define ASCII_RX_FRAME_LEN      64

@@ -14,7 +14,7 @@ static uint16_t BmsComm_EncodePylonLocation(uint16_t point_index, uint8_t type_c
     return (uint16_t)((point_index << 8) | type_code);
 }
 
-static uint16_t BmsComm_EncodePylonTemperature(int16_t temp_c_x10)
+uint16_t BmsComm_EncodePylonTemperature(int16_t temp_c_x10)
 {
     temp_c_x10 = (int16_t)(temp_c_x10 + 2730);
     if (temp_c_x10 < 0)

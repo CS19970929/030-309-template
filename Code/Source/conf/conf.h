@@ -23,7 +23,7 @@
 
 #define EEPROM_VALUE_BEGIN_FLAG				0x0318		//Ĭ��0x1133������Լ���Ҫˢһ�飬���Լ������ٸĻ�0x1133
 
-#define _DI_SWITCH_SYS_ONOFF	//DI������������
+// #define _DI_SWITCH_SYS_ONOFF	//DI������������
 //#define _DI_SWITCH_DSG_ONOFF	//DI�����������Ʒŵ�Ӵ�������MOS
 // #define _DI_SWITCH_longKEY_ONOFF
 
