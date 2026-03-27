@@ -15,8 +15,8 @@ UINT8 u8E2P_KB_WriteFlag = 0;
 
 UINT8 u8E2P_KB_WritePos = 0;
 
-#define EEPROM_ADDR_CURRENT_OFFSET_INV	((UINT16)0x3FF6)
-#define EEPROM_ADDR_CURRENT_OFFSET   	((UINT16)0x3FF8)
+#define EEPROM_ADDR_CURRENT_OFFSET_INV ((UINT16)0x3FF6)
+#define EEPROM_ADDR_CURRENT_OFFSET ((UINT16)0x3FF8)
 
 void InitData_E2prom(void);
 static UINT8 WriteCurrentOffset_E2prom(UINT16 data);
@@ -653,18 +653,19 @@ static void LoadE2promRuntimeData(void)
 	UINT16 offset_value;
 
 	g_u32CS_Res_AFE = ((UINT32)OtherElement.u16Sys_CS_Res_Num * 1000) / OtherElement.u16Sys_CS_Res;
-	//todo 仔细考虑下eeprom、flash、备份域等等
+	// todo 仔细考虑下eeprom、flash、备份域等等
 	if (ReadCurrentOffset_E2prom(&offset_value) != 0)
 	{
-		offset_value = FlashReadOneHalfWord(FLASH_ADDR_SH367309_VALUE);
-		if (offset_value != 0xFFFF)
-		{
-			WriteCurrentOffset_E2prom(offset_value);
-		}
-		else
-		{
-			offset_value = 0;
-		}
+		// offset_value = FlashReadOneHalfWord(FLASH_ADDR_SH367309_VALUE);
+		// if (offset_value != 0xFFFF)
+		// {
+		// 	WriteCurrentOffset_E2prom(offset_value);
+		// }
+		// else
+		// {
+		// 	offset_value = 0;
+		// }
+		offset_value = 0;
 	}
 	curr_offset = offset_value;
 	OffsetValue_CHG = 0;
@@ -735,4 +736,3 @@ void App_E2promDeal(void)
 		WriteEEPROM_ByteData_Circle();
 	}
 }
-

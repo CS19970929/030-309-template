@@ -2,16 +2,17 @@
 
 static uint16_t BmsComm_EncodePylonLocation(uint16_t point_index, uint8_t type_code)
 {
-    if (point_index == 0U)
-    {
-        return 0xFFFFU;
-    }
-    if (point_index > 0x00FFU)
-    {
-        point_index = 0x00FFU;
-    }
+    // if (point_index == 0U)
+    // {
+    //     return 0xFFFFU;
+    // }
+    // if (point_index > 0x00FFU)
+    // {
+    //     point_index = 0x00FFU;
+    // }
 
-    return (uint16_t)((point_index << 8) | type_code);
+    // return (uint16_t)((point_index << 8) | type_code);
+    return g_stCellInfoReport.u16VCellMaxPosition;
 }
 
 uint16_t BmsComm_EncodePylonTemperature(int16_t temp_c_x10)
@@ -284,9 +285,11 @@ uint16_t BmsComm_BuildAnalogPayload(uint8_t *info_buf, uint16_t capacity)
     analog_soh_u8[1] = (uint8_t)g_stCellInfoReport.SocElement.u16Soh;
 
     analog_tail_u16[0] = g_stCellInfoReport.u16VCellMax;
-    analog_tail_u16[1] = BmsComm_EncodePylonLocation(g_stCellInfoReport.u16VCellMaxPosition, 0x04U);
+    // analog_tail_u16[1] = BmsComm_EncodePylonLocation(g_stCellInfoReport.u16VCellMaxPosition, 0x04U);
+    analog_tail_u16[1] = g_stCellInfoReport.u16VCellMaxPosition;
     analog_tail_u16[2] = g_stCellInfoReport.u16VCellMin;
-    analog_tail_u16[3] = BmsComm_EncodePylonLocation(g_stCellInfoReport.u16VCellMinPosition, 0x04U);
+    // analog_tail_u16[3] = BmsComm_EncodePylonLocation(g_stCellInfoReport.u16VCellMinPosition, 0x04U);
+    analog_tail_u16[3] = g_stCellInfoReport.u16VCellMinPosition;
     analog_tail_u16[4] = cell_avg_temp;
     analog_tail_u16[5] = cell_max_temp;
     analog_tail_u16[6] = cell_max_location;
@@ -376,8 +379,8 @@ uint16_t BmsComm_BuildChargeDischargePayload(uint8_t *info_buf, uint16_t capacit
     idx = 0U;
     idx = BmsComm_AppendU16(info_buf, idx, capacity, charge_volt_limit);
     idx = BmsComm_AppendU16(info_buf, idx, capacity, discharge_volt_limit);
-    idx = BmsComm_AppendU16(info_buf, idx, capacity, PRT_E2ROMParas.u16IchgOcp_Second / 10);
-    idx = BmsComm_AppendU16(info_buf, idx, capacity, PRT_E2ROMParas.u16IdsgOcp_Second / 10);
+    idx = BmsComm_AppendU16(info_buf, idx, capacity, PRT_E2ROMParas.u16IchgOcp_Second);
+    idx = BmsComm_AppendU16(info_buf, idx, capacity, PRT_E2ROMParas.u16IdsgOcp_Second);
     idx = BmsComm_AppendU8(info_buf, idx, capacity, BmsComm_GetChargeDischargeStatus());
 
     return idx;

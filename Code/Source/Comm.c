@@ -134,7 +134,7 @@ static void Comm_PortInit(CommPortContext *ctx, USART_TypeDef *instance, uint8_t
         GPIO_PinAFConfig(GPIOA, GPIO_PinSource9, GPIO_AF_1);
         GPIO_PinAFConfig(GPIOA, GPIO_PinSource10, GPIO_AF_1);
         gpio_init.GPIO_Pin = GPIO_Pin_9 | GPIO_Pin_10;
-        usart_init.USART_BaudRate = 115200;
+        usart_init.USART_BaudRate = 9600;
     }
     else
     {
