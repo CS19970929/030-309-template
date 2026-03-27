@@ -227,7 +227,6 @@ void App_DI1_Switch(void)
 		}
 	}
 
-
 #endif
 }
 
@@ -248,6 +247,10 @@ void Drivers_External_Ctrl(void)
 			SH367309_DriverMos_Ctrl(GPIO_DSG, Driver_Element.MosRelay_Status.bits.b1Status_MOS_DSG);
 		}
 	}
+	if (1 == SystemStatus.bits.b1Status_MOS_CHG && 1 == SystemStatus.bits.b1Status_MOS_DSG)
+		GPIO_WriteBit(GPIOF, GPIO_Pin_7, 0);
+	else
+		GPIO_WriteBit(GPIOF, GPIO_Pin_7, 0);
 }
 
 void InitMosRelay_DOx(void)
