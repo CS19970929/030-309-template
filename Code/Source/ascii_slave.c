@@ -226,7 +226,7 @@ uint16_t Cmd_Handle_Analog2_Value(uint8_t *tx_buf, uint8_t cmd)
     // Command值
     info_buf[idx++] = cmd;
     // 电芯节数
-    uint8_t cell_num = SNum;
+    uint8_t cell_num = SeriesNum;
     info_buf[idx++] = cell_num;
     // 电芯电压
     for (uint8_t i = 0; i < cell_num; i++)

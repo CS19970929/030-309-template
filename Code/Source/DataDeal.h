@@ -173,7 +173,7 @@ struct OTHER_ELEMENT {
 	                             CS_Cur_CHGmax,	CS_Cur_DSGmax,CBC_DelayT,CBC_Cur_DSG,\
 	                             SOC_TABLE_LIFEPO,0,1000,30,\
 	                             3200,	7200,	2800,	10,		10,	10,	240,0,\
-	                             1000,	1,		3550,	2600,\
+	                             2000,	1,		3550,	2600,\
 	                             SNum,CS_Res,CS_Res_Num,500}
 #endif
 

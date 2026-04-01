@@ -270,7 +270,8 @@ void DataLoad_Current(void)
 	if ((SH367309_Read_AFE1.u16Current & 0x8000) == 0)
 	{
 		// u32_ChgCur_mA = (UINT32)SH367309_Read_AFE1.u16Current * 1000 * g_u32CS_Res_AFE / gu32_CurCoefficient; // 默认使用200mV的计算方式
-		u32_ChgCur_mA = (UINT32)SH367309_Read_AFE1.u16Current * 200 * g_u32CS_Res_AFE / (21470);
+		// u32_ChgCur_mA = (UINT32)SH367309_Read_AFE1.u16Current * 200 * g_u32CS_Res_AFE / (21470);
+		u32_ChgCur_mA = (UINT32)SH367309_Read_AFE1.u16Current * g_u32CS_Res_AFE / (21470) * 200;
 		// t_i32temp = (UINT32)(0xFFFF - SH367309_Read_AFE1.u16Current + 1) * g_u32CS_Res_AFE / (21470) * 200; // mA
 
 		log_i("******************************************\n");

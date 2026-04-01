@@ -248,7 +248,7 @@ void Drivers_External_Ctrl(void)
 		}
 	}
 	if (1 == SystemStatus.bits.b1Status_MOS_CHG && 1 == SystemStatus.bits.b1Status_MOS_DSG)
-		GPIO_WriteBit(GPIOF, GPIO_Pin_7, 0);
+		GPIO_WriteBit(GPIOF, GPIO_Pin_7, 1);
 	else
 		GPIO_WriteBit(GPIOF, GPIO_Pin_7, 0);
 }
