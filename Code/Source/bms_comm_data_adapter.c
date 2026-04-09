@@ -373,14 +373,14 @@ uint16_t BmsComm_BuildChargeDischargePayload(uint8_t *info_buf, uint16_t capacit
         return 0U;
     }
 
-    charge_volt_limit = BmsComm_SaturateU16((uint32_t)OtherElement.u16Soc_V_100 * series_count);
+    charge_volt_limit = BmsComm_SaturateU16((uint32_t)PRT_E2ROMParas.u16VcellOvp_Third * series_count);
     discharge_volt_limit = BmsComm_SaturateU16((uint32_t)OtherElement.u16Soc_V_0 * series_count);
 
     idx = 0U;
     idx = BmsComm_AppendU16(info_buf, idx, capacity, charge_volt_limit);
     idx = BmsComm_AppendU16(info_buf, idx, capacity, discharge_volt_limit);
-    idx = BmsComm_AppendU16(info_buf, idx, capacity, PRT_E2ROMParas.u16IchgOcp_Second);
-    idx = BmsComm_AppendU16(info_buf, idx, capacity, PRT_E2ROMParas.u16IdsgOcp_Second);
+    idx = BmsComm_AppendU16(info_buf, idx, capacity, PRT_E2ROMParas.u16IchgOcp_Second * 10);
+    idx = BmsComm_AppendU16(info_buf, idx, capacity, PRT_E2ROMParas.u16IdsgOcp_Second * 10);
     idx = BmsComm_AppendU8(info_buf, idx, capacity, BmsComm_GetChargeDischargeStatus());
 
     return idx;

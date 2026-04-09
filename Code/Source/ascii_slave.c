@@ -459,8 +459,8 @@ uint16_t Ascii_HandleFrame(const uint8_t *rx_buf, uint16_t rx_len, uint8_t *tx_b
 #if 1
     switch (cid2)
     {
-    case CMD_GET_BATTERY_INFO:
-        return Ascii_BuildBaseInfo(tx_buf);
+    // case CMD_GET_BATTERY_INFO:
+    //     return Ascii_BuildBaseInfo(tx_buf);
     case CMD_GET_ANALOG1_DATA:
         return Ascii_BuildAnalogData(tx_buf);
     case CMD_GET_ANALOG2_DATA:

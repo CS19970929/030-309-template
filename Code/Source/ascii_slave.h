@@ -29,8 +29,8 @@
 #define RTN_COMM_ERROR          0x91       // 内部通信错�??
 // 从机配置
 #define PROTOCOL_VERSION        0x20       //协�??版本�?
-// #define SLAVE_ADDRESS           0x12       // �?机从机地址（协�?要求�?2开始）
-#define SLAVE_ADDRESS           0x02       // �?机从机地址（协�?要求�?2开始）
+#define SLAVE_ADDRESS           0x12       // �?机从机地址（协�?要求�?2开始）
+// #define SLAVE_ADDRESS           0x02       // �?机从机地址（协�?要求�?2开始）
 #define MAX_FRAME_LEN           600
 //#define MAX_FRAME_LEN           350        // 最大帧长度
 #define ASCII_RX_FRAME_LEN      64
@@ -44,13 +44,13 @@
 /************************* 数据结构体定�? *************************/
 
 // 设�?�基础信息
-typedef struct {
-    uint8_t  device_name[10];              // 主机设�?�名称，10字节ASCII
-    uint8_t  manufactory_name[20];         // 主机厂商名称�?20字节ASCII
-    uint8_t  software_ver[2];              // 主机�?件版�?�?2字节
-    uint8_t  battery_num;                  // 电池数量
-    uint8_t  battery_barcode[CELL_MAX_NUM][16];// 电池1~16条形�?
-} Battery_Base_Info_T;
+// typedef struct {
+//     uint8_t  device_name[10];              // 主机设�?�名称，10字节ASCII
+//     uint8_t  manufactory_name[20];         // 主机厂商名称�?20字节ASCII
+//     uint8_t  software_ver[2];              // 主机�?件版�?�?2字节
+//     uint8_t  battery_num;                  // 电池数量
+//     uint8_t  battery_barcode[CELL_MAX_NUM][16];// 电池1~16条形�?
+// } Battery_Base_Info_T;
 
 // 模拟量数�?
 typedef struct {
