@@ -109,7 +109,7 @@ void Refresh_Parameters(void)
 
 	AFE_ROM_PARAMETERS_Struction.m04H_05H.UVT = 0;
 	AFE_ROM_PARAMETERS_Struction.m06H_07H.UV = (2700 / 20) & 0x00FF;
-	AFE_ROM_PARAMETERS_Struction.m06H_07H.UVR = (3000 / 20) & 0x00FF;
+	AFE_ROM_PARAMETERS_Struction.m06H_07H.UVR = (2800 / 20) & 0x00FF;
 
 	AFE_ROM_PARAMETERS_Struction.m0CH_0DH.OCD1V = 2;
 	AFE_ROM_PARAMETERS_Struction.m0CH_0DH.OCD1T = 0;
@@ -123,8 +123,8 @@ void Refresh_Parameters(void)
 	AFE_TEMPERATURE[1] = (45 + 40);	 /* 充电高温保护恢复 */
 	AFE_TEMPERATURE[2] = (0 + 40);		 /* 充电低温保护 */
 	AFE_TEMPERATURE[3] = (5 + 40);	 /* 充电低温保护恢复 */
-	AFE_TEMPERATURE[4] = (65 + 40);	 /* 放电高温保护 */
-	AFE_TEMPERATURE[5] = (60 + 40); /* 放电高温保护恢复 */
+	AFE_TEMPERATURE[4] = (80 + 40);	 /* 放电高温保护 */
+	AFE_TEMPERATURE[5] = (70 + 40); /* 放电高温保护恢复 */
 	AFE_TEMPERATURE[6] = (-20 + 40);	 /* 放电低温保护 */
 	AFE_TEMPERATURE[7] = (-15 + 40); /* 放电低温保护恢复 */
 
