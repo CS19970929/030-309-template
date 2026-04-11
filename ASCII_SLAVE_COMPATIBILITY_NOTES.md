@@ -15,6 +15,7 @@
 5. 在 `App_CommonUpper()` 中追加 `Frame_Parse_Process()`，避免改动 `main.c`。
 6. 在 `ascii_slave` 内增加实时数据刷新，把当前项目运行时数据映射到客户协议结构体 `g_battery_data`。
 7. 在 Keil 工程文件中补入 `Code/Source/ascii_slave.c`。
+8. 在 `ascii_slave` 内增加接收超时保护，半包超时后自动丢弃，避免持续占用串口分流状态。
 
 ## 数据映射
 
@@ -39,6 +40,7 @@
 
 - 不再修改 `g_battery_data.charge_dis_info` 内的原始字段，避免重复乘法污染全局数据。
 - ASCII 帧先按 SOI、LENGTH、EOI 做边界约束，再进入命令分发。
+- ASCII 接收增加 `50ms` 字节间超时；接收入口和主循环解析前都会检查，半包超时后立即复位。
 - ASCII 发送统一走阻塞方式，避免当前项目缺失 DMA 资源定义导致构建失败。
 - `main.c` 未改动，减少对现有调度路径的影响。
 

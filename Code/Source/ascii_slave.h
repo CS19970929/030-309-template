@@ -151,6 +151,7 @@ uint16_t Cmd_Handle_Charge_Dis_Info(uint8_t *tx_buf);
 void Frame_Parse_Process(void);
 void Ascii_Slave_ResetRx(void);
 uint8_t Ascii_Slave_ConsumeByte(uint8_t rx_byte);
+void Ascii_Slave_PollTimeout(void);
 
 void Ascii_Send_Byte(uint8_t Modbus_byte,USART_TypeDef *UARTx);
 void Ascii_Send_NByte(uint8_t *buff,uint16_t len,USART_TypeDef *UARTx);

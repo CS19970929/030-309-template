@@ -12,6 +12,9 @@ uint16_t uart_rx_len = 0;
 uint8_t frame_received_flag = 0;
 uint8_t tx_buf[MAX_FRAME_LEN] = {0};
 static uint16_t ascii_expect_len = 0;
+static int32_t ascii_rx_last_byte_time = 0;
+
+#define ASCII_RX_INTER_BYTE_TIMEOUT_MS    50U
 
 /************************* 电池数据初始化（固定默认值） *************************/
 Battery_Data_T g_battery_data = 
@@ -153,6 +156,21 @@ static uint8_t Ascii_ParseHexByte(uint8_t high_ascii, uint8_t low_ascii, uint8_t
 
     *value = (uint8_t)((high << 4) | low);
     return 1U;
+}
+
+static uint8_t Ascii_Slave_IsRxTimeout(void)
+{
+    if((uart_rx_len == 0U) || (frame_received_flag != 0U))
+    {
+        return 0U;
+    }
+
+    if(bsp_CheckRunTime(ascii_rx_last_byte_time) > (int32_t)ASCII_RX_INTER_BYTE_TIMEOUT_MS)
+    {
+        return 1U;
+    }
+
+    return 0U;
 }
 
 static void Ascii_RefreshAnalog1Temps(void)
@@ -723,7 +741,16 @@ void Ascii_Slave_ResetRx(void)
     uart_rx_len = 0U;
     ascii_expect_len = 0U;
     frame_received_flag = 0U;
+    ascii_rx_last_byte_time = 0;
     memset(uart_rx_buf, 0, sizeof(uart_rx_buf));
+}
+
+void Ascii_Slave_PollTimeout(void)
+{
+    if(Ascii_Slave_IsRxTimeout() != 0U)
+    {
+        Ascii_Slave_ResetRx();
+    }
 }
 
 uint8_t Ascii_Slave_ConsumeByte(uint8_t rx_byte)
@@ -732,10 +759,16 @@ uint8_t Ascii_Slave_ConsumeByte(uint8_t rx_byte)
     uint8_t length_high;
     uint8_t length_low;
 
+    if(Ascii_Slave_IsRxTimeout() != 0U)
+    {
+        Ascii_Slave_ResetRx();
+    }
+
     if(rx_byte == SOI)
     {
         Ascii_Slave_ResetRx();
         uart_rx_buf[uart_rx_len++] = rx_byte;
+        ascii_rx_last_byte_time = bsp_GetRunTime();
         return 1U;
     }
 
@@ -751,6 +784,7 @@ uint8_t Ascii_Slave_ConsumeByte(uint8_t rx_byte)
     }
 
     uart_rx_buf[uart_rx_len++] = rx_byte;
+    ascii_rx_last_byte_time = bsp_GetRunTime();
 
     if(uart_rx_len == 13U)
     {
@@ -924,6 +958,8 @@ void Frame_Parse_Process(void)
     uint8_t cmd = 0U;
     uint8_t info_hex_buf[256] = {0};
     uint16_t i;
+
+    Ascii_Slave_PollTimeout();
 
     if(!frame_received_flag)
     {
