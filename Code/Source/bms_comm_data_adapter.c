@@ -277,7 +277,7 @@ uint16_t BmsComm_BuildAnalogPayload(uint8_t *info_buf, uint16_t capacity)
     }
 
     analog_prefix_u16[0] = BmsComm_SaturateU16((uint32_t)g_stCellInfoReport.u16VCellTotle * 10UL);
-    analog_prefix_u16[1] = (uint16_t)(pack_current * 100);
+    analog_prefix_u16[1] = (uint16_t)(pack_current);
     analog_mid_u8[0] = (uint8_t)g_stCellInfoReport.SocElement.u16Soc;
     analog_mid_u16[0] = g_stCellInfoReport.SocElement.u16Cycle_times;
     analog_mid_u16[1] = g_stCellInfoReport.SocElement.u16Cycle_times;
