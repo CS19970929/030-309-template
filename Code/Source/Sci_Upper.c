@@ -1,4 +1,5 @@
 #include "main.h"
+#include "ascii_slave.h"
 
 struct RS485MSG g_stCurrentMsgPtr_SCI1;
 UINT16 gu16_CommuErrCnt_SCI1 = 0; // SCI通信异常计数
@@ -881,11 +882,18 @@ void Sci1_CommonUpper_FaultChk(void)
  *=================================================================*/
 void Sci1_CommonUpper_Rx_Deal(struct RS485MSG *s)
 {
+	UINT8 rx_byte;
 	// RC1IE = 0;// 禁止EUSART2 接收中断
 	// s->u16Buffer[s->ptr_no] = RCREG1;                 //读RCREG寄存器来读取接收到的8位数据
 	// NVIC_DisableIRQ(USART1_IRQn);
-	USART1->CR1 &= ~(1 << 5);			   // 和上面那句话二选一
-	s->u16Buffer[s->ptr_no] = USART1->RDR; // 从RXFIFO 中读取接收到的数据
+	USART1->CR1 &= ~(1 << 5);			   // ?????????????????????????°????????ò?
+	rx_byte = (UINT8)USART1->RDR;
+	if (Ascii_Slave_ConsumeByte(rx_byte))
+	{
+		USART1->CR1 |= (1 << 5);
+		return;
+	}
+	s->u16Buffer[s->ptr_no] = rx_byte; // 从RXFIFO 中读取接收到的数据
 	if ((s->ptr_no == 0) && (s->u16Buffer[0] != RS485_SLAVE_ADDR) && (s->u16Buffer[0] != RS485_BROADCAST_ADDR))
 	{
 		s->ptr_no = 0;
@@ -2153,6 +2161,7 @@ void App_CommonUpper(void)
 {
 #ifdef _COMMOM_UPPER_SCI1
 	App_CommonUpperSCI1(&g_stCurrentMsgPtr_SCI1);
+	Frame_Parse_Process();
 #endif
 
 #ifdef _COMMOM_UPPER_SCI2

@@ -48,49 +48,6 @@ int main(void)
 		Feed_IWatchDog;
 #endif
 	}
-
-	while (1)
-	{
-#if (defined _DEBUG_CODE)
-		App_SysTime();
-		App_AFEGet();
-		App_CommonUpper();
-		App_AnlogCal();
-		App_SOC();
-		App_WarnCtrl();
-		App_SleepDeal(); // 放在App_MOS_Relay_Control()后面
-		APP_LedBar();
-		Feed_IWatchDog;
-#else
-		App_SysTime();
-		App_CommonUpper();
-
-		App_AFEGet();
-		App_WarnCtrl();
-		App_AnlogCal();
-
-		App_E2promDeal();
-		App_SleepDeal(); // 放在App_MOS_Relay_Control()后面
-		App_SOC();
-		App_CellBalance();
-
-		// APP_LedBar();
-
-		// App_ChargerLoad_Det();
-#ifdef __FUNC__HEAT__
-		App_Heat_Cool_Ctrl();
-#endif // DEBUG
-
-		App_FlashUpdateDet();
-		App_LogRecord();
-		App_ProID_Deal();
-
-#ifdef wdog_enable
-		Feed_IWatchDog;
-#endif
-
-#endif
-	}
 }
 
 void InitDevice(void)
