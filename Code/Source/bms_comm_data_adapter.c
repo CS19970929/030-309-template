@@ -220,7 +220,7 @@ uint16_t BmsComm_BuildAnalogPayload(uint8_t *info_buf, uint16_t capacity)
         return 0U;
     }
 
-    pack_current = (g_stCellInfoReport.u16Ichg > 0U) ? (int16_t)g_stCellInfoReport.u16Ichg : (int16_t)(-((int16_t)g_stCellInfoReport.u16IDischg));
+    pack_current = (g_stCellInfoReport.u16Ichg > 0U) ? (int16_t)((int32_t)g_stCellInfoReport.u16Ichg * 10) : (int16_t)(-((int32_t)g_stCellInfoReport.u16IDischg * 10));
     temp_sum = 0UL;
     valid_count = 0U;
     temp_max_index = 0U;
@@ -334,28 +334,10 @@ uint16_t BmsComm_BuildAlarmPayload(uint8_t *info_buf, uint16_t capacity)
     bms_error = (uint8_t)((SystemStatus.bits.b1Status_AFE1 == 0U));
 
     idx = 0U;
-    idx = BmsComm_AppendU8(info_buf, idx, capacity, (uint8_t)((alarm_fault.bits.b1BatOvp << 7) |
-                                                               (alarm_fault.bits.b1BatUvp << 6) |
-                                                               (alarm_fault.bits.b1CellOvp << 5) |
-                                                               (alarm_fault.bits.b1CellUvp << 4) |
-                                                               (((alarm_fault.bits.b1CellChgOtp != 0U) || (alarm_fault.bits.b1CellDischgOtp != 0U)) << 3) |
-                                                               (((alarm_fault.bits.b1CellChgUtp != 0U) || (alarm_fault.bits.b1CellDischgUtp != 0U)) << 2) |
-                                                               (alarm_fault.bits.b1TmosOtp << 1) |
-                                                               alarm_fault.bits.b1VcellDeltaBig));
-    idx = BmsComm_AppendU8(info_buf, idx, capacity, (uint8_t)((alarm_fault.bits.b1TempDeltaBig << 7) |
-                                                               (alarm_fault.bits.b1IchgOcp << 6) |
-                                                               (alarm_fault.bits.b1IdischgOcp << 5) |
-                                                               (bms_error << 4)));
-    idx = BmsComm_AppendU8(info_buf, idx, capacity, (uint8_t)((protect_fault.bits.b1BatOvp << 7) |
-                                                               (protect_fault.bits.b1BatUvp << 6) |
-                                                               (protect_fault.bits.b1CellOvp << 5) |
-                                                               (protect_fault.bits.b1CellUvp << 4) |
-                                                               (((protect_fault.bits.b1CellChgOtp != 0U) || (protect_fault.bits.b1CellDischgOtp != 0U)) << 3) |
-                                                               (((protect_fault.bits.b1CellChgUtp != 0U) || (protect_fault.bits.b1CellDischgUtp != 0U)) << 2) |
-                                                               (protect_fault.bits.b1TmosOtp << 1)));
-    idx = BmsComm_AppendU8(info_buf, idx, capacity, (uint8_t)((protect_fault.bits.b1IchgOcp << 6) |
-                                                               (protect_fault.bits.b1IdischgOcp << 5) |
-                                                               (bms_error << 3)));
+    idx = BmsComm_AppendU8(info_buf, idx, capacity, (uint8_t)((alarm_fault.bits.b1BatOvp << 7) | (alarm_fault.bits.b1BatUvp << 6) | (alarm_fault.bits.b1CellOvp << 5) | (alarm_fault.bits.b1CellUvp << 4) | (((alarm_fault.bits.b1CellChgOtp != 0U) || (alarm_fault.bits.b1CellDischgOtp != 0U)) << 3) | (((alarm_fault.bits.b1CellChgUtp != 0U) || (alarm_fault.bits.b1CellDischgUtp != 0U)) << 2) | (alarm_fault.bits.b1TmosOtp << 1) | alarm_fault.bits.b1VcellDeltaBig));
+    idx = BmsComm_AppendU8(info_buf, idx, capacity, (uint8_t)((alarm_fault.bits.b1TempDeltaBig << 7) | (alarm_fault.bits.b1IchgOcp << 6) | (alarm_fault.bits.b1IdischgOcp << 5) | (bms_error << 4)));
+    idx = BmsComm_AppendU8(info_buf, idx, capacity, (uint8_t)((protect_fault.bits.b1BatOvp << 7) | (protect_fault.bits.b1BatUvp << 6) | (protect_fault.bits.b1CellOvp << 5) | (protect_fault.bits.b1CellUvp << 4) | (((protect_fault.bits.b1CellChgOtp != 0U) || (protect_fault.bits.b1CellDischgOtp != 0U)) << 3) | (((protect_fault.bits.b1CellChgUtp != 0U) || (protect_fault.bits.b1CellDischgUtp != 0U)) << 2) | (protect_fault.bits.b1TmosOtp << 1)));
+    idx = BmsComm_AppendU8(info_buf, idx, capacity, (uint8_t)((protect_fault.bits.b1IchgOcp << 6) | (protect_fault.bits.b1IdischgOcp << 5) | (bms_error << 3)));
 
     return idx;
 }
