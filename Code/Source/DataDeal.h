@@ -136,9 +136,9 @@ struct OTHER_ELEMENT {
 
 #define  BMS_HARDWARE_VERDION_DEFAULT   "MOT-WH-001"
 #define  BMS_SOFTWARE_VERDION_DEFAULT   "MOT-WH-001"  //32
-#define  BMS_SERIAL_NUMBER_DEFAULT  	"MOT-WH-001"
+#define  BMS_SERIAL_NUMBER_DEFAULT  	"MOT-20260611-16s"
 
-#define SNum 			8
+#define SNum 			16
 
 // #define TERNARYLI		//��Ԫ﮵�أ���ѡ�?
 #define LIFEPO			//������﮵�أ���ѡ�?
