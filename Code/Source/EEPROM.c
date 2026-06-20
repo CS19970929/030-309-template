@@ -538,7 +538,7 @@ void WriteEEPROM_ByteData_Circle(void)
 	}
 	else if (gu8_Reset_EventRecord)
 	{
-		u8temp = 100 - gu8_Reset_EventRecord;
+		u8temp = EVENT_RECORD_LENGTH - gu8_Reset_EventRecord;
 		WriteEEPROM_Word_NoZone(E2P_ADDR_START_EVENT_RECORD + (u8temp << 1), 0);
 		gu8_Reset_EventRecord--;
 		if (gu8_Reset_EventRecord == 1)

@@ -1,6 +1,5 @@
 #include "main.h"
 
-#define EVENT_RECORD_LENGTH 30
 
 UINT8 BMS_LOG_POINT = 0;
 UINT8 BMS_LOG_RECORD[EVENT_RECORD_LENGTH][2]; // 0���¼���ţ�1������һ���¼���ʱ����
@@ -252,7 +251,7 @@ void ReadEEPROM_EventRecord_Parameters(void)
 	UINT16 t_u16RdTemp;
 
 	BMS_LOG_POINT = ReadEEPROM_Word_NoZone(E2P_ADDR_E2POS_EVENT_POINT);
-	if (BMS_LOG_POINT >= 101)
+	if (BMS_LOG_POINT > EVENT_RECORD_LENGTH)
 	{ // ���ָ������⣬ȫ��Reset
 		System_ERROR_UserCallback(ERROR_EEPROM_STORE);
 		EEPROM_ResetData_EventRecord_ToDefault();

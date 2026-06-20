@@ -107,6 +107,8 @@ void CRC_verify(struct RS485MSG *s)
 void Sci_Deal_ReadRegs_0x03(struct RS485MSG *s)
 {
 	UINT16 t_u16Temp;
+	UINT16 u16RdRegNum;
+	UINT16 u16RdByteStart;
 
 	t_u16Temp = s->u16Buffer[3] + (s->u16Buffer[2] << 8);
 	s->u16RdRegStartAddrActure = t_u16Temp;
@@ -152,7 +154,20 @@ void Sci_Deal_ReadRegs_0x03(struct RS485MSG *s)
 	}
 
 	s->u16RdRegStartAddr = t_u16Temp;
-	s->u16RdRegByteNum = (s->u16Buffer[5] + (s->u16Buffer[4] << 8)) << 1;
+	u16RdRegNum = s->u16Buffer[5] + (s->u16Buffer[4] << 8);
+	s->u16RdRegByteNum = u16RdRegNum << 1;
+	u16RdByteStart = t_u16Temp << 1;
+	if ((u16RdRegNum == 0) ||
+		(u16RdRegNum > ((RS485_MAX_BUFFER_SIZE - 5U) >> 1)) ||
+		(t_u16Temp > (SCI_TX_BUF_LEN >> 1)) ||
+		(s->u16RdRegByteNum > SCI_TX_BUF_LEN) ||
+		(u16RdByteStart >= SCI_TX_BUF_LEN) ||
+		((UINT16)(u16RdByteStart + s->u16RdRegByteNum) > SCI_TX_BUF_LEN))
+	{
+		s->u16RdRegByteNum = 0;
+		s->AckType = RS485_ACK_NEG;
+		s->ErrorType = RS485_ERROR_DATA_INVALID;
+	}
 }
 
 void Sci_Deal_WrReg_0x06(struct RS485MSG *s)

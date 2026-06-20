@@ -30,6 +30,7 @@ s_faultDesc[26]          App_FaultCheck_Run(idx)     App_WarnCtrl()
        │                        ├──→ App_PubOPUPChk()
        │                        │     (PubFunc.c, 滞后比较引擎)
        │                        │
+       │                        ├──→ unMdlFault_Second/Third 软件状态写回
        │                        ├──→ Fault_Flag_Second/Third 更新
        │                        └──→ FaultWarnRecord2() 首次记录
        │
@@ -116,8 +117,8 @@ FAULT_CTRL_GET_VIRCUR(c)
 | 13 | App_IdischgOcp_ThirdCheck | 放电过流 | Third |
 | 14 | App_IchgOcp_SecondCheck | 充电过流 | Second |
 | 15 | App_IchgOcp_ThirdCheck | 充电过流 | Third |
-| 16 | App_CellSocUp_SecondCheck | SOC 上限 | Second |
-| 17 | App_CellSocUp_ThirdCheck | SOC 上限 | Third |
+| 16 | App_CellSocUp_SecondCheck | SOC 低保护 | Second |
+| 17 | App_CellSocUp_ThirdCheck | SOC 低保护 | Third |
 | 18 | App_CellDisChgOtp_SecondCheck | 放电过温 | Second |
 | 19 | App_CellDisChgOtp_ThirdCheck | 放电过温 | Third |
 | 20 | App_CellDischgUtp_SecondCheck | 放电低温 | Second |
@@ -164,6 +165,7 @@ App_FaultCheck_Run(idx)
   ├─ 5. 调用 App_PubOPUPChk(&t) 执行滞后比较
   │
   └─ 6. 处理结果
+       ├─ 将 t.u8FlagBit 写回 unMdlFault_Second/Third 对应 bit
        ├─ t.u8FlagBit==1: 设置 Fault_Flag 位
        │   └─ 首次设置 (原为0): 调用 FaultWarnRecord2() + 回调
        └─ t.u8FlagBit==0: 清除 Fault_Flag 位
@@ -211,19 +213,23 @@ OTP/UTP 保护需要检查是否存在相应方向的电流，避免空载时误
 
 **门控条件**: AFE 位未设置 `&&` 电流 ≤ 1 → 跳过本次检查
 
-### 6. MosOTp 与 VdeltaOvp — bit 位置差异
+### 6. MDLCHGFAULT 与 Fault_Flag — bit 位置差异
 
-MDLCHGFAULT 寄存器和 Fault_Flag 联合体中，VdeltaOvp 和 MosOTp 的 bit 位置**不同**:
+MDLCHGFAULT 寄存器和 Fault_Flag 联合体中，部分故障的 bit 位置**不同**:
 
 | 故障 | MDLCHGFAULT bit | Fault_Flag bit | 原因 |
 |---|---|---|---|
 | VdeltaOvp | bit 10 (`b1VcellDeltaBig`) | bit 11 (`VdeltaOvp`) | 硬件/软件寄存器定义不同 |
 | MosOTp | bit 13 (`b1TmosOtp`) | bit 10 (`MosOTp`) | 同上 |
+| CellDsgOTp_Third | bit 7 (`b1CellDischgOtp`) | bit 8 (`CellDsgOTp_Third`) | `FAULT_FLAG_THIRD` 温度位顺序不同 |
+| CellChgUTp_Third | bit 8 (`b1CellChgUtp`) | bit 7 (`CellChgUTp_Third`) | 同上 |
 
 控制字中分别编码两个 bit 位置：
 ```c
 FAULT_CTRL_FAULTREG_BIT_POS(10) | FAULT_CTRL_FLAGREG_BIT_POS(11)  // VdeltaOvp
 FAULT_CTRL_FAULTREG_BIT_POS(13) | FAULT_CTRL_FLAGREG_BIT_POS(10)  // MosOTp
+FAULT_CTRL_FAULTREG_BIT_POS(7)  | FAULT_CTRL_FLAGREG_BIT_POS(8)   // CellDsgOTp_Third
+FAULT_CTRL_FAULTREG_BIT_POS(8)  | FAULT_CTRL_FLAGREG_BIT_POS(7)   // CellChgUTp_Third
 ```
 
 ---
@@ -234,8 +240,8 @@ FAULT_CTRL_FAULTREG_BIT_POS(13) | FAULT_CTRL_FLAGREG_BIT_POS(10)  // MosOTp
 
 | 类型 | FLAG_LOGIC | 跳闸条件 | 恢复条件 | 应用 |
 |---|---|---|---|---|
-| HIGH-trigger | 1 | `value >= ThreshB` | `value <= ThreshS` | OVP, OCP, OTP, VdeltaOvp, SoCUp |
-| LOW-trigger | 0 | `value <= ThreshB` | `value >= ThreshS` | UVP, UTP |
+| HIGH-trigger | 1 | `value >= ThreshB` | `value <= ThreshS` | OVP, OCP, OTP, VdeltaOvp |
+| LOW-trigger | 0 | `value <= ThreshB` | `value >= ThreshS` | UVP, UTP, SocLow |
 
 ### SPUBOPUPCHK 内部逻辑 (PubFunc.c)
 

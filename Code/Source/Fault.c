@@ -144,14 +144,14 @@ static const FaultCheckDesc s_faultDesc[26] = {
 	  &PRT_E2ROMParas.u16SocUp_First, &PRT_E2ROMParas.u16SocUp_Second,
 	  &s_counters[14],
 	  &PRT_E2ROMParas.u16SocUp_Filter, &PRT_E2ROMParas.u16SocUp_Filter,
-	  FAULT_CTRL_FAULTREG_BIT_POS(12) | FAULT_CTRL_FLAGREG_BIT_POS(12) | FAULT_CTRL_FLAG_LOGIC(1),
+	  FAULT_CTRL_FAULTREG_BIT_POS(12) | FAULT_CTRL_FLAGREG_BIT_POS(12) | FAULT_CTRL_FLAG_LOGIC(0),
 	  CellSocUp_Second },
 	/* 17 - App_CellSocUp_ThirdCheck */
 	{ &g_stCellInfoReport.SocElement.u16Soc,
 	  &PRT_E2ROMParas.u16SocUp_Rcv, &PRT_E2ROMParas.u16SocUp_Third,
 	  &s_counters[15],
 	  &PRT_E2ROMParas.u16SocUp_Filter, &PRT_E2ROMParas.u16SocUp_Filter,
-	  FAULT_CTRL_FAULTREG_BIT_POS(12) | FAULT_CTRL_FLAGREG_BIT_POS(12) | FAULT_CTRL_FLAG_LOGIC(1),
+	  FAULT_CTRL_FAULTREG_BIT_POS(12) | FAULT_CTRL_FLAGREG_BIT_POS(12) | FAULT_CTRL_FLAG_LOGIC(0),
 	  CellSocUp_Third },
 	/* 18 - App_CellDisChgOtp_SecondCheck (OTP/UTP, virCur=Idischg) */
 	{ &g_stCellInfoReport.u16TempMax,
@@ -165,7 +165,7 @@ static const FaultCheckDesc s_faultDesc[26] = {
 	  &PRT_E2ROMParas.u16TdischgOTp_Third, &PRT_E2ROMParas.u16TdischgOTp_Rcv,
 	  &s_counters[17],
 	  &PRT_E2ROMParas.u16TdischgOTp_Filter, &PRT_E2ROMParas.u16TdischgOTp_Filter,
-	  FAULT_CTRL_FAULTREG_BIT_POS(7) | FAULT_CTRL_FLAGREG_BIT_POS(7) | FAULT_CTRL_FLAG_LOGIC(1) | FAULT_CTRL_VIRCUR_TYPE(2),
+	  FAULT_CTRL_FAULTREG_BIT_POS(7) | FAULT_CTRL_FLAGREG_BIT_POS(8) | FAULT_CTRL_FLAG_LOGIC(1) | FAULT_CTRL_VIRCUR_TYPE(2),
 	  CellDsgOTp_Third },
 	/* 20 - App_CellDischgUtp_SecondCheck (OTP/UTP, virCur=Idischg) */
 	{ &g_stCellInfoReport.u16TempMin,
@@ -207,7 +207,7 @@ static const FaultCheckDesc s_faultDesc[26] = {
 	  &PRT_E2ROMParas.u16TchgUTp_Rcv, &PRT_E2ROMParas.u16TchgUTp_Third,
 	  &s_counters[23],
 	  &PRT_E2ROMParas.u16TchgUTp_Filter, &PRT_E2ROMParas.u16TchgUTp_Filter,
-	  FAULT_CTRL_FAULTREG_BIT_POS(8) | FAULT_CTRL_FLAGREG_BIT_POS(8) | FAULT_CTRL_FLAG_LOGIC(0) | FAULT_CTRL_VIRCUR_TYPE(1),
+	  FAULT_CTRL_FAULTREG_BIT_POS(8) | FAULT_CTRL_FLAGREG_BIT_POS(7) | FAULT_CTRL_FLAG_LOGIC(0) | FAULT_CTRL_VIRCUR_TYPE(1),
 	  CellChgUTp_Third }
 };
 
@@ -264,7 +264,14 @@ void App_FaultCheck_Run(UINT8 idx)
 
 	/* ---- Core check ---- */
 	if (App_PubOPUPChk(&t)) {
+		UINT16 faultMask = (UINT16)(1u << u8FaultRegBit);
 		UINT16 flagMask = (UINT16)(1u << u8FlagRegBit);
+
+		if (t.u8FlagBit == 1) {
+			pFaultReg->all |= faultMask;
+		} else {
+			pFaultReg->all = (UINT16)(pFaultReg->all & (UINT16)(~faultMask));
+		}
 
 		if (t.u8FlagBit == 1) {
 			if ((*pFlagAll & flagMask) == 0) {
