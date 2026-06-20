@@ -1,23 +1,12 @@
 
-ÊáÀíeeprom¡¢flash¡¢backup£¬¶Á¡¢Ğ´Ğ­Òé¡¢Ğ£Ñé»Ø¶Á
-iap¡¢appµØÖ·»®·Ö£¬Ìø×ªÂß¼­
+åˆ†åˆ«åˆ†æiapå’Œappçš„mapæ–‡ä»¶
 
 
-1¡¢eeprom
-- PRT_E2ROMParas                    (addr = 0, len = 65, end addr = )
-- g_u16CalibCoefK,      (addr = 154, len = 47 )
-- g_i16CalibCoefB,      (addr = 258, len = 47 )
-- OtherElement          (addr = 676, len = 32)
-- Heat_Cool_Element     (addr = 740 , len = 24)
-- AFE_Parameters_RS485_Struction  (addr = 950, len = 24 )
-- BMS_LOG_POINT         (addr = 1200, len = 1)
-- BMS_LOG_RECORD[EVENT_RECORD_LENGTH][2]     (addr = 1000, len = 100)
+ç¼©å‡MAX_FRAME_LEN 600â†’260 + SCI_TX_BUF_LEN 251â†’128ï¼Œæ˜¯å¦ä¼šæœ‰é—®é¢˜ï¼Œé€šè®¯æ˜¯å¦ä¼šå‡ºé—®é¢˜ï¼Ÿç”¨æˆ·è¯·æ±‚æ›´å¤šæ•°æ®æ˜¯å¦ä¼šæ­»æœº
 
-2¡¢flash
-#define FLASH_ADDR_IAP_START 			0x08000000		//IAP=7K£¬Õâ¸öµØ·½³öÁËÒ»´ÎÎÊÌâ£¬ĞŞ¸Äºó´óÓÚ6K£¬²àÃæ·´Ó³±àÒë³öÀ´µÄZi-dataÒ²ÊÇflashµÄ¶«Î÷
-#define FLASH_ADDR_APP_START 			0x08001C00		//APP=64-7-1-1=55K
-#define FLASH_ADDR_SH367309_VALUE 		0x0800F000
-#define FLASH_ADDR_UPDATE_FLAG 			0x0800F800		//Éı¼¶±êÖ¾Î»£¬1K
-#define FLASH_ADDR_SLEEP_FLAG           0x0800FC00
+ä»»åŠ¡åšå®Œï¼Œéœ€è¦ç¼–è¯‘keilå¹¶ç¡®è®¤æ²¡é—®é¢˜
+è¾“å‡ºæœ¬è½®é‡æ„çš„å®Œæ•´æŠ¥å‘Š
 
-3¡¢eeprom²ÎÊı ÉÏÎ»»ú¶ÁĞ´Âß¼­
+
+
+æŠŠFault.c æ•°æ®é©±åŠ¨é‡æ„æ–¹æ¡ˆçš„æ–¹æ¡ˆè¾“å‡ºå®Œæ•´æ–‡æ¡£ï¼Œæˆ‘éœ€è¦å®¡é˜…ï¼Œç„¶åè¾“å‡ºæœ¬è½®æ‰€æœ‰é‡æ„çš„å®Œæ•´æŠ¥å‘Š

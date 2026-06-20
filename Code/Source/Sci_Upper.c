@@ -949,60 +949,20 @@ void Sci_WrRegs_0x10_Protect(UINT16 u16Channel, struct RS485MSG *s)
 // 但是上位机会有EEPROM写失败标志位弥补
 void Sci_WrRegs_0x10_SocTable(struct RS485MSG *s)
 {
-	/*
-	UINT8 i;
-	UINT16  u16WrRegNum;
-	u16WrRegNum = s->u16Buffer[5] + (s->u16Buffer[4] << 8);
-	if(u16WrRegNum == E2P_PARA_NUM_SOC_TABLE) {
-		for(i = 0; i < E2P_PARA_NUM_SOC_TABLE; ++i) {
-			SOC_Table_Set[i] = (UINT16)(s->u16Buffer[2*i+8] + (s->u16Buffer[2*i+7] << 8));
-		}
-		u8E2P_SocTable_WriteFlag = E2P_PARA_NUM_SOC_TABLE;
-	}
-	else {
-		s ->AckType = RS485_ACK_NEG;
-		s ->ErrorType = RS485_ERROR_CMD_INVALID;
-	}
-	*/
+	s->AckType = RS485_ACK_NEG;
+	s->ErrorType = RS485_ERROR_CMD_INVALID;
 }
 
 void Sci_WrRegs_0x10_CopperLoss(struct RS485MSG *s)
 {
-	/*
-	UINT8 i;
-	UINT16  u16WrRegNum;
-	u16WrRegNum = s->u16Buffer[5] + (s->u16Buffer[4] << 8);
-	if(u16WrRegNum == E2P_PARA_NUM_COPPERLOSS*2) {
-		for(i = 0; i < E2P_PARA_NUM_COPPERLOSS; ++i) {
-			CopperLoss[i] = (UINT16)(s->u16Buffer[2*i+8] + (s->u16Buffer[2*i+7] << 8));
-			CopperLoss_Num[i] = (UINT16)(s->u16Buffer[2*(i+16)+8] + (s->u16Buffer[2*(i+16)+7] << 8));
-		}
-		u8E2P_CopperLoss_WriteFlag = E2P_PARA_NUM_COPPERLOSS;
-	}
-	else {
-		s ->AckType = RS485_ACK_NEG;
-		s ->ErrorType = RS485_ERROR_CMD_INVALID;
-	}
-	*/
+	s->AckType = RS485_ACK_NEG;
+	s->ErrorType = RS485_ERROR_CMD_INVALID;
 }
 
 void Sci_WrRegs_0x10_RTC(struct RS485MSG *s)
 {
-	/*
-	UINT8 i;
-	UINT16  u16WrRegNum;
-	u16WrRegNum = s->u16Buffer[5] + (s->u16Buffer[4] << 8);
-	if(u16WrRegNum == E2P_PARA_NUM_RTC) {
-		for(i = 0; i < E2P_PARA_NUM_RTC; ++i) {
-			*(&RTC_time.RTC_Time_Year+i) = (UINT16)(s->u16Buffer[2*i+8] + (s->u16Buffer[2*i+7] << 8));
-		}
-		u32E2P_RTC_Element_WriteFlag = E2P_PARA_ALL_RTC_ELEMENT;
-	}
-	else {
-		s ->AckType = RS485_ACK_NEG;
-		s ->ErrorType = RS485_ERROR_CMD_INVALID;
-	}
-	*/
+	s->AckType = RS485_ACK_NEG;
+	s->ErrorType = RS485_ERROR_CMD_INVALID;
 }
 
 void Sci_WrRegs_0x10_Balance(struct RS485MSG *s)
@@ -1362,7 +1322,6 @@ void Sci_WrReg_0x06_Reset_ProtectRecord(struct RS485MSG *s)
 		FaultPoint_First2 = 0;
 		FaultPoint_Second2 = 0;
 		FaultPoint_Third2 = 0;
-		Fault_Flag_Fisrt.all = 0;
 		Fault_Flag_Second.all = 0;
 		Fault_Flag_Third.all = 0;
 	}
@@ -1449,10 +1408,14 @@ void Sci_WrReg_0x06_Reset_HeatCool(struct RS485MSG *s)
 
 void Sci_WrReg_0x06_SwitchON(struct RS485MSG *s)
 {
+	s->AckType = RS485_ACK_NEG;
+	s->ErrorType = RS485_ERROR_CMD_INVALID;
 }
 
 void Sci_WrReg_0x06_SwitchOFF(struct RS485MSG *s)
 {
+	s->AckType = RS485_ACK_NEG;
+	s->ErrorType = RS485_ERROR_CMD_INVALID;
 }
 
 // 关于这个函数

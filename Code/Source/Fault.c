@@ -2,1329 +2,293 @@
 
 struct PRT_E2ROM_PARAS PRT_E2ROMParas;
 
-union FAULT_FLAG_FIRST Fault_Flag_Fisrt;
 union FAULT_FLAG_SECOND Fault_Flag_Second;
 union FAULT_FLAG_THIRD Fault_Flag_Third;
-
-UINT16 Fault_record_First[Record_len];
-UINT16 Fault_record_Second[Record_len];
-UINT16 Fault_record_Third[Record_len];
-UINT16 RTC_Fault_record_Third[Record_len][6];
 
 UINT16 Fault_record_First2[Record_len];
 UINT16 Fault_record_Second2[Record_len];
 UINT16 Fault_record_Third2[Record_len];
 
-UINT8 FaultPoint_First;
-UINT8 FaultPoint_Second;
-UINT8 FaultPoint_Third;
-
 UINT8 FaultPoint_First2;
 UINT8 FaultPoint_Second2;
 UINT8 FaultPoint_Third2;
 
-// Ô­À´ÊÇºÍÐÝÃßÐéµçÂ·¹Ò¹³µÄ£¬ÏÖÔÚ·Ö¿ª£¬OtherElement.u16Sleep_VirCur_Chg
-// Èç¹ûÔ­À´ÉèÖÃ3AµÄ»°£¬¾Í»á³öÏÖ£¬µÍÎÂÐ¡µçÁ÷£¬ÎÊÌâºÜ´ó¡£
-// ÏÖÔÚÄ¬ÈÏÐéµçÁ÷´óÓÚ0.1A£¬Ò²¼´0.2A²ÅÉúÐ§
 #define OTP_UTP_VirCur_Chg 1
 #define OTP_UTP_VirCur_Dsg 1
 
-void FaultWarnRecord(enum FaultFlag num);
 void FaultWarnRecord2(enum FaultFlag num);
 void PwrMag_Protect_Record(enum FaultFlag num);
 void PwrMag_Protect_Record_StartUp(void);
 
-void App_CellOvp_SecondCheck(void)
+/* ---- Data-driven fault check engine ---- */
+
+/* Static counters: 24 for internal use; indices 12,14 (OCP Second) use extern sys_time counters */
+static UINT16 s_counters[24];
+
+/* Hardcoded OCP second-level time constant (100ms * 5 = 500ms) */
+static const UINT16 s_u16OcpSecondTimeB = (100 * 5);
+
+static const FaultCheckDesc s_faultDesc[26] = {
+	/*  0 - App_CellOvp_SecondCheck */
+	{ &g_stCellInfoReport.u16VCellMax,
+	  &PRT_E2ROMParas.u16VcellOvp_Second, &PRT_E2ROMParas.u16VcellOvp_First,
+	  &s_counters[0],
+	  &PRT_E2ROMParas.u16VcellOvp_Filter, &PRT_E2ROMParas.u16VcellOvp_Filter,
+	  FAULT_CTRL_FAULTREG_BIT_POS(0) | FAULT_CTRL_FLAGREG_BIT_POS(0) | FAULT_CTRL_FLAG_LOGIC(1),
+	  CellOvp_Second },
+	/*  1 - App_CellOvp_ThirdCheck */
+	{ &g_stCellInfoReport.u16VCellMax,
+	  &PRT_E2ROMParas.u16VcellOvp_Third, &PRT_E2ROMParas.u16VcellOvp_Rcv,
+	  &s_counters[1],
+	  &PRT_E2ROMParas.u16VcellOvp_Filter, &PRT_E2ROMParas.u16VcellOvp_Filter,
+	  FAULT_CTRL_FAULTREG_BIT_POS(0) | FAULT_CTRL_FLAGREG_BIT_POS(0) | FAULT_CTRL_FLAG_LOGIC(1),
+	  CellOvp_Third },
+	/*  2 - App_CellUvp_SecondCheck */
+	{ &g_stCellInfoReport.u16VCellMin,
+	  &PRT_E2ROMParas.u16VcellUvp_First, &PRT_E2ROMParas.u16VcellUvp_Second,
+	  &s_counters[2],
+	  &PRT_E2ROMParas.u16VcellUvp_Filter, &PRT_E2ROMParas.u16VcellUvp_Filter,
+	  FAULT_CTRL_FAULTREG_BIT_POS(1) | FAULT_CTRL_FLAGREG_BIT_POS(1) | FAULT_CTRL_FLAG_LOGIC(0),
+	  CellUvp_Second },
+	/*  3 - App_CellUvp_ThirdCheck */
+	{ &g_stCellInfoReport.u16VCellMin,
+	  &PRT_E2ROMParas.u16VcellUvp_Rcv, &PRT_E2ROMParas.u16VcellUvp_Third,
+	  &s_counters[3],
+	  &PRT_E2ROMParas.u16VcellUvp_Filter, &PRT_E2ROMParas.u16VcellUvp_Filter,
+	  FAULT_CTRL_FAULTREG_BIT_POS(1) | FAULT_CTRL_FLAGREG_BIT_POS(1) | FAULT_CTRL_FLAG_LOGIC(0),
+	  CellUvp_Third },
+	/*  4 - App_BatOvp_SecondCheck */
+	{ &g_stCellInfoReport.u16VCellTotle,
+	  &PRT_E2ROMParas.u16VbusOvp_Second, &PRT_E2ROMParas.u16VbusOvp_First,
+	  &s_counters[4],
+	  &PRT_E2ROMParas.u16VbusOvp_Filter, &PRT_E2ROMParas.u16VbusOvp_Filter,
+	  FAULT_CTRL_FAULTREG_BIT_POS(2) | FAULT_CTRL_FLAGREG_BIT_POS(2) | FAULT_CTRL_FLAG_LOGIC(1),
+	  BatOvp_Second },
+	/*  5 - App_BatOvp_ThirdCheck */
+	{ &g_stCellInfoReport.u16VCellTotle,
+	  &PRT_E2ROMParas.u16VbusOvp_Third, &PRT_E2ROMParas.u16VbusOvp_Rcv,
+	  &s_counters[5],
+	  &PRT_E2ROMParas.u16VbusOvp_Filter, &PRT_E2ROMParas.u16VbusOvp_Filter,
+	  FAULT_CTRL_FAULTREG_BIT_POS(2) | FAULT_CTRL_FLAGREG_BIT_POS(2) | FAULT_CTRL_FLAG_LOGIC(1),
+	  BatOvp_Third },
+	/*  6 - App_BatUvp_SecondCheck */
+	{ &g_stCellInfoReport.u16VCellTotle,
+	  &PRT_E2ROMParas.u16VbusUvp_First, &PRT_E2ROMParas.u16VbusUvp_Second,
+	  &s_counters[6],
+	  &PRT_E2ROMParas.u16VbusUvp_Filter, &PRT_E2ROMParas.u16VbusUvp_Filter,
+	  FAULT_CTRL_FAULTREG_BIT_POS(3) | FAULT_CTRL_FLAGREG_BIT_POS(3) | FAULT_CTRL_FLAG_LOGIC(0),
+	  BatUvp_Second },
+	/*  7 - App_BatUvp_ThirdCheck */
+	{ &g_stCellInfoReport.u16VCellTotle,
+	  &PRT_E2ROMParas.u16VbusUvp_Rcv, &PRT_E2ROMParas.u16VbusUvp_Third,
+	  &s_counters[7],
+	  &PRT_E2ROMParas.u16VbusUvp_Filter, &PRT_E2ROMParas.u16VbusUvp_Filter,
+	  FAULT_CTRL_FAULTREG_BIT_POS(3) | FAULT_CTRL_FLAGREG_BIT_POS(3) | FAULT_CTRL_FLAG_LOGIC(0),
+	  BatUvp_Third },
+	/*  8 - App_MosOtp_SecondCheck */
+	{ &g_stCellInfoReport.u16Temperature[MOS_TEMP1],
+	  &PRT_E2ROMParas.u16TmosOTp_Second, &PRT_E2ROMParas.u16TmosOTp_First,
+	  &s_counters[8],
+	  &PRT_E2ROMParas.u16TmosOTp_Filter, &PRT_E2ROMParas.u16TmosOTp_Filter,
+	  FAULT_CTRL_FAULTREG_BIT_POS(13) | FAULT_CTRL_FLAGREG_BIT_POS(10) | FAULT_CTRL_FLAG_LOGIC(1),
+	  MosOTp_Second },
+	/*  9 - App_MosOtp_ThirdCheck */
+	{ &g_stCellInfoReport.u16Temperature[MOS_TEMP1],
+	  &PRT_E2ROMParas.u16TmosOTp_Third, &PRT_E2ROMParas.u16TmosOTp_Rcv,
+	  &s_counters[9],
+	  &PRT_E2ROMParas.u16TmosOTp_Filter, &PRT_E2ROMParas.u16TmosOTp_Filter,
+	  FAULT_CTRL_FAULTREG_BIT_POS(13) | FAULT_CTRL_FLAGREG_BIT_POS(10) | FAULT_CTRL_FLAG_LOGIC(1),
+	  MosOTp_Third },
+	/* 10 - App_VdeltaOp_SecondCheck */
+	{ &g_stCellInfoReport.u16VCellDelta,
+	  &PRT_E2ROMParas.u16VdeltaOvp_Second, &PRT_E2ROMParas.u16VdeltaOvp_First,
+	  &s_counters[10],
+	  &PRT_E2ROMParas.u16VdeltaOvp_Filter, &PRT_E2ROMParas.u16VdeltaOvp_Filter,
+	  FAULT_CTRL_FAULTREG_BIT_POS(10) | FAULT_CTRL_FLAGREG_BIT_POS(11) | FAULT_CTRL_FLAG_LOGIC(1),
+	  VdeltaOvp_Second },
+	/* 11 - App_VdeltaOp_ThirdCheck (special: +200 TimeS, System_ERROR_UserCallback) */
+	{ &g_stCellInfoReport.u16VCellDelta,
+	  &PRT_E2ROMParas.u16VdeltaOvp_Third, &PRT_E2ROMParas.u16VdeltaOvp_Rcv,
+	  &s_counters[11],
+	  &PRT_E2ROMParas.u16VdeltaOvp_Filter, &PRT_E2ROMParas.u16VdeltaOvp_Filter,
+	  FAULT_CTRL_FAULTREG_BIT_POS(10) | FAULT_CTRL_FLAGREG_BIT_POS(11) | FAULT_CTRL_FLAG_LOGIC(1) | FAULT_CTRL_TIMES_OFFSET(1),
+	  VdeltaOvp_Third },
+	/* 12 - App_IdischgOcp_SecondCheck (external counter, hardcoded timeB, +CurOverFaultDelay) */
+	{ &g_stCellInfoReport.u16IDischg,
+	  &PRT_E2ROMParas.u16IdsgOcp_Second, &PRT_E2ROMParas.u16IdsgOcp_First,
+	  (UINT16 *)&sys_time.odc2_cnt, &s_u16OcpSecondTimeB, &PRT_E2ROMParas.u16IdsgOcp_Filter,
+	  FAULT_CTRL_FAULTREG_BIT_POS(5) | FAULT_CTRL_FLAGREG_BIT_POS(5) | FAULT_CTRL_FLAG_LOGIC(1) | FAULT_CTRL_TIMES_OFFSET(2),
+	  IdischgOcp_Second },
+	/* 13 - App_IdischgOcp_ThirdCheck (+CurOverFaultDelay) */
+	{ &g_stCellInfoReport.u16IDischg,
+	  &PRT_E2ROMParas.u16IdsgOcp_Third, &PRT_E2ROMParas.u16IdsgOcp_Rcv,
+	  &s_counters[12],
+	  &PRT_E2ROMParas.u16IdsgOcp_Filter, &PRT_E2ROMParas.u16IdsgOcp_Filter,
+	  FAULT_CTRL_FAULTREG_BIT_POS(5) | FAULT_CTRL_FLAGREG_BIT_POS(5) | FAULT_CTRL_FLAG_LOGIC(1) | FAULT_CTRL_TIMES_OFFSET(2),
+	  IdischgOcp_Third },
+	/* 14 - App_IchgOcp_SecondCheck (external counter, hardcoded timeB, +CurOverFaultDelay) */
+	{ &g_stCellInfoReport.u16Ichg,
+	  &PRT_E2ROMParas.u16IchgOcp_Second, &PRT_E2ROMParas.u16IchgOcp_First,
+	  (UINT16 *)&sys_time.occ2_cnt, &s_u16OcpSecondTimeB, &PRT_E2ROMParas.u16IchgOcp_Filter,
+	  FAULT_CTRL_FAULTREG_BIT_POS(4) | FAULT_CTRL_FLAGREG_BIT_POS(4) | FAULT_CTRL_FLAG_LOGIC(1) | FAULT_CTRL_TIMES_OFFSET(2),
+	  IchgOcp_Second },
+	/* 15 - App_IchgOcp_ThirdCheck (+CurOverFaultDelay) */
+	{ &g_stCellInfoReport.u16Ichg,
+	  &PRT_E2ROMParas.u16IchgOcp_Third, &PRT_E2ROMParas.u16IchgOcp_Rcv,
+	  &s_counters[13],
+	  &PRT_E2ROMParas.u16IchgOcp_Filter, &PRT_E2ROMParas.u16IchgOcp_Filter,
+	  FAULT_CTRL_FAULTREG_BIT_POS(4) | FAULT_CTRL_FLAGREG_BIT_POS(4) | FAULT_CTRL_FLAG_LOGIC(1) | FAULT_CTRL_TIMES_OFFSET(2),
+	  IchgOcp_Third },
+	/* 16 - App_CellSocUp_SecondCheck */
+	{ &g_stCellInfoReport.SocElement.u16Soc,
+	  &PRT_E2ROMParas.u16SocUp_First, &PRT_E2ROMParas.u16SocUp_Second,
+	  &s_counters[14],
+	  &PRT_E2ROMParas.u16SocUp_Filter, &PRT_E2ROMParas.u16SocUp_Filter,
+	  FAULT_CTRL_FAULTREG_BIT_POS(12) | FAULT_CTRL_FLAGREG_BIT_POS(12) | FAULT_CTRL_FLAG_LOGIC(1),
+	  CellSocUp_Second },
+	/* 17 - App_CellSocUp_ThirdCheck */
+	{ &g_stCellInfoReport.SocElement.u16Soc,
+	  &PRT_E2ROMParas.u16SocUp_Rcv, &PRT_E2ROMParas.u16SocUp_Third,
+	  &s_counters[15],
+	  &PRT_E2ROMParas.u16SocUp_Filter, &PRT_E2ROMParas.u16SocUp_Filter,
+	  FAULT_CTRL_FAULTREG_BIT_POS(12) | FAULT_CTRL_FLAGREG_BIT_POS(12) | FAULT_CTRL_FLAG_LOGIC(1),
+	  CellSocUp_Third },
+	/* 18 - App_CellDisChgOtp_SecondCheck (OTP/UTP, virCur=Idischg) */
+	{ &g_stCellInfoReport.u16TempMax,
+	  &PRT_E2ROMParas.u16TdischgOTp_Second, &PRT_E2ROMParas.u16TdischgOTp_First,
+	  &s_counters[16],
+	  &PRT_E2ROMParas.u16TdischgOTp_Filter, &PRT_E2ROMParas.u16TdischgOTp_Filter,
+	  FAULT_CTRL_FAULTREG_BIT_POS(7) | FAULT_CTRL_FLAGREG_BIT_POS(7) | FAULT_CTRL_FLAG_LOGIC(1) | FAULT_CTRL_VIRCUR_TYPE(2),
+	  CellDsgOTp_Second },
+	/* 19 - App_CellDisChgOtp_ThirdCheck (OTP/UTP, virCur=Idischg) */
+	{ &g_stCellInfoReport.u16TempMax,
+	  &PRT_E2ROMParas.u16TdischgOTp_Third, &PRT_E2ROMParas.u16TdischgOTp_Rcv,
+	  &s_counters[17],
+	  &PRT_E2ROMParas.u16TdischgOTp_Filter, &PRT_E2ROMParas.u16TdischgOTp_Filter,
+	  FAULT_CTRL_FAULTREG_BIT_POS(7) | FAULT_CTRL_FLAGREG_BIT_POS(7) | FAULT_CTRL_FLAG_LOGIC(1) | FAULT_CTRL_VIRCUR_TYPE(2),
+	  CellDsgOTp_Third },
+	/* 20 - App_CellDischgUtp_SecondCheck (OTP/UTP, virCur=Idischg) */
+	{ &g_stCellInfoReport.u16TempMin,
+	  &PRT_E2ROMParas.u16TdischgUTp_First, &PRT_E2ROMParas.u16TdischgUTp_Second,
+	  &s_counters[18],
+	  &PRT_E2ROMParas.u16TdischgUTp_Filter, &PRT_E2ROMParas.u16TdischgUTp_Filter,
+	  FAULT_CTRL_FAULTREG_BIT_POS(9) | FAULT_CTRL_FLAGREG_BIT_POS(9) | FAULT_CTRL_FLAG_LOGIC(0) | FAULT_CTRL_VIRCUR_TYPE(2),
+	  CellDsgUTp_Second },
+	/* 21 - App_CellDischgUtp_ThirdCheck (OTP/UTP, virCur=Idischg) */
+	{ &g_stCellInfoReport.u16TempMin,
+	  &PRT_E2ROMParas.u16TdischgUTp_Rcv, &PRT_E2ROMParas.u16TdischgUTp_Third,
+	  &s_counters[19],
+	  &PRT_E2ROMParas.u16TdischgUTp_Filter, &PRT_E2ROMParas.u16TdischgUTp_Filter,
+	  FAULT_CTRL_FAULTREG_BIT_POS(9) | FAULT_CTRL_FLAGREG_BIT_POS(9) | FAULT_CTRL_FLAG_LOGIC(0) | FAULT_CTRL_VIRCUR_TYPE(2),
+	  CellDsgUTp_Third },
+	/* 22 - App_CellChgOtp_SecondCheck (OTP/UTP, virCur=Ichg) */
+	{ &g_stCellInfoReport.u16TempMax,
+	  &PRT_E2ROMParas.u16TChgOTp_Second, &PRT_E2ROMParas.u16TChgOTp_First,
+	  &s_counters[20],
+	  &PRT_E2ROMParas.u16TChgOTp_Filter, &PRT_E2ROMParas.u16TChgOTp_Filter,
+	  FAULT_CTRL_FAULTREG_BIT_POS(6) | FAULT_CTRL_FLAGREG_BIT_POS(6) | FAULT_CTRL_FLAG_LOGIC(1) | FAULT_CTRL_VIRCUR_TYPE(1),
+	  CellChgOTp_Second },
+	/* 23 - App_CellChgOtp_ThirdCheck (OTP/UTP, virCur=Ichg) */
+	{ &g_stCellInfoReport.u16TempMax,
+	  &PRT_E2ROMParas.u16TChgOTp_Third, &PRT_E2ROMParas.u16TChgOTp_Rcv,
+	  &s_counters[21],
+	  &PRT_E2ROMParas.u16TChgOTp_Filter, &PRT_E2ROMParas.u16TChgOTp_Filter,
+	  FAULT_CTRL_FAULTREG_BIT_POS(6) | FAULT_CTRL_FLAGREG_BIT_POS(6) | FAULT_CTRL_FLAG_LOGIC(1) | FAULT_CTRL_VIRCUR_TYPE(1),
+	  CellChgOTp_Third },
+	/* 24 - App_CellChgUtp_SecondCheck (OTP/UTP, virCur=Ichg) */
+	{ &g_stCellInfoReport.u16TempMin,
+	  &PRT_E2ROMParas.u16TchgUTp_First, &PRT_E2ROMParas.u16TchgUTp_Second,
+	  &s_counters[22],
+	  &PRT_E2ROMParas.u16TchgUTp_Filter, &PRT_E2ROMParas.u16TchgUTp_Filter,
+	  FAULT_CTRL_FAULTREG_BIT_POS(8) | FAULT_CTRL_FLAGREG_BIT_POS(8) | FAULT_CTRL_FLAG_LOGIC(0) | FAULT_CTRL_VIRCUR_TYPE(1),
+	  CellChgUTp_Second },
+	/* 25 - App_CellChgUtp_ThirdCheck (OTP/UTP, virCur=Ichg) */
+	{ &g_stCellInfoReport.u16TempMin,
+	  &PRT_E2ROMParas.u16TchgUTp_Rcv, &PRT_E2ROMParas.u16TchgUTp_Third,
+	  &s_counters[23],
+	  &PRT_E2ROMParas.u16TchgUTp_Filter, &PRT_E2ROMParas.u16TchgUTp_Filter,
+	  FAULT_CTRL_FAULTREG_BIT_POS(8) | FAULT_CTRL_FLAGREG_BIT_POS(8) | FAULT_CTRL_FLAG_LOGIC(0) | FAULT_CTRL_VIRCUR_TYPE(1),
+	  CellChgUTp_Third }
+};
+
+void App_FaultCheck_Run(UINT8 idx)
 {
-	static UINT16 s_i16TimeCnt = 0;
-	SPUBOPUPCHK t_sPubOPUPChk;
+	SPUBOPUPCHK t;
+	const FaultCheckDesc *pD = &s_faultDesc[idx];
+	UINT8 level = idx & 1;   /* even = Second, odd = Third */
+	UINT8 u8FaultRegBit = FAULT_CTRL_GET_FAULTREG_BIT(pD->u16Control);
+	UINT8 u8FlagRegBit  = FAULT_CTRL_GET_FLAGREG_BIT(pD->u16Control);
+	UINT8 u8FlagLogic   = FAULT_CTRL_GET_LOGIC(pD->u16Control);
+	UINT8 u8TimeSOfs    = FAULT_CTRL_GET_TIMESOFS(pD->u16Control);
+	UINT8 u8VirCurType  = FAULT_CTRL_GET_VIRCUR(pD->u16Control);
 
-	// if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag1)
-	{
-		t_sPubOPUPChk.u16ChkVal = g_stCellInfoReport.u16VCellMax;
-		t_sPubOPUPChk.u16OPValB = PRT_E2ROMParas.u16VcellOvp_Second;
-		t_sPubOPUPChk.u16OPValS = PRT_E2ROMParas.u16VcellOvp_First; // DELAYB10MS_500MS¸ÄÎªfilter
-		t_sPubOPUPChk.i16ChkCnt = &s_i16TimeCnt;
-		t_sPubOPUPChk.u16TimeCntB = PRT_E2ROMParas.u16VcellOvp_Filter;				   // ¹ÊÕÏÅÐ¶ÏÊ±¼ä500ms
-		t_sPubOPUPChk.u16TimeCntS = PRT_E2ROMParas.u16VcellOvp_Filter;				   // ¹ÊÕÏ»Ö¸´ÅÐ¶ÏÊ±¼ä500ms
-		t_sPubOPUPChk.u8FlagLogic = 1;												   // ÕýÂß¼­
-		t_sPubOPUPChk.u8FlagBit = g_stCellInfoReport.unMdlFault_Second.bits.b1CellOvp; // ¹ÊÕÏ±êÖ¾¸³¾ÉÖµ
+	union MDLCHGFAULT_REG *pFaultReg;
+	UINT16 *pFlagAll;
+	if (level == 0) {
+		pFaultReg = &g_stCellInfoReport.unMdlFault_Second;
+		pFlagAll  = &Fault_Flag_Second.all;
+	} else {
+		pFaultReg = &g_stCellInfoReport.unMdlFault_Third;
+		pFlagAll  = &Fault_Flag_Third.all;
+	}
 
-		if (App_PubOPUPChk(&t_sPubOPUPChk))
-		{
-			g_stCellInfoReport.unMdlFault_Second.bits.b1CellOvp = t_sPubOPUPChk.u8FlagBit; // ·µ»Ø¹ÊÕÏÅÐ¶Ï½á¹û
-			if (t_sPubOPUPChk.u8FlagBit == 1)
-			{
-				if (0 == Fault_Flag_Second.bits.CellOvp_Second)
-				{
-					FaultWarnRecord(CellOvp_Second);
-					FaultWarnRecord2(CellOvp_Second);
-					Fault_Flag_Second.bits.CellOvp_Second = 1;
-				}
-			}
-			if (t_sPubOPUPChk.u8FlagBit == 0 && Fault_Flag_Second.bits.CellOvp_Second == 1)
-			{
-				Fault_Flag_Second.bits.CellOvp_Second = 0;
-			}
+	/* ---- OTP/UTP virtual current gating ---- */
+	if (u8VirCurType != 0) {
+		UINT8 curFlagBit = (pFaultReg->all >> u8FaultRegBit) & 1;
+		if (curFlagBit == 0) {
+			UINT16 curVal;
+			if (u8VirCurType == 1)
+				curVal = g_stCellInfoReport.u16Ichg;
+			else
+				curVal = g_stCellInfoReport.u16IDischg;
+
+			if (curVal <= 1)
+				return;
 		}
 	}
-}
 
-void App_CellOvp_ThirdCheck(void)
-{
-	static UINT16 s_i16TimeCnt = 0;
-	SPUBOPUPCHK t_sPubOPUPChk;
-
-	// if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag1)
-	{
-		t_sPubOPUPChk.u16ChkVal = g_stCellInfoReport.u16VCellMax;
-		t_sPubOPUPChk.u16OPValB = PRT_E2ROMParas.u16VcellOvp_Third;
-		t_sPubOPUPChk.u16OPValS = PRT_E2ROMParas.u16VcellOvp_Rcv; // DELAYB10MS_500MS¸ÄÎªfilter
-		t_sPubOPUPChk.i16ChkCnt = &s_i16TimeCnt;
-		t_sPubOPUPChk.u16TimeCntB = PRT_E2ROMParas.u16VcellOvp_Filter;				  // ¹ÊÕÏÅÐ¶ÏÊ±¼ä500ms
-		t_sPubOPUPChk.u16TimeCntS = PRT_E2ROMParas.u16VcellOvp_Filter;				  // ¹ÊÕÏ»Ö¸´ÅÐ¶ÏÊ±¼ä500ms
-		t_sPubOPUPChk.u8FlagLogic = 1;												  // ÕýÂß¼­
-		t_sPubOPUPChk.u8FlagBit = g_stCellInfoReport.unMdlFault_Third.bits.b1CellOvp; // ¹ÊÕÏ±êÖ¾¸³¾ÉÖµ
-
-		if (App_PubOPUPChk(&t_sPubOPUPChk))
-		{
-			g_stCellInfoReport.unMdlFault_Third.bits.b1CellOvp = t_sPubOPUPChk.u8FlagBit; // ·µ»Ø¹ÊÕÏÅÐ¶Ï½á¹û
-			if (t_sPubOPUPChk.u8FlagBit == 1)
-			{
-				if (0 == Fault_Flag_Third.bits.CellOvp_Third)
-				{
-					FaultWarnRecord(CellOvp_Third);
-					FaultWarnRecord2(CellOvp_Third);
-					Fault_Flag_Third.bits.CellOvp_Third = 1;
-				}
-			}
-			if (t_sPubOPUPChk.u8FlagBit == 0 && Fault_Flag_Third.bits.CellOvp_Third == 1)
-			{
-				Fault_Flag_Third.bits.CellOvp_Third = 0;
-			}
-		}
-	}
-}
-
-void App_CellUvp_SecondCheck(void)
-{
-	static UINT16 s_i16TimeCnt = 0;
-	SPUBOPUPCHK t_sPubOPUPChk;
-
-	// if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag1)
-	{
-		t_sPubOPUPChk.u16ChkVal = g_stCellInfoReport.u16VCellMin;
-		t_sPubOPUPChk.u16OPValB = PRT_E2ROMParas.u16VcellUvp_First;
-		t_sPubOPUPChk.u16OPValS = PRT_E2ROMParas.u16VcellUvp_Second;
-		t_sPubOPUPChk.i16ChkCnt = &s_i16TimeCnt;
-		t_sPubOPUPChk.u16TimeCntB = PRT_E2ROMParas.u16VcellUvp_Filter;				   // ¹ÊÕÏÅÐ¶ÏÊ±¼ä500ms
-		t_sPubOPUPChk.u16TimeCntS = PRT_E2ROMParas.u16VcellUvp_Filter;				   // ¹ÊÕÏ»Ö¸´ÅÐ¶ÏÊ±¼ä500ms
-		t_sPubOPUPChk.u8FlagLogic = 0;												   // ¸ºÂß¼­
-		t_sPubOPUPChk.u8FlagBit = g_stCellInfoReport.unMdlFault_Second.bits.b1CellUvp; // ¹ÊÕÏ±êÖ¾¸³¾ÉÖµ
-
-		if (App_PubOPUPChk(&t_sPubOPUPChk))
-		{
-			g_stCellInfoReport.unMdlFault_Second.bits.b1CellUvp = t_sPubOPUPChk.u8FlagBit; // ·µ»Ø¹ÊÕÏÅÐ¶Ï½á¹û
-			if (t_sPubOPUPChk.u8FlagBit == 1)
-			{
-				if (0 == Fault_Flag_Second.bits.CellUvp_Second)
-				{
-					FaultWarnRecord(CellUvp_Second);
-					FaultWarnRecord2(CellUvp_Second);
-					Fault_Flag_Second.bits.CellUvp_Second = 1;
-				}
-			}
-			if (t_sPubOPUPChk.u8FlagBit == 0 && Fault_Flag_Second.bits.CellUvp_Second == 1)
-			{
-				Fault_Flag_Second.bits.CellUvp_Second = 0;
-			}
-		}
-	}
-}
-
-void App_CellUvp_ThirdCheck(void)
-{
-	static UINT16 s_i16TimeCnt = 0;
-	SPUBOPUPCHK t_sPubOPUPChk;
-
-	// if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag1)
-	{
-		t_sPubOPUPChk.u16ChkVal = g_stCellInfoReport.u16VCellMin;
-		t_sPubOPUPChk.u16OPValB = PRT_E2ROMParas.u16VcellUvp_Rcv;
-		t_sPubOPUPChk.u16OPValS = PRT_E2ROMParas.u16VcellUvp_Third;
-		t_sPubOPUPChk.i16ChkCnt = &s_i16TimeCnt;
-		t_sPubOPUPChk.u16TimeCntB = PRT_E2ROMParas.u16VcellUvp_Filter;
-		t_sPubOPUPChk.u16TimeCntS = PRT_E2ROMParas.u16VcellUvp_Filter;
-		t_sPubOPUPChk.u8FlagLogic = 0;												  // ¸ºÂß¼­
-		t_sPubOPUPChk.u8FlagBit = g_stCellInfoReport.unMdlFault_Third.bits.b1CellUvp; // ¹ÊÕÏ±êÖ¾¸³¾ÉÖµ
-
-		if (App_PubOPUPChk(&t_sPubOPUPChk))
-		{
-			g_stCellInfoReport.unMdlFault_Third.bits.b1CellUvp = t_sPubOPUPChk.u8FlagBit; // ·µ»Ø¹ÊÕÏÅÐ¶Ï½á¹û
-			if (t_sPubOPUPChk.u8FlagBit == 1)
-			{
-				if (0 == Fault_Flag_Third.bits.CellUvp_Third)
-				{
-					FaultWarnRecord(CellUvp_Third);
-					FaultWarnRecord2(CellUvp_Third);
-					Fault_Flag_Third.bits.CellUvp_Third = 1;
-				}
-			}
-			if (t_sPubOPUPChk.u8FlagBit == 0 && Fault_Flag_Third.bits.CellUvp_Third == 1)
-			{
-				Fault_Flag_Third.bits.CellUvp_Third = 0;
-			}
-		}
-	}
-}
-
-void App_BatOvp_SecondCheck(void)
-{
-	static UINT16 s_i16TimeCnt = 0;
-	SPUBOPUPCHK t_sPubOPUPChk;
-
-	// if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag2)
-	{
-		t_sPubOPUPChk.u16ChkVal = g_stCellInfoReport.u16VCellTotle;
-		t_sPubOPUPChk.u16OPValB = PRT_E2ROMParas.u16VbusOvp_Second;
-		t_sPubOPUPChk.u16OPValS = PRT_E2ROMParas.u16VbusOvp_First;
-		t_sPubOPUPChk.i16ChkCnt = &s_i16TimeCnt;
-		t_sPubOPUPChk.u16TimeCntB = PRT_E2ROMParas.u16VbusOvp_Filter;				  // ¹ÊÕÏÅÐ¶ÏÊ±¼ä500ms
-		t_sPubOPUPChk.u16TimeCntS = PRT_E2ROMParas.u16VbusOvp_Filter;				  // ¹ÊÕÏ»Ö¸´ÅÐ¶ÏÊ±¼ä500ms
-		t_sPubOPUPChk.u8FlagLogic = 1;												  // ÕýÂß¼­
-		t_sPubOPUPChk.u8FlagBit = g_stCellInfoReport.unMdlFault_Second.bits.b1BatOvp; // ¹ÊÕÏ±êÖ¾¸³¾ÉÖµ
-
-		if (App_PubOPUPChk(&t_sPubOPUPChk))
-		{
-			g_stCellInfoReport.unMdlFault_Second.bits.b1BatOvp = t_sPubOPUPChk.u8FlagBit; // ·µ»Ø¹ÊÕÏÅÐ¶Ï½á¹û
-			if (t_sPubOPUPChk.u8FlagBit == 1)
-			{
-				if (0 == Fault_Flag_Second.bits.BatOvp_Second)
-				{
-					FaultWarnRecord(BatOvp_Second);
-					FaultWarnRecord2(BatOvp_Second);
-					Fault_Flag_Second.bits.BatOvp_Second = 1;
-				}
-			}
-			if (t_sPubOPUPChk.u8FlagBit == 0 && Fault_Flag_Second.bits.BatOvp_Second == 1)
-			{
-				Fault_Flag_Second.bits.BatOvp_Second = 0;
-			}
-		}
-	}
-}
-
-void App_BatOvp_ThirdCheck(void)
-{
-	static UINT16 s_i16TimeCnt = 0;
-	SPUBOPUPCHK t_sPubOPUPChk;
-
-	// if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag2)
-	{
-		t_sPubOPUPChk.u16ChkVal = g_stCellInfoReport.u16VCellTotle;
-		t_sPubOPUPChk.u16OPValB = PRT_E2ROMParas.u16VbusOvp_Third;
-		t_sPubOPUPChk.u16OPValS = PRT_E2ROMParas.u16VbusOvp_Rcv;
-		t_sPubOPUPChk.i16ChkCnt = &s_i16TimeCnt;
-		t_sPubOPUPChk.u16TimeCntB = PRT_E2ROMParas.u16VbusOvp_Filter;				 // ¹ÊÕÏÅÐ¶ÏÊ±¼ä500ms
-		t_sPubOPUPChk.u16TimeCntS = PRT_E2ROMParas.u16VbusOvp_Filter;				 // ¹ÊÕÏ»Ö¸´ÅÐ¶ÏÊ±¼ä500ms
-		t_sPubOPUPChk.u8FlagLogic = 1;												 // ÕýÂß¼­
-		t_sPubOPUPChk.u8FlagBit = g_stCellInfoReport.unMdlFault_Third.bits.b1BatOvp; // ¹ÊÕÏ±êÖ¾¸³¾ÉÖµ
-
-		if (App_PubOPUPChk(&t_sPubOPUPChk))
-		{
-			g_stCellInfoReport.unMdlFault_Third.bits.b1BatOvp = t_sPubOPUPChk.u8FlagBit; // ·µ»Ø¹ÊÕÏÅÐ¶Ï½á¹û
-			if (t_sPubOPUPChk.u8FlagBit == 1)
-			{
-				if (0 == Fault_Flag_Third.bits.BatOvp_Third)
-				{
-					FaultWarnRecord(BatOvp_Third);
-					FaultWarnRecord2(BatOvp_Third);
-					Fault_Flag_Third.bits.BatOvp_Third = 1;
-				}
-			}
-			if (t_sPubOPUPChk.u8FlagBit == 0 && Fault_Flag_Third.bits.BatOvp_Third == 1)
-			{
-				Fault_Flag_Third.bits.BatOvp_Third = 0;
-			}
-		}
-	}
-}
-
-void App_BatUvp_SecondCheck(void)
-{
-	static UINT16 s_i16TimeCnt = 0;
-	SPUBOPUPCHK t_sPubOPUPChk;
-
-	// if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag2)
-	{
-		t_sPubOPUPChk.u16ChkVal = g_stCellInfoReport.u16VCellTotle;
-		t_sPubOPUPChk.u16OPValB = PRT_E2ROMParas.u16VbusUvp_First;
-		t_sPubOPUPChk.u16OPValS = PRT_E2ROMParas.u16VbusUvp_Second;
-		t_sPubOPUPChk.i16ChkCnt = &s_i16TimeCnt;
-		t_sPubOPUPChk.u16TimeCntB = PRT_E2ROMParas.u16VbusUvp_Filter;				  // ¹ÊÕÏÅÐ¶ÏÊ±¼ä500ms
-		t_sPubOPUPChk.u16TimeCntS = PRT_E2ROMParas.u16VbusUvp_Filter;				  // ¹ÊÕÏ»Ö¸´ÅÐ¶ÏÊ±¼ä500ms
-		t_sPubOPUPChk.u8FlagLogic = 0;												  // ¸ºÂß¼­
-		t_sPubOPUPChk.u8FlagBit = g_stCellInfoReport.unMdlFault_Second.bits.b1BatUvp; // ¹ÊÕÏ±êÖ¾¸³¾ÉÖµ
-
-		if (App_PubOPUPChk(&t_sPubOPUPChk))
-		{
-			g_stCellInfoReport.unMdlFault_Second.bits.b1BatUvp = t_sPubOPUPChk.u8FlagBit; // ·µ»Ø¹ÊÕÏÅÐ¶Ï½á¹û
-			if (t_sPubOPUPChk.u8FlagBit == 1)
-			{
-				if (0 == Fault_Flag_Second.bits.BatUvp_Second)
-				{
-					FaultWarnRecord(BatUvp_Second);
-					FaultWarnRecord2(BatUvp_Second);
-					Fault_Flag_Second.bits.BatUvp_Second = 1;
-				}
-			}
-			if (t_sPubOPUPChk.u8FlagBit == 0 && Fault_Flag_Second.bits.BatUvp_Second == 1)
-			{
-				Fault_Flag_Second.bits.BatUvp_Second = 0;
-			}
-		}
-	}
-}
-
-void App_BatUvp_ThirdCheck(void)
-{
-	static UINT16 s_i16TimeCnt = 0;
-	SPUBOPUPCHK t_sPubOPUPChk;
-
-	// if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag2)
-	{
-		t_sPubOPUPChk.u16ChkVal = g_stCellInfoReport.u16VCellTotle;
-		t_sPubOPUPChk.u16OPValB = PRT_E2ROMParas.u16VbusUvp_Rcv;
-		t_sPubOPUPChk.u16OPValS = PRT_E2ROMParas.u16VbusUvp_Third;
-		t_sPubOPUPChk.i16ChkCnt = &s_i16TimeCnt;
-		t_sPubOPUPChk.u16TimeCntB = PRT_E2ROMParas.u16VbusUvp_Filter;				 // ¹ÊÕÏÅÐ¶ÏÊ±¼ä500ms
-		t_sPubOPUPChk.u16TimeCntS = PRT_E2ROMParas.u16VbusUvp_Filter;				 // ¹ÊÕÏ»Ö¸´ÅÐ¶ÏÊ±¼ä500ms
-		t_sPubOPUPChk.u8FlagLogic = 0;												 // ¸ºÂß¼­
-		t_sPubOPUPChk.u8FlagBit = g_stCellInfoReport.unMdlFault_Third.bits.b1BatUvp; // ¹ÊÕÏ±êÖ¾¸³¾ÉÖµ
-
-		if (App_PubOPUPChk(&t_sPubOPUPChk))
-		{
-			g_stCellInfoReport.unMdlFault_Third.bits.b1BatUvp = t_sPubOPUPChk.u8FlagBit; // ·µ»Ø¹ÊÕÏÅÐ¶Ï½á¹û
-			if (t_sPubOPUPChk.u8FlagBit == 1)
-			{
-				if (0 == Fault_Flag_Third.bits.BatUvp_Third)
-				{
-					FaultWarnRecord(BatUvp_Third);
-					FaultWarnRecord2(BatUvp_Third);
-					Fault_Flag_Third.bits.BatUvp_Third = 1;
-				}
-			}
-			if (t_sPubOPUPChk.u8FlagBit == 0 && Fault_Flag_Third.bits.BatUvp_Third == 1)
-			{
-				Fault_Flag_Third.bits.BatUvp_Third = 0;
-			}
-		}
-	}
-}
-
-void App_IchgOcp_SecondCheck(void)
-{
-	static UINT16 s_i16TimeCnt = 0;
-	// static UINT16 s_i16TimeCntClr = 0;
-	SPUBOPUPCHK t_sPubOPUPChk;
-
-	// if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag3)
-	{
-		// if(0 == g_stCellInfoReport.unMdlFault_Second.bits.b1IchgOcp) {
-		t_sPubOPUPChk.u16ChkVal = g_stCellInfoReport.u16Ichg;
-		t_sPubOPUPChk.u16OPValB = PRT_E2ROMParas.u16IchgOcp_Second; // ¹ýÁ÷ÅÐ¶Ï
-		t_sPubOPUPChk.u16OPValS = PRT_E2ROMParas.u16IchgOcp_First;	// Ã»ÓÐ»Ö¸´ÅÐ¶Ï
-		// t_sPubOPUPChk.i16ChkCnt = &s_i16TimeCnt;
-		t_sPubOPUPChk.i16ChkCnt = &sys_time.occ2_cnt;
-		// t_sPubOPUPChk.u16TimeCntB = PRT_E2ROMParas.u16IchgOcp_Filter;					  // ¹ÊÕÏÅÐ¶ÏÊ±¼ä500ms
-		t_sPubOPUPChk.u16TimeCntB = (100 * 5);					  // ¹ÊÕÏÅÐ¶ÏÊ±¼ä500ms
-		// t_sPubOPUPChk.u16TimeCntB = (100 * 60);					  // ¹ÊÕÏÅÐ¶ÏÊ±¼ä500ms
-		t_sPubOPUPChk.u16TimeCntS = PRT_E2ROMParas.u16IchgOcp_Filter + CurOverFaultDelay; // Ã»ÓÐ»Ö¸´ÅÐ¶Ï-->ÓÐ»Ö¸´ÅÐ¶Ï
-		t_sPubOPUPChk.u8FlagLogic = 1;													  // ÕýÂß¼­
-		t_sPubOPUPChk.u8FlagBit = g_stCellInfoReport.unMdlFault_Second.bits.b1IchgOcp;	  // ¹ÊÕÏ±êÖ¾¸³¾ÉÖµ
-
-		if (App_PubOPUPChk(&t_sPubOPUPChk))
-		{
-			g_stCellInfoReport.unMdlFault_Second.bits.b1IchgOcp = t_sPubOPUPChk.u8FlagBit; // ·µ»Ø¹ÊÕÏÅÐ¶Ï½á¹û
-			if (t_sPubOPUPChk.u8FlagBit == 1)
-			{
-				if (0 == Fault_Flag_Second.bits.IchgOcp_Second)
-				{
-					FaultWarnRecord(IchgOcp_Second);
-					FaultWarnRecord2(IchgOcp_Second);
-					Fault_Flag_Second.bits.IchgOcp_Second = 1;
-				}
-			}
-			if (t_sPubOPUPChk.u8FlagBit == 0 && Fault_Flag_Second.bits.IchgOcp_Second == 1)
-			{
-				Fault_Flag_Second.bits.IchgOcp_Second = 0;
-			}
-		}
-//}
-#ifdef _hiccup_mode
-		else
-		{
-			if ((++s_i16TimeCntClr) > DELAYB10MS_5S)
-			{ // 5SºóÇå±êÖ¾Î»£¬¹ÊÕÏ»Ö¸´£¬¼´´òàÃ´¦Àí
-				s_i16TimeCntClr = 0;
-				g_stCellInfoReport.unMdlFault_Second.bits.b1IchgOcp = 0;
-			}
-		}
-#endif
-	}
-}
-
-void App_IchgOcp_ThirdCheck(void)
-{
-	static UINT16 s_i16TimeCnt = 0;
-	// static UINT16 s_i16TimeCntClr = 0;
-	SPUBOPUPCHK t_sPubOPUPChk;
-
-	// if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag3)
-	{
-		// if(0 == g_stCellInfoReport.unMdlFault_Third.bits.b1IchgOcp) {
-		t_sPubOPUPChk.u16ChkVal = g_stCellInfoReport.u16Ichg;
-		t_sPubOPUPChk.u16OPValB = PRT_E2ROMParas.u16IchgOcp_Third; // ¹ýÁ÷ÅÐ¶Ï
-		t_sPubOPUPChk.u16OPValS = PRT_E2ROMParas.u16IchgOcp_Rcv;   // Ã»ÓÐ»Ö¸´ÅÐ¶Ï
-		t_sPubOPUPChk.i16ChkCnt = &s_i16TimeCnt;
-		t_sPubOPUPChk.u16TimeCntB = PRT_E2ROMParas.u16IchgOcp_Filter;					  // ¹ÊÕÏÅÐ¶ÏÊ±¼ä500ms
-		t_sPubOPUPChk.u16TimeCntS = PRT_E2ROMParas.u16IchgOcp_Filter + CurOverFaultDelay; // Ã»ÓÐ»Ö¸´ÅÐ¶Ï-->ÓÐ»Ö¸´ÅÐ¶Ï
-		t_sPubOPUPChk.u8FlagLogic = 1;													  // ÕýÂß¼­
-		t_sPubOPUPChk.u8FlagBit = g_stCellInfoReport.unMdlFault_Third.bits.b1IchgOcp;	  // ¹ÊÕÏ±êÖ¾¸³¾ÉÖµ
-
-		if (App_PubOPUPChk(&t_sPubOPUPChk))
-		{
-			g_stCellInfoReport.unMdlFault_Third.bits.b1IchgOcp = t_sPubOPUPChk.u8FlagBit; // ·µ»Ø¹ÊÕÏÅÐ¶Ï½á¹û
-			if (t_sPubOPUPChk.u8FlagBit == 1)
-			{
-				if (0 == Fault_Flag_Third.bits.IchgOcp_Third)
-				{
-					FaultWarnRecord(IchgOcp_Third);
-					FaultWarnRecord2(IchgOcp_Third);
-					Fault_Flag_Third.bits.IchgOcp_Third = 1;
-				}
-			}
-			if (t_sPubOPUPChk.u8FlagBit == 0 && Fault_Flag_Third.bits.IchgOcp_Third == 1)
-			{
-				Fault_Flag_Third.bits.IchgOcp_Third = 0;
-			}
-		}
-//}
-#ifdef _hiccup_mode
-		else
-		{
-			if ((++s_i16TimeCntClr) > DELAYB10MS_5S)
-			{ // 5SºóÇå±êÖ¾Î»£¬¹ÊÕÏ»Ö¸´£¬¼´´òàÃ´¦Àí
-				s_i16TimeCntClr = 0;
-				g_stCellInfoReport.unMdlFault_Third.bits.b1IchgOcp = 0;
-			}
-		}
-#endif
-	}
-}
-
-void App_IdischgOcp_SecondCheck(void)
-{
-	static UINT16 s_i16TimeCnt = 0;
-	// static UINT16 s_i16TimeCntClr = 0;
-	SPUBOPUPCHK t_sPubOPUPChk;
-
-	// if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag3)
-	{
-		// if(0 == g_stCellInfoReport.unMdlFault_Second.bits.b1IdischgOcp) {
-		t_sPubOPUPChk.u16ChkVal = g_stCellInfoReport.u16IDischg;
-		t_sPubOPUPChk.u16OPValB = PRT_E2ROMParas.u16IdsgOcp_Second; // ¹ýÁ÷ÅÐ¶Ï
-		t_sPubOPUPChk.u16OPValS = PRT_E2ROMParas.u16IdsgOcp_First;	// Ã»ÓÐ»Ö¸´ÅÐ¶Ï
-		// t_sPubOPUPChk.i16ChkCnt = &s_i16TimeCnt;
-		t_sPubOPUPChk.i16ChkCnt = &sys_time.odc2_cnt;
-		// t_sPubOPUPChk.u16TimeCntB = PRT_E2ROMParas.u16IdsgOcp_Filter;					  // ¹ÊÕÏÅÐ¶ÏÊ±¼ä500ms
-		t_sPubOPUPChk.u16TimeCntB = (100 * 5);					  // ¹ÊÕÏÅÐ¶ÏÊ±¼ä500ms
-		// t_sPubOPUPChk.u16TimeCntB = (100 * 15);					  // ¹ÊÕÏÅÐ¶ÏÊ±¼ä500ms
-		t_sPubOPUPChk.u16TimeCntS = PRT_E2ROMParas.u16IdsgOcp_Filter + CurOverFaultDelay; // Ã»ÓÐ»Ö¸´ÅÐ¶Ï-->ÓÐ»Ö¸´ÅÐ¶Ï
-		t_sPubOPUPChk.u8FlagLogic = 1;													  // ÕýÂß¼­
-		t_sPubOPUPChk.u8FlagBit = g_stCellInfoReport.unMdlFault_Second.bits.b1IdischgOcp; // ¹ÊÕÏ±êÖ¾¸³¾ÉÖµ
-
-		if (App_PubOPUPChk(&t_sPubOPUPChk))
-		{
-			g_stCellInfoReport.unMdlFault_Second.bits.b1IdischgOcp = t_sPubOPUPChk.u8FlagBit; // ·µ»Ø¹ÊÕÏÅÐ¶Ï½á¹û
-			if (t_sPubOPUPChk.u8FlagBit == 1)
-			{
-				if (0 == Fault_Flag_Second.bits.IdischgOcp_Second)
-				{
-					FaultWarnRecord(IdischgOcp_Second);
-					FaultWarnRecord2(IdischgOcp_Second);
-					Fault_Flag_Second.bits.IdischgOcp_Second = 1;
-				}
-			}
-			if (t_sPubOPUPChk.u8FlagBit == 0 && Fault_Flag_Second.bits.IdischgOcp_Second == 1)
-			{
-				Fault_Flag_Second.bits.IdischgOcp_Second = 0;
-			}
-		}
-//}
-#ifdef _hiccup_mode
-		else
-		{
-			if ((++s_i16TimeCntClr) > DELAYB10MS_5S)
-			{ // 5SºóÇå±êÖ¾Î»£¬¹ÊÕÏ»Ö¸´£¬¼´´òàÃ´¦Àí
-				s_i16TimeCntClr = 0;
-				g_stCellInfoReport.unMdlFault_Second.bits.b1IdischgOcp = 0;
-			}
-		}
-#endif
-	}
-}
-
-void App_IdischgOcp_ThirdCheck(void)
-{
-	static UINT16 s_i16TimeCnt = 0;
-	// static UINT16 s_i16TimeCntClr = 0;
-	SPUBOPUPCHK t_sPubOPUPChk;
-
-	// if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag3)
-	{
-		// if(0 == g_stCellInfoReport.unMdlFault_Third.bits.b1IdischgOcp) {
-		t_sPubOPUPChk.u16ChkVal = g_stCellInfoReport.u16IDischg;
-		t_sPubOPUPChk.u16OPValB = PRT_E2ROMParas.u16IdsgOcp_Third; // ¹ýÁ÷ÅÐ¶Ï
-		t_sPubOPUPChk.u16OPValS = PRT_E2ROMParas.u16IdsgOcp_Rcv;   // Ã»ÓÐ»Ö¸´ÅÐ¶Ï
-		t_sPubOPUPChk.i16ChkCnt = &s_i16TimeCnt;
-		t_sPubOPUPChk.u16TimeCntB = PRT_E2ROMParas.u16IdsgOcp_Filter;					  // ¹ÊÕÏÅÐ¶ÏÊ±¼ä500ms
-		t_sPubOPUPChk.u16TimeCntS = PRT_E2ROMParas.u16IdsgOcp_Filter + CurOverFaultDelay; // Ã»ÓÐ»Ö¸´ÅÐ¶Ï-->ÓÐ»Ö¸´ÅÐ¶Ï
-		t_sPubOPUPChk.u8FlagLogic = 1;													  // ÕýÂß¼­
-		t_sPubOPUPChk.u8FlagBit = g_stCellInfoReport.unMdlFault_Third.bits.b1IdischgOcp;  // ¹ÊÕÏ±êÖ¾¸³¾ÉÖµ
-
-		if (App_PubOPUPChk(&t_sPubOPUPChk))
-		{
-			g_stCellInfoReport.unMdlFault_Third.bits.b1IdischgOcp = t_sPubOPUPChk.u8FlagBit; // ·µ»Ø¹ÊÕÏÅÐ¶Ï½á¹û
-			if (t_sPubOPUPChk.u8FlagBit == 1)
-			{
-				if (0 == Fault_Flag_Third.bits.IdischgOcp_Third)
-				{
-					FaultWarnRecord(IdischgOcp_Third);
-					FaultWarnRecord2(IdischgOcp_Third);
-					Fault_Flag_Third.bits.IdischgOcp_Third = 1;
-				}
-			}
-			if (t_sPubOPUPChk.u8FlagBit == 0 && Fault_Flag_Third.bits.IdischgOcp_Third == 1)
-			{
-				Fault_Flag_Third.bits.IdischgOcp_Third = 0;
-			}
-		}
-//}
-#ifdef _hiccup_mode
-		else
-		{
-			if ((++s_i16TimeCntClr) > DELAYB10MS_5S)
-			{ // 5SºóÇå±êÖ¾Î»£¬¹ÊÕÏ»Ö¸´£¬¼´´òàÃ´¦Àí
-				s_i16TimeCntClr = 0;
-				g_stCellInfoReport.unMdlFault_Third.bits.b1IdischgOcp = 0;
-			}
-		}
-#endif
-	}
-}
-
-void App_CellChgOtp_SecondCheck(void)
-{
-	static UINT16 s_i16TimeCnt = 0;
-	SPUBOPUPCHK t_sPubOPUPChk;
-
-	// if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag4)
-	{
-		t_sPubOPUPChk.u16ChkVal = g_stCellInfoReport.u16TempMax;
-		t_sPubOPUPChk.u16OPValB = PRT_E2ROMParas.u16TChgOTp_Second;
-		t_sPubOPUPChk.u16OPValS = PRT_E2ROMParas.u16TChgOTp_First;
-		t_sPubOPUPChk.i16ChkCnt = &s_i16TimeCnt;
-		t_sPubOPUPChk.u16TimeCntB = PRT_E2ROMParas.u16TChgOTp_Filter;					  // ¹ÊÕÏÅÐ¶ÏÊ±¼ä500ms
-		t_sPubOPUPChk.u16TimeCntS = PRT_E2ROMParas.u16TChgOTp_Filter;					  // ¹ÊÕÏ»Ö¸´ÅÐ¶ÏÊ±¼ä500ms
-		t_sPubOPUPChk.u8FlagLogic = 1;													  // ÕýÂß¼­
-		t_sPubOPUPChk.u8FlagBit = g_stCellInfoReport.unMdlFault_Second.bits.b1CellChgOtp; // ¹ÊÕÏ±êÖ¾¸³¾ÉÖµ
-
-		switch (t_sPubOPUPChk.u8FlagBit)
-		{
-		case 0:
-			if (g_stCellInfoReport.u16Ichg > OTP_UTP_VirCur_Chg)
-			{
-				if (App_PubOPUPChk(&t_sPubOPUPChk))
-				{
-					g_stCellInfoReport.unMdlFault_Second.bits.b1CellChgOtp = t_sPubOPUPChk.u8FlagBit; // ·µ»Ø¹ÊÕÏÅÐ¶Ï½á¹û
-					if (t_sPubOPUPChk.u8FlagBit == 1)
-					{
-						if (0 == Fault_Flag_Second.bits.CellChgOTp_Second)
-						{
-							FaultWarnRecord(CellChgOTp_Second);
-							FaultWarnRecord2(CellChgOTp_Second);
-							Fault_Flag_Second.bits.CellChgOTp_Second = 1;
-						}
-					}
-					if (t_sPubOPUPChk.u8FlagBit == 0 && Fault_Flag_Second.bits.CellChgOTp_Second == 1)
-					{
-						Fault_Flag_Second.bits.CellChgOTp_Second = 0;
-					}
-				}
-			}
-			break;
-
-		case 1:
-			if (App_PubOPUPChk(&t_sPubOPUPChk))
-			{
-				g_stCellInfoReport.unMdlFault_Second.bits.b1CellChgOtp = t_sPubOPUPChk.u8FlagBit; // ·µ»Ø¹ÊÕÏÅÐ¶Ï½á¹û
-				if (t_sPubOPUPChk.u8FlagBit == 1)
-				{
-					if (0 == Fault_Flag_Second.bits.CellChgOTp_Second)
-					{
-						FaultWarnRecord(CellChgOTp_Second);
-						FaultWarnRecord2(CellChgOTp_Second);
-						Fault_Flag_Second.bits.CellChgOTp_Second = 1;
-					}
-				}
-				if (t_sPubOPUPChk.u8FlagBit == 0 && Fault_Flag_Second.bits.CellChgOTp_Second == 1)
-				{
-					Fault_Flag_Second.bits.CellChgOTp_Second = 0;
-				}
-			}
-			break;
-
-		default:
-			break;
-		}
-	}
-}
-
-void App_CellChgOtp_ThirdCheck(void)
-{
-	static UINT16 s_i16TimeCnt = 0;
-	SPUBOPUPCHK t_sPubOPUPChk;
-
-	// if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag4)
-	{
-		t_sPubOPUPChk.u16ChkVal = g_stCellInfoReport.u16TempMax;
-		t_sPubOPUPChk.u16OPValB = PRT_E2ROMParas.u16TChgOTp_Third;
-		t_sPubOPUPChk.u16OPValS = PRT_E2ROMParas.u16TChgOTp_Rcv;
-		t_sPubOPUPChk.i16ChkCnt = &s_i16TimeCnt;
-		t_sPubOPUPChk.u16TimeCntB = PRT_E2ROMParas.u16TChgOTp_Filter;					 // ¹ÊÕÏÅÐ¶ÏÊ±¼ä500ms
-		t_sPubOPUPChk.u16TimeCntS = PRT_E2ROMParas.u16TChgOTp_Filter;					 // ¹ÊÕÏ»Ö¸´ÅÐ¶ÏÊ±¼ä500ms
-		t_sPubOPUPChk.u8FlagLogic = 1;													 // ÕýÂß¼­
-		t_sPubOPUPChk.u8FlagBit = g_stCellInfoReport.unMdlFault_Third.bits.b1CellChgOtp; // ¹ÊÕÏ±êÖ¾¸³¾ÉÖµ
-
-		switch (t_sPubOPUPChk.u8FlagBit)
-		{
-		case 0:
-			if (g_stCellInfoReport.u16Ichg > OTP_UTP_VirCur_Chg)
-			{
-				if (App_PubOPUPChk(&t_sPubOPUPChk))
-				{
-					g_stCellInfoReport.unMdlFault_Third.bits.b1CellChgOtp = t_sPubOPUPChk.u8FlagBit; // ·µ»Ø¹ÊÕÏÅÐ¶Ï½á¹û
-					if (t_sPubOPUPChk.u8FlagBit == 1)
-					{
-						if (0 == Fault_Flag_Third.bits.CellChgOTp_Third)
-						{
-							FaultWarnRecord(CellChgOTp_Third);
-							FaultWarnRecord2(CellChgOTp_Third);
-							Fault_Flag_Third.bits.CellChgOTp_Third = 1;
-						}
-					}
-					if (t_sPubOPUPChk.u8FlagBit == 0 && Fault_Flag_Third.bits.CellChgOTp_Third == 1)
-					{
-						Fault_Flag_Third.bits.CellChgOTp_Third = 0;
-					}
-				}
-			}
-			break;
-
-		case 1:
-			if (App_PubOPUPChk(&t_sPubOPUPChk))
-			{
-				g_stCellInfoReport.unMdlFault_Third.bits.b1CellChgOtp = t_sPubOPUPChk.u8FlagBit; // ·µ»Ø¹ÊÕÏÅÐ¶Ï½á¹û
-				if (t_sPubOPUPChk.u8FlagBit == 1)
-				{
-					if (0 == Fault_Flag_Third.bits.CellChgOTp_Third)
-					{
-						FaultWarnRecord(CellChgOTp_Third);
-						FaultWarnRecord2(CellChgOTp_Third);
-						Fault_Flag_Third.bits.CellChgOTp_Third = 1;
-					}
-				}
-				if (t_sPubOPUPChk.u8FlagBit == 0 && Fault_Flag_Third.bits.CellChgOTp_Third == 1)
-				{
-					Fault_Flag_Third.bits.CellChgOTp_Third = 0;
-				}
-			}
-			break;
-
-		default:
-			break;
-		}
-	}
-}
-
-void App_CellDisChgOtp_SecondCheck(void)
-{
-	static UINT16 s_i16TimeCnt = 0;
-	SPUBOPUPCHK t_sPubOPUPChk;
-
-	// if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag4)
-	{
-		t_sPubOPUPChk.u16ChkVal = g_stCellInfoReport.u16TempMax;
-		t_sPubOPUPChk.u16OPValB = PRT_E2ROMParas.u16TdischgOTp_Second;
-		t_sPubOPUPChk.u16OPValS = PRT_E2ROMParas.u16TdischgOTp_First;
-		t_sPubOPUPChk.i16ChkCnt = &s_i16TimeCnt;
-		t_sPubOPUPChk.u16TimeCntB = PRT_E2ROMParas.u16TdischgOTp_Filter;					 // ¹ÊÕÏÅÐ¶ÏÊ±¼ä500ms
-		t_sPubOPUPChk.u16TimeCntS = PRT_E2ROMParas.u16TdischgOTp_Filter;					 // ¹ÊÕÏ»Ö¸´ÅÐ¶ÏÊ±¼ä500ms
-		t_sPubOPUPChk.u8FlagLogic = 1;														 // ÕýÂß¼­
-		t_sPubOPUPChk.u8FlagBit = g_stCellInfoReport.unMdlFault_Second.bits.b1CellDischgOtp; // ¹ÊÕÏ±êÖ¾¸³¾ÉÖµ
-
-		switch (t_sPubOPUPChk.u8FlagBit)
-		{
-		case 0:
-			if (g_stCellInfoReport.u16IDischg > OTP_UTP_VirCur_Dsg)
-			{
-				if (App_PubOPUPChk(&t_sPubOPUPChk))
-				{
-					g_stCellInfoReport.unMdlFault_Second.bits.b1CellDischgOtp = t_sPubOPUPChk.u8FlagBit; // ·µ»Ø¹ÊÕÏÅÐ¶Ï½á¹û
-					if (t_sPubOPUPChk.u8FlagBit == 1)
-					{
-						if (0 == Fault_Flag_Second.bits.CellDsgOTp_Second)
-						{
-							FaultWarnRecord(CellDsgOTp_Second);
-							FaultWarnRecord2(CellDsgOTp_Second);
-							Fault_Flag_Second.bits.CellDsgOTp_Second = 1;
-						}
-					}
-					if (t_sPubOPUPChk.u8FlagBit == 0 && Fault_Flag_Second.bits.CellDsgOTp_Second == 1)
-					{
-						Fault_Flag_Second.bits.CellDsgOTp_Second = 0;
-					}
-				}
-			}
-			break;
-
-		case 1:
-			if (App_PubOPUPChk(&t_sPubOPUPChk))
-			{
-				g_stCellInfoReport.unMdlFault_Second.bits.b1CellDischgOtp = t_sPubOPUPChk.u8FlagBit; // ·µ»Ø¹ÊÕÏÅÐ¶Ï½á¹û
-				if (t_sPubOPUPChk.u8FlagBit == 1)
-				{
-					if (0 == Fault_Flag_Second.bits.CellDsgOTp_Second)
-					{
-						FaultWarnRecord(CellDsgOTp_Second);
-						FaultWarnRecord2(CellDsgOTp_Second);
-						Fault_Flag_Second.bits.CellDsgOTp_Second = 1;
-					}
-				}
-				if (t_sPubOPUPChk.u8FlagBit == 0 && Fault_Flag_Second.bits.CellDsgOTp_Second == 1)
-				{
-					Fault_Flag_Second.bits.CellDsgOTp_Second = 0;
-				}
-			}
-			break;
-
-		default:
-			break;
-		}
-	}
-}
-
-void App_CellDisChgOtp_ThirdCheck(void)
-{
-	static UINT16 s_i16TimeCnt = 0;
-	SPUBOPUPCHK t_sPubOPUPChk;
-
-	// if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag4)
-	{
-		t_sPubOPUPChk.u16ChkVal = g_stCellInfoReport.u16TempMax;
-		t_sPubOPUPChk.u16OPValB = PRT_E2ROMParas.u16TdischgOTp_Third;
-		t_sPubOPUPChk.u16OPValS = PRT_E2ROMParas.u16TdischgOTp_Rcv;
-		t_sPubOPUPChk.i16ChkCnt = &s_i16TimeCnt;
-		t_sPubOPUPChk.u16TimeCntB = PRT_E2ROMParas.u16TdischgOTp_Filter;					// ¹ÊÕÏÅÐ¶ÏÊ±¼ä500ms
-		t_sPubOPUPChk.u16TimeCntS = PRT_E2ROMParas.u16TdischgOTp_Filter;					// ¹ÊÕÏ»Ö¸´ÅÐ¶ÏÊ±¼ä500ms
-		t_sPubOPUPChk.u8FlagLogic = 1;														// ÕýÂß¼­
-		t_sPubOPUPChk.u8FlagBit = g_stCellInfoReport.unMdlFault_Third.bits.b1CellDischgOtp; // ¹ÊÕÏ±êÖ¾¸³¾ÉÖµ
-
-		switch (t_sPubOPUPChk.u8FlagBit)
-		{
-		case 0:
-			if (g_stCellInfoReport.u16IDischg > OTP_UTP_VirCur_Dsg)
-			{
-				if (App_PubOPUPChk(&t_sPubOPUPChk))
-				{
-					g_stCellInfoReport.unMdlFault_Third.bits.b1CellDischgOtp = t_sPubOPUPChk.u8FlagBit; // ·µ»Ø¹ÊÕÏÅÐ¶Ï½á¹û
-					if (t_sPubOPUPChk.u8FlagBit == 1)
-					{
-						if (0 == Fault_Flag_Third.bits.CellDsgOTp_Third)
-						{
-							FaultWarnRecord(CellDsgOTp_Third);
-							FaultWarnRecord2(CellDsgOTp_Third);
-							Fault_Flag_Third.bits.CellDsgOTp_Third = 1;
-						}
-					}
-					if (t_sPubOPUPChk.u8FlagBit == 0 && Fault_Flag_Third.bits.CellDsgOTp_Third == 1)
-					{
-						Fault_Flag_Third.bits.CellDsgOTp_Third = 0;
-					}
-				}
-			}
-			break;
-
-		case 1:
-			if (App_PubOPUPChk(&t_sPubOPUPChk))
-			{
-				g_stCellInfoReport.unMdlFault_Third.bits.b1CellDischgOtp = t_sPubOPUPChk.u8FlagBit; // ·µ»Ø¹ÊÕÏÅÐ¶Ï½á¹û
-				if (t_sPubOPUPChk.u8FlagBit == 1)
-				{
-					if (0 == Fault_Flag_Third.bits.CellDsgOTp_Third)
-					{
-						FaultWarnRecord(CellDsgOTp_Third);
-						FaultWarnRecord2(CellDsgOTp_Third);
-						Fault_Flag_Third.bits.CellDsgOTp_Third = 1;
-					}
-				}
-				if (t_sPubOPUPChk.u8FlagBit == 0 && Fault_Flag_Third.bits.CellDsgOTp_Third == 1)
-				{
-					Fault_Flag_Third.bits.CellDsgOTp_Third = 0;
-				}
-			}
-			break;
-
-		default:
-			break;
-		}
-	}
-}
-
-void App_MosOtp_SecondCheck(void)
-{
-	static UINT16 s_i16TimeCnt = 0;
-	SPUBOPUPCHK t_sPubOPUPChk;
-
-	// if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag5)
-	{
-		t_sPubOPUPChk.u16ChkVal = g_stCellInfoReport.u16Temperature[MOS_TEMP1];
-		t_sPubOPUPChk.u16OPValB = PRT_E2ROMParas.u16TmosOTp_Second;
-		t_sPubOPUPChk.u16OPValS = PRT_E2ROMParas.u16TmosOTp_First;
-		t_sPubOPUPChk.i16ChkCnt = &s_i16TimeCnt;
-		t_sPubOPUPChk.u16TimeCntB = PRT_E2ROMParas.u16TmosOTp_Filter;				   // ¹ÊÕÏÅÐ¶ÏÊ±¼ä500ms
-		t_sPubOPUPChk.u16TimeCntS = PRT_E2ROMParas.u16TmosOTp_Filter;				   // ¹ÊÕÏ»Ö¸´ÅÐ¶ÏÊ±¼ä500ms
-		t_sPubOPUPChk.u8FlagLogic = 1;												   // ÕýÂß¼­
-		t_sPubOPUPChk.u8FlagBit = g_stCellInfoReport.unMdlFault_Second.bits.b1TmosOtp; // ¹ÊÕÏ±êÖ¾¸³¾ÉÖµ
-
-		if (App_PubOPUPChk(&t_sPubOPUPChk))
-		{
-			g_stCellInfoReport.unMdlFault_Second.bits.b1TmosOtp = t_sPubOPUPChk.u8FlagBit; // ·µ»Ø¹ÊÕÏÅÐ¶Ï½á¹û
-			if (t_sPubOPUPChk.u8FlagBit == 1)
-			{
-				if (0 == Fault_Flag_Second.bits.MosOTp_Second)
-				{
-					FaultWarnRecord(MosOTp_Second);
-					FaultWarnRecord2(MosOTp_Second);
-					Fault_Flag_Second.bits.MosOTp_Second = 1;
-				}
-			}
-			if (t_sPubOPUPChk.u8FlagBit == 0 && Fault_Flag_Second.bits.MosOTp_Second == 1)
-			{
-				Fault_Flag_Second.bits.MosOTp_Second = 0;
-			}
-		}
-	}
-}
-
-void App_MosOtp_ThirdCheck(void)
-{
-	static UINT16 s_i16TimeCnt = 0;
-	SPUBOPUPCHK t_sPubOPUPChk;
-
-	// if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag5)
-	{
-		t_sPubOPUPChk.u16ChkVal = g_stCellInfoReport.u16Temperature[MOS_TEMP1];
-		t_sPubOPUPChk.u16OPValB = PRT_E2ROMParas.u16TmosOTp_Third;
-		t_sPubOPUPChk.u16OPValS = PRT_E2ROMParas.u16TmosOTp_Rcv;
-		t_sPubOPUPChk.i16ChkCnt = &s_i16TimeCnt;
-		t_sPubOPUPChk.u16TimeCntB = PRT_E2ROMParas.u16TmosOTp_Filter;				  // ¹ÊÕÏÅÐ¶ÏÊ±¼ä500ms
-		t_sPubOPUPChk.u16TimeCntS = PRT_E2ROMParas.u16TmosOTp_Filter;				  // ¹ÊÕÏ»Ö¸´ÅÐ¶ÏÊ±¼ä500ms
-		t_sPubOPUPChk.u8FlagLogic = 1;												  // ÕýÂß¼­
-		t_sPubOPUPChk.u8FlagBit = g_stCellInfoReport.unMdlFault_Third.bits.b1TmosOtp; // ¹ÊÕÏ±êÖ¾¸³¾ÉÖµ
-
-		if (App_PubOPUPChk(&t_sPubOPUPChk))
-		{
-			g_stCellInfoReport.unMdlFault_Third.bits.b1TmosOtp = t_sPubOPUPChk.u8FlagBit; // ·µ»Ø¹ÊÕÏÅÐ¶Ï½á¹û
-			if (t_sPubOPUPChk.u8FlagBit == 1)
-			{
-				if (0 == Fault_Flag_Third.bits.MosOTp_Third)
-				{
-					FaultWarnRecord(MosOTp_Third);
-					FaultWarnRecord2(MosOTp_Third);
-					Fault_Flag_Third.bits.MosOTp_Third = 1;
-				}
-			}
-			if (t_sPubOPUPChk.u8FlagBit == 0 && Fault_Flag_Third.bits.MosOTp_Third == 1)
-			{
-				Fault_Flag_Third.bits.MosOTp_Third = 0;
-			}
-		}
-	}
-}
-
-void App_CellChgUtp_SecondCheck(void)
-{
-	static UINT16 s_i16TimeCnt = 0;
-	SPUBOPUPCHK t_sPubOPUPChk;
-
-	// if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag5)
-	{
-		t_sPubOPUPChk.u16ChkVal = g_stCellInfoReport.u16TempMin;
-		t_sPubOPUPChk.u16OPValB = PRT_E2ROMParas.u16TchgUTp_First;
-		t_sPubOPUPChk.u16OPValS = PRT_E2ROMParas.u16TchgUTp_Second;
-		t_sPubOPUPChk.i16ChkCnt = &s_i16TimeCnt;
-		t_sPubOPUPChk.u16TimeCntB = PRT_E2ROMParas.u16TchgUTp_Filter;					  // ¹ÊÕÏÅÐ¶ÏÊ±¼ä500ms
-		t_sPubOPUPChk.u16TimeCntS = PRT_E2ROMParas.u16TchgUTp_Filter;					  // ¹ÊÕÏ»Ö¸´ÅÐ¶ÏÊ±¼ä500ms
-		t_sPubOPUPChk.u8FlagLogic = 0;													  // ¸ºÂß¼­
-		t_sPubOPUPChk.u8FlagBit = g_stCellInfoReport.unMdlFault_Second.bits.b1CellChgUtp; // ¹ÊÕÏ±êÖ¾¸³¾ÉÖµ
-
-		switch (t_sPubOPUPChk.u8FlagBit)
-		{
-		case 0:
-			if (g_stCellInfoReport.u16Ichg > OTP_UTP_VirCur_Chg)
-			{
-				if (App_PubOPUPChk(&t_sPubOPUPChk))
-				{
-					g_stCellInfoReport.unMdlFault_Second.bits.b1CellChgUtp = t_sPubOPUPChk.u8FlagBit; // ·µ»Ø¹ÊÕÏÅÐ¶Ï½á¹û
-					if (t_sPubOPUPChk.u8FlagBit == 1)
-					{
-						if (0 == Fault_Flag_Second.bits.CellChgUTp_Second)
-						{
-							FaultWarnRecord(CellChgUTp_Second);
-							FaultWarnRecord2(CellChgUTp_Second);
-							Fault_Flag_Second.bits.CellChgUTp_Second = 1;
-						}
-					}
-					if (t_sPubOPUPChk.u8FlagBit == 0 && Fault_Flag_Second.bits.CellChgUTp_Second == 1)
-					{
-						Fault_Flag_Second.bits.CellChgUTp_Second = 0;
-					}
-				}
-			}
-			break;
-
-		case 1:
-			if (App_PubOPUPChk(&t_sPubOPUPChk))
-			{
-				g_stCellInfoReport.unMdlFault_Second.bits.b1CellChgUtp = t_sPubOPUPChk.u8FlagBit; // ·µ»Ø¹ÊÕÏÅÐ¶Ï½á¹û
-				if (t_sPubOPUPChk.u8FlagBit == 1)
-				{
-					if (0 == Fault_Flag_Second.bits.CellChgUTp_Second)
-					{
-						FaultWarnRecord(CellChgUTp_Second);
-						FaultWarnRecord2(CellChgUTp_Second);
-						Fault_Flag_Second.bits.CellChgUTp_Second = 1;
-					}
-				}
-				if (t_sPubOPUPChk.u8FlagBit == 0 && Fault_Flag_Second.bits.CellChgUTp_Second == 1)
-				{
-					Fault_Flag_Second.bits.CellChgUTp_Second = 0;
-				}
-			}
-			break;
-
-		default:
-			break;
-		}
-	}
-}
-
-void App_CellChgUtp_ThirdCheck(void)
-{
-	static UINT16 s_i16TimeCnt = 0;
-	SPUBOPUPCHK t_sPubOPUPChk;
-
-	// if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag5)
-	{
-		t_sPubOPUPChk.u16ChkVal = g_stCellInfoReport.u16TempMin;
-		t_sPubOPUPChk.u16OPValB = PRT_E2ROMParas.u16TchgUTp_Rcv;
-		t_sPubOPUPChk.u16OPValS = PRT_E2ROMParas.u16TchgUTp_Third;
-		t_sPubOPUPChk.i16ChkCnt = &s_i16TimeCnt;
-		t_sPubOPUPChk.u16TimeCntB = PRT_E2ROMParas.u16TchgUTp_Filter;					 // ¹ÊÕÏÅÐ¶ÏÊ±¼ä500ms
-		t_sPubOPUPChk.u16TimeCntS = PRT_E2ROMParas.u16TchgUTp_Filter;					 // ¹ÊÕÏ»Ö¸´ÅÐ¶ÏÊ±¼ä500ms
-		t_sPubOPUPChk.u8FlagLogic = 0;													 // ¸ºÂß¼­
-		t_sPubOPUPChk.u8FlagBit = g_stCellInfoReport.unMdlFault_Third.bits.b1CellChgUtp; // ¹ÊÕÏ±êÖ¾¸³¾ÉÖµ
-
-		switch (t_sPubOPUPChk.u8FlagBit)
-		{
-		case 0:
-			if (g_stCellInfoReport.u16Ichg > OTP_UTP_VirCur_Chg)
-			{
-				if (App_PubOPUPChk(&t_sPubOPUPChk))
-				{
-					g_stCellInfoReport.unMdlFault_Third.bits.b1CellChgUtp = t_sPubOPUPChk.u8FlagBit; // ·µ»Ø¹ÊÕÏÅÐ¶Ï½á¹û
-					if (t_sPubOPUPChk.u8FlagBit == 1)
-					{
-						if (0 == Fault_Flag_Third.bits.CellChgUTp_Third)
-						{
-							FaultWarnRecord(CellChgUTp_Third);
-							FaultWarnRecord2(CellChgUTp_Third);
-							Fault_Flag_Third.bits.CellChgUTp_Third = 1;
-						}
-					}
-					if (t_sPubOPUPChk.u8FlagBit == 0 && Fault_Flag_Third.bits.CellChgUTp_Third == 1)
-					{
-						Fault_Flag_Third.bits.CellChgUTp_Third = 0;
-					}
-				}
-			}
-			break;
-
-		case 1:
-			if (App_PubOPUPChk(&t_sPubOPUPChk))
-			{
-				g_stCellInfoReport.unMdlFault_Third.bits.b1CellChgUtp = t_sPubOPUPChk.u8FlagBit; // ·µ»Ø¹ÊÕÏÅÐ¶Ï½á¹û
-				if (t_sPubOPUPChk.u8FlagBit == 1)
-				{
-					if (0 == Fault_Flag_Third.bits.CellChgUTp_Third)
-					{
-						FaultWarnRecord(CellChgUTp_Third);
-						FaultWarnRecord2(CellChgUTp_Third);
-						Fault_Flag_Third.bits.CellChgUTp_Third = 1;
-					}
-				}
-				if (t_sPubOPUPChk.u8FlagBit == 0 && Fault_Flag_Third.bits.CellChgUTp_Third == 1)
-				{
-					Fault_Flag_Third.bits.CellChgUTp_Third = 0;
-				}
-			}
-			break;
-
-		default:
-			break;
-		}
-	}
-}
-
-void App_CellDischgUtp_SecondCheck(void)
-{
-	static UINT16 s_i16TimeCnt = 0;
-	SPUBOPUPCHK t_sPubOPUPChk;
-
-	// if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag5)
-	{
-		t_sPubOPUPChk.u16ChkVal = g_stCellInfoReport.u16TempMin;
-		t_sPubOPUPChk.u16OPValB = PRT_E2ROMParas.u16TdischgUTp_First;
-		t_sPubOPUPChk.u16OPValS = PRT_E2ROMParas.u16TdischgUTp_Second;
-		t_sPubOPUPChk.i16ChkCnt = &s_i16TimeCnt;
-		t_sPubOPUPChk.u16TimeCntB = PRT_E2ROMParas.u16TdischgUTp_Filter;					 // ¹ÊÕÏÅÐ¶ÏÊ±¼ä500ms
-		t_sPubOPUPChk.u16TimeCntS = PRT_E2ROMParas.u16TdischgUTp_Filter;					 // ¹ÊÕÏ»Ö¸´ÅÐ¶ÏÊ±¼ä500ms
-		t_sPubOPUPChk.u8FlagLogic = 0;														 // ¸ºÂß¼­
-		t_sPubOPUPChk.u8FlagBit = g_stCellInfoReport.unMdlFault_Second.bits.b1CellDischgUtp; // ¹ÊÕÏ±êÖ¾¸³¾ÉÖµ
-
-		switch (t_sPubOPUPChk.u8FlagBit)
-		{
-		case 0:
-			if (g_stCellInfoReport.u16IDischg > OTP_UTP_VirCur_Dsg)
-			{
-				if (App_PubOPUPChk(&t_sPubOPUPChk))
-				{
-					g_stCellInfoReport.unMdlFault_Second.bits.b1CellDischgUtp = t_sPubOPUPChk.u8FlagBit; // ·µ»Ø¹ÊÕÏÅÐ¶Ï½á¹û
-					if (t_sPubOPUPChk.u8FlagBit == 1)
-					{
-						if (0 == Fault_Flag_Second.bits.CellDsgUTp_Second)
-						{
-							FaultWarnRecord(CellDsgUTp_Second);
-							FaultWarnRecord2(CellDsgUTp_Second);
-							Fault_Flag_Second.bits.CellDsgUTp_Second = 1;
-						}
-					}
-					if (t_sPubOPUPChk.u8FlagBit == 0 && Fault_Flag_Second.bits.CellDsgUTp_Second == 1)
-					{
-						Fault_Flag_Second.bits.CellDsgUTp_Second = 0;
-					}
-				}
-			}
-			break;
-
-		case 1:
-			if (App_PubOPUPChk(&t_sPubOPUPChk))
-			{
-				g_stCellInfoReport.unMdlFault_Second.bits.b1CellDischgUtp = t_sPubOPUPChk.u8FlagBit; // ·µ»Ø¹ÊÕÏÅÐ¶Ï½á¹û
-				if (t_sPubOPUPChk.u8FlagBit == 1)
-				{
-					if (0 == Fault_Flag_Second.bits.CellDsgUTp_Second)
-					{
-						FaultWarnRecord(CellDsgUTp_Second);
-						FaultWarnRecord2(CellDsgUTp_Second);
-						Fault_Flag_Second.bits.CellDsgUTp_Second = 1;
-					}
-				}
-				if (t_sPubOPUPChk.u8FlagBit == 0 && Fault_Flag_Second.bits.CellDsgUTp_Second == 1)
-				{
-					Fault_Flag_Second.bits.CellDsgUTp_Second = 0;
-				}
-			}
-			break;
-
-		default:
-			break;
-		}
-	}
-}
-
-void App_CellDischgUtp_ThirdCheck(void)
-{
-	static UINT16 s_i16TimeCnt = 0;
-	SPUBOPUPCHK t_sPubOPUPChk;
-
-	// if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag5)
-	{
-		t_sPubOPUPChk.u16ChkVal = g_stCellInfoReport.u16TempMin;
-		t_sPubOPUPChk.u16OPValB = PRT_E2ROMParas.u16TdischgUTp_Rcv;
-		t_sPubOPUPChk.u16OPValS = PRT_E2ROMParas.u16TdischgUTp_Third;
-		t_sPubOPUPChk.i16ChkCnt = &s_i16TimeCnt;
-		t_sPubOPUPChk.u16TimeCntB = PRT_E2ROMParas.u16TdischgUTp_Filter;					// ¹ÊÕÏÅÐ¶ÏÊ±¼ä500ms
-		t_sPubOPUPChk.u16TimeCntS = PRT_E2ROMParas.u16TdischgUTp_Filter;					// ¹ÊÕÏ»Ö¸´ÅÐ¶ÏÊ±¼ä500ms
-		t_sPubOPUPChk.u8FlagLogic = 0;														// ¸ºÂß¼­
-		t_sPubOPUPChk.u8FlagBit = g_stCellInfoReport.unMdlFault_Third.bits.b1CellDischgUtp; // ¹ÊÕÏ±êÖ¾¸³¾ÉÖµ
-
-		switch (t_sPubOPUPChk.u8FlagBit)
-		{
-		case 0:
-			if (g_stCellInfoReport.u16IDischg > OTP_UTP_VirCur_Dsg)
-			{
-				if (App_PubOPUPChk(&t_sPubOPUPChk))
-				{
-					g_stCellInfoReport.unMdlFault_Third.bits.b1CellDischgUtp = t_sPubOPUPChk.u8FlagBit; // ·µ»Ø¹ÊÕÏÅÐ¶Ï½á¹û
-					if (t_sPubOPUPChk.u8FlagBit == 1)
-					{
-						if (0 == Fault_Flag_Third.bits.CellDsgUTp_Third)
-						{
-							FaultWarnRecord(CellDsgUTp_Third);
-							FaultWarnRecord2(CellDsgUTp_Third);
-							Fault_Flag_Third.bits.CellDsgUTp_Third = 1;
-						}
-					}
-					if (t_sPubOPUPChk.u8FlagBit == 0 && Fault_Flag_Third.bits.CellDsgUTp_Third == 1)
-					{
-						Fault_Flag_Third.bits.CellDsgUTp_Third = 0;
-					}
-				}
-			}
-			break;
-
-		case 1:
-			if (App_PubOPUPChk(&t_sPubOPUPChk))
-			{
-				g_stCellInfoReport.unMdlFault_Third.bits.b1CellDischgUtp = t_sPubOPUPChk.u8FlagBit; // ·µ»Ø¹ÊÕÏÅÐ¶Ï½á¹û
-				if (t_sPubOPUPChk.u8FlagBit == 1)
-				{
-					if (0 == Fault_Flag_Third.bits.CellDsgUTp_Third)
-					{
-						FaultWarnRecord(CellDsgUTp_Third);
-						FaultWarnRecord2(CellDsgUTp_Third);
-						Fault_Flag_Third.bits.CellDsgUTp_Third = 1;
-					}
-				}
-				if (t_sPubOPUPChk.u8FlagBit == 0 && Fault_Flag_Third.bits.CellDsgUTp_Third == 1)
-				{
-					Fault_Flag_Third.bits.CellDsgUTp_Third = 0;
-				}
-			}
-			break;
-
-		default:
-			break;
-		}
-	}
-}
-
-void App_CellSocUp_SecondCheck(void)
-{
-	static UINT16 s_i16TimeCnt = 0;
-	SPUBOPUPCHK t_sPubOPUPChk;
-
-	// if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag4)
-	{
-		t_sPubOPUPChk.u16ChkVal = g_stCellInfoReport.SocElement.u16Soc;
-		t_sPubOPUPChk.u16OPValB = PRT_E2ROMParas.u16SocUp_First;
-		t_sPubOPUPChk.u16OPValS = PRT_E2ROMParas.u16SocUp_Second;
-		t_sPubOPUPChk.i16ChkCnt = &s_i16TimeCnt;
-		t_sPubOPUPChk.u16TimeCntB = PRT_E2ROMParas.u16SocUp_Filter;					  // ¹ÊÕÏÅÐ¶ÏÊ±¼ä500ms
-		t_sPubOPUPChk.u16TimeCntS = PRT_E2ROMParas.u16SocUp_Filter;					  // ¹ÊÕÏ»Ö¸´ÅÐ¶ÏÊ±¼ä500ms
-		t_sPubOPUPChk.u8FlagLogic = 0;												  // ¸ºÂß¼­
-		t_sPubOPUPChk.u8FlagBit = g_stCellInfoReport.unMdlFault_Second.bits.b1SocLow; // ¹ÊÕÏ±êÖ¾¸³¾ÉÖµ
-
-		if (App_PubOPUPChk(&t_sPubOPUPChk))
-		{
-			g_stCellInfoReport.unMdlFault_Second.bits.b1SocLow = t_sPubOPUPChk.u8FlagBit; // ·µ»Ø¹ÊÕÏÅÐ¶Ï½á¹û
-			if (t_sPubOPUPChk.u8FlagBit == 1)
-			{
-				if (0 == Fault_Flag_Second.bits.CellSocUp_Second)
-				{
-					FaultWarnRecord(CellSocUp_Second);
-					FaultWarnRecord2(CellSocUp_Second);
-					Fault_Flag_Second.bits.CellSocUp_Second = 1;
-				}
-			}
-			if (t_sPubOPUPChk.u8FlagBit == 0 && Fault_Flag_Second.bits.CellSocUp_Second == 1)
-			{
-				Fault_Flag_Second.bits.CellSocUp_Second = 0;
-			}
-		}
-	}
-}
-
-void App_CellSocUp_ThirdCheck(void)
-{
-	static UINT16 s_i16TimeCnt = 0;
-	SPUBOPUPCHK t_sPubOPUPChk;
-
-	// if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag4)
-	{
-		t_sPubOPUPChk.u16ChkVal = g_stCellInfoReport.SocElement.u16Soc;
-		t_sPubOPUPChk.u16OPValB = PRT_E2ROMParas.u16SocUp_Rcv;
-		t_sPubOPUPChk.u16OPValS = PRT_E2ROMParas.u16SocUp_Third;
-		t_sPubOPUPChk.i16ChkCnt = &s_i16TimeCnt;
-		t_sPubOPUPChk.u16TimeCntB = PRT_E2ROMParas.u16SocUp_Filter;					 // ¹ÊÕÏÅÐ¶ÏÊ±¼ä500ms
-		t_sPubOPUPChk.u16TimeCntS = PRT_E2ROMParas.u16SocUp_Filter;					 // ¹ÊÕÏ»Ö¸´ÅÐ¶ÏÊ±¼ä500ms
-		t_sPubOPUPChk.u8FlagLogic = 0;												 // ¸ºÂß¼­
-		t_sPubOPUPChk.u8FlagBit = g_stCellInfoReport.unMdlFault_Third.bits.b1SocLow; // ¹ÊÕÏ±êÖ¾¸³¾ÉÖµ
-
-		if (App_PubOPUPChk(&t_sPubOPUPChk))
-		{
-			g_stCellInfoReport.unMdlFault_Third.bits.b1SocLow = t_sPubOPUPChk.u8FlagBit; // ·µ»Ø¹ÊÕÏÅÐ¶Ï½á¹û
-			if (t_sPubOPUPChk.u8FlagBit == 1)
-			{
-				if (0 == Fault_Flag_Third.bits.CellSocUp_Third)
-				{
-					FaultWarnRecord(CellSocUp_Third);
-					FaultWarnRecord2(CellSocUp_Third);
-					Fault_Flag_Third.bits.CellSocUp_Third = 1;
-				}
-			}
-			if (t_sPubOPUPChk.u8FlagBit == 0 && Fault_Flag_Third.bits.CellSocUp_Third == 1)
-			{
-				Fault_Flag_Third.bits.CellSocUp_Third = 0;
-			}
-		}
-	}
-}
-
-void App_VdeltaOp_SecondCheck(void)
-{
-	static UINT16 s_i16TimeCnt = 0;
-	SPUBOPUPCHK t_sPubOPUPChk;
-
-	// if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag5)
-	{
-		t_sPubOPUPChk.u16ChkVal = g_stCellInfoReport.u16VCellDelta;
-		t_sPubOPUPChk.u16OPValB = PRT_E2ROMParas.u16VdeltaOvp_Second;
-		t_sPubOPUPChk.u16OPValS = PRT_E2ROMParas.u16VdeltaOvp_First;
-		t_sPubOPUPChk.i16ChkCnt = &s_i16TimeCnt;
-		t_sPubOPUPChk.u16TimeCntB = PRT_E2ROMParas.u16VdeltaOvp_Filter;						 // ¹ÊÕÏÅÐ¶ÏÊ±¼ä500ms
-		t_sPubOPUPChk.u16TimeCntS = PRT_E2ROMParas.u16VdeltaOvp_Filter;						 // ¹ÊÕÏ»Ö¸´ÅÐ¶ÏÊ±¼ä500ms
-		t_sPubOPUPChk.u8FlagLogic = 1;														 // ¸ºÂß¼­
-		t_sPubOPUPChk.u8FlagBit = g_stCellInfoReport.unMdlFault_Second.bits.b1VcellDeltaBig; // ¹ÊÕÏ±êÖ¾¸³¾ÉÖµ
-
-		if (App_PubOPUPChk(&t_sPubOPUPChk))
-		{
-			g_stCellInfoReport.unMdlFault_Second.bits.b1VcellDeltaBig = t_sPubOPUPChk.u8FlagBit; // ·µ»Ø¹ÊÕÏÅÐ¶Ï½á¹û
-			if (t_sPubOPUPChk.u8FlagBit == 1)
-			{
-				if (0 == Fault_Flag_Second.bits.VdeltaOvp_Second)
-				{
-					FaultWarnRecord(VdeltaOvp_Second);
-					FaultWarnRecord2(VdeltaOvp_Second);
-					Fault_Flag_Second.bits.VdeltaOvp_Second = 1;
-				}
-			}
-			if (t_sPubOPUPChk.u8FlagBit == 0 && Fault_Flag_Second.bits.VdeltaOvp_Second == 1)
-			{
-				Fault_Flag_Second.bits.VdeltaOvp_Second = 0;
-			}
-		}
-	}
-}
-
-void App_VdeltaOp_ThirdCheck(void)
-{
-	static UINT16 s_i16TimeCnt = 0;
-	SPUBOPUPCHK t_sPubOPUPChk;
-
-	// if (1 == g_st_SysTimeFlag.bits.b1Sys10msFlag5)
-	{
-		t_sPubOPUPChk.u16ChkVal = g_stCellInfoReport.u16VCellDelta;
-		t_sPubOPUPChk.u16OPValB = PRT_E2ROMParas.u16VdeltaOvp_Third;
-		t_sPubOPUPChk.u16OPValS = PRT_E2ROMParas.u16VdeltaOvp_Rcv;
-		t_sPubOPUPChk.i16ChkCnt = &s_i16TimeCnt;
-		t_sPubOPUPChk.u16TimeCntB = PRT_E2ROMParas.u16VdeltaOvp_Filter;						// ¹ÊÕÏÅÐ¶ÏÊ±¼ä500ms
-		t_sPubOPUPChk.u16TimeCntS = (PRT_E2ROMParas.u16VdeltaOvp_Filter + 200);				// ¹ÊÕÏ»Ö¸´ÅÐ¶ÏÊ±¼ä500ms
-		t_sPubOPUPChk.u8FlagLogic = 1;														// ¸ºÂß¼­
-		t_sPubOPUPChk.u8FlagBit = g_stCellInfoReport.unMdlFault_Third.bits.b1VcellDeltaBig; // ¹ÊÕÏ±êÖ¾¸³¾ÉÖµ
-
-		if (App_PubOPUPChk(&t_sPubOPUPChk))
-		{
-			g_stCellInfoReport.unMdlFault_Third.bits.b1VcellDeltaBig = t_sPubOPUPChk.u8FlagBit; // ·µ»Ø¹ÊÕÏÅÐ¶Ï½á¹û
-			if (t_sPubOPUPChk.u8FlagBit == 1)
-			{
-				if (0 == Fault_Flag_Third.bits.VdeltaOvp_Third)
-				{
-					FaultWarnRecord(VdeltaOvp_Third);
-					FaultWarnRecord2(VdeltaOvp_Third);
+	/* ---- SPUBOPUPCHK setup ---- */
+	t.u16ChkVal    = *(pD->pSrcVal);
+	t.u16OPValB    = *(pD->pThreshB);
+	t.u16OPValS    = *(pD->pThreshS);
+	t.i16ChkCnt    = pD->pCounter;
+	t.u16TimeCntB  = *(pD->pTimeB);
+	t.u16TimeCntS  = *(pD->pTimeS);
+	if (u8TimeSOfs == 1)
+		t.u16TimeCntS += 200u;
+	else if (u8TimeSOfs == 2)
+		t.u16TimeCntS += CurOverFaultDelay;
+
+	t.u8FlagLogic  = u8FlagLogic;
+	t.u8FlagBit    = (pFaultReg->all >> u8FaultRegBit) & 1;
+
+	/* ---- Core check ---- */
+	if (App_PubOPUPChk(&t)) {
+		UINT16 flagMask = (UINT16)(1u << u8FlagRegBit);
+
+		if (t.u8FlagBit == 1) {
+			if ((*pFlagAll & flagMask) == 0) {
+				FaultWarnRecord2((enum FaultFlag)pD->u16FaultEnum);
+				*pFlagAll |= flagMask;
+				if (u8TimeSOfs == 1)
 					System_ERROR_UserCallback(ERROR_VDEATLE_OVER);
-					Fault_Flag_Third.bits.VdeltaOvp_Third = 1;
-				}
 			}
-			if (t_sPubOPUPChk.u8FlagBit == 0 && Fault_Flag_Third.bits.VdeltaOvp_Third == 1)
-			{
-				Fault_Flag_Third.bits.VdeltaOvp_Third = 0;
+		}
+
+		if (t.u8FlagBit == 0 && (*pFlagAll & flagMask) != 0) {
+			*pFlagAll &= ~flagMask;
+			if (u8TimeSOfs == 1)
 				System_ERROR_UserCallback(ERROR_REMOVE_VDEATLE_OVER);
-			}
 		}
 	}
 }
 
-/*******************************************************************************
- *Function name: App_WarnCtrl()
- *Description :  IO port state sample, filter, warning judge and treatment
- *input:         void
- *global vars:   g_u16RunFlag.bit.WARN: run flag, 10ms once
- *output:        void
- *CALLED BY:     main()
- ******************************************************************************/
 void App_WarnCtrl(void)
 {
-	App_CellOvp_SecondCheck();
-	App_CellOvp_ThirdCheck();
-	App_CellUvp_SecondCheck();
-	App_CellUvp_ThirdCheck();
-
-	App_BatOvp_SecondCheck();
-	App_BatOvp_ThirdCheck();
-	App_BatUvp_SecondCheck();
-	App_BatUvp_ThirdCheck();
-
-	App_MosOtp_SecondCheck();
-	App_MosOtp_ThirdCheck();
-	App_VdeltaOp_SecondCheck();
-	App_VdeltaOp_ThirdCheck();
-
-	App_IdischgOcp_SecondCheck();
-	App_IdischgOcp_ThirdCheck();
-	App_IchgOcp_SecondCheck();
-	App_IchgOcp_ThirdCheck();
-
-	App_CellSocUp_SecondCheck();
-	App_CellSocUp_ThirdCheck();
-
-	App_CellDisChgOtp_SecondCheck();
-	App_CellDisChgOtp_ThirdCheck();
-	App_CellDischgUtp_SecondCheck();
-	App_CellDischgUtp_ThirdCheck();
-
-	App_CellChgOtp_SecondCheck();
-	App_CellChgOtp_ThirdCheck();
-	App_CellChgUtp_SecondCheck();
-	App_CellChgUtp_ThirdCheck();
-}
-
-void FaultWarnRecord(enum FaultFlag num)
-{
-
+	UINT8 i;
+	for (i = 0; i < 26; i++) {
+		App_FaultCheck_Run(i);
+	}
 }
 
 void FaultWarnRecord2(enum FaultFlag num)

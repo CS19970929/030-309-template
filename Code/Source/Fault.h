@@ -50,29 +50,6 @@ enum FaultFlag {
 };
 
 
-union FAULT_FLAG_FIRST {
-    UINT16 all;
-    struct Fault_Flag_First {
-		UINT8 CellOvp_First     :1;
-		UINT8 CellUvp_First     :1;
-		UINT8 BatOvp_First      :1;
-		UINT8 BatUvp_First      :1;
-		
-		UINT8 IchgOcp_First  	:1;
-		UINT8 IdischgOcp_First  :1;
-		UINT8 CellChgOTp_First  :1;
-		UINT8 CellChgUTp_First  :1;
-		
-		UINT8 CellDsgOTp_First  :1;
-		UINT8 CellDsgUTp_First  :1;
-		UINT8 MosOTp_First		:1;
-		UINT8 VdeltaOvp_First	:1;
-		
-		UINT8 CellSocUp_First	:1;
-		UINT8 Rcv				:3;
-     }bits;	
-};
-
 union FAULT_FLAG_SECOND {
     UINT16 all;
     struct Fault_Flag_Second {
@@ -385,30 +362,51 @@ struct PRT_E2ROM_PARAS {
 
 
 
-#define Record_len 10
+#define Record_len 5
+
+/* ---- Fault check descriptor (data-driven engine) ---- */
+// u16Control bit layout:
+#define FAULT_CTRL_FAULTREG_BIT_POS(x)  ((x) & 0x0F)       // bits 0-3:  bit pos in unMdlFault union
+#define FAULT_CTRL_FLAGREG_BIT_POS(x)   (((x) & 0x0F) << 4) // bits 4-7:  bit pos in Fault_Flag union
+#define FAULT_CTRL_FLAG_LOGIC(x)        (((x) & 0x01) << 8) // bit 8:    0=LOW-trigger, 1=HIGH-trigger
+#define FAULT_CTRL_TIMES_OFFSET(x)      (((x) & 0x03) << 9) // bits 9-10: TimeS offset: 0=none, 1=+200, 2=+CurOverFaultDelay
+#define FAULT_CTRL_VIRCUR_TYPE(x)       (((x) & 0x03) << 11)// bits 11-12: virtual current gate: 0=none, 1=Ichg, 2=Idischg
+
+#define FAULT_CTRL_GET_FAULTREG_BIT(c)  ((c) & 0x0F)
+#define FAULT_CTRL_GET_FLAGREG_BIT(c)   (((c) >> 4) & 0x0F)
+#define FAULT_CTRL_GET_LOGIC(c)         (((c) >> 8) & 0x01)
+#define FAULT_CTRL_GET_TIMESOFS(c)      (((c) >> 9) & 0x03)
+#define FAULT_CTRL_GET_VIRCUR(c)        (((c) >> 11) & 0x03)
+
+typedef const struct {
+    UINT16  *pSrcVal;           // pointer to source value in g_stCellInfoReport
+    UINT16  *pThreshB;          // pointer to EEPROM threshold B
+    UINT16  *pThreshS;          // pointer to EEPROM threshold S
+    UINT16  *pCounter;          // pointer to counter (s_counters[N] or &sys_time.occ2_cnt/odc2_cnt)
+    const UINT16  *pTimeB;      // pointer to EEPROM filter time (or hardcoded constant)
+    const UINT16  *pTimeS;      // pointer to EEPROM filter time
+    UINT16  u16Control;         // packed control word (bit positions, logic, offsets, vircur)
+    UINT16  u16FaultEnum;       // FaultFlag enum value for FaultWarnRecord2
+} FaultCheckDesc;
+
+void App_FaultCheck_Run(UINT8 idx);
 
 extern struct PRT_E2ROM_PARAS PRT_E2ROMParas;
-extern union FAULT_FLAG_FIRST Fault_Flag_Fisrt;
 extern union FAULT_FLAG_SECOND Fault_Flag_Second;
 extern union FAULT_FLAG_THIRD Fault_Flag_Third;
-
-extern UINT16 Fault_record_First[Record_len];
-extern UINT16 Fault_record_Second[Record_len];
-extern UINT16 Fault_record_Third[Record_len];
-extern UINT16 RTC_Fault_record_Third[Record_len][6];
 
 extern UINT16 Fault_record_First2[Record_len];
 extern UINT16 Fault_record_Second2[Record_len];
 extern UINT16 Fault_record_Third2[Record_len];
 
-extern UINT8  FaultPoint_First;
-extern UINT8  FaultPoint_Second;
-extern UINT8  FaultPoint_Third;
 extern UINT8  FaultPoint_First2;
 extern UINT8  FaultPoint_Second2;
 extern UINT8  FaultPoint_Third2;
 
 void App_WarnCtrl(void);
+void FaultWarnRecord2(enum FaultFlag num);
+void PwrMag_Protect_Record(enum FaultFlag num);
+void PwrMag_Protect_Record_StartUp(void);
 
 #endif	/* FAULT_H */
 

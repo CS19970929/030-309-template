@@ -20,7 +20,7 @@
 #define __TIME_TRIGGERED_H
 
 
-#define	 SCH_MAX_TASKS     10
+#define	 SCH_MAX_TASKS     8
 
 
 typedef unsigned char    tByte;

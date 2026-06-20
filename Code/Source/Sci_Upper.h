@@ -6,7 +6,7 @@
 #include "modbus_proto.h"
 
 
-#define	SCI_TX_BUF_LEN			251   	//日志记录导致提升为250
+#define	SCI_TX_BUF_LEN			128   	// Modbus 最大响应 ~127 B
 
 //485 cmd type
 enum RS485_CMD_E {
