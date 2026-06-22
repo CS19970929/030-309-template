@@ -362,7 +362,7 @@ struct PRT_E2ROM_PARAS {
 
 
 
-#define Record_len 5
+#define Record_len 10
 
 /* ---- Fault check descriptor (data-driven engine) ---- */
 // u16Control bit layout:

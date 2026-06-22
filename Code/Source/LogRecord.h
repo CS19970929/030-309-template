@@ -1,7 +1,7 @@
 #ifndef LOG_RECORD_H
 #define LOG_RECORD_H
 
-#define EVENT_RECORD_LENGTH 30
+#define EVENT_RECORD_LENGTH 100
 
 typedef enum _LogEventArray {
 	BMS_EVENT_NULL1 = 0,
