@@ -138,7 +138,7 @@ struct OTHER_ELEMENT {
 #define  BMS_SOFTWARE_VERDION_DEFAULT   "a009-20250915-c088v1p0"  //32
 #define  BMS_SERIAL_NUMBER_DEFAULT  	"hanstar"
 
-#define SNum 14
+#define SNum 13
 
 #define TERNARYLI		//��Ԫ﮵�أ���ѡһ
 // #define LIFEPO			//������﮵�أ���ѡһ

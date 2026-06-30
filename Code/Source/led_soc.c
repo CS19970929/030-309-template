@@ -383,21 +383,21 @@ static void led_soc_update(void)
 {
     if (g_stCellInfoReport.u16IDischg >= 20)
     {
-        if (g_stCellInfoReport.u16VCellTotle >= 5280)
+        if (g_stCellInfoReport.u16VCellTotle >= 4900)
             cur_level = 5;
-        else if (g_stCellInfoReport.u16VCellTotle >= 5120)
+        else if (g_stCellInfoReport.u16VCellTotle >= 4750)
         {
             cur_level = 4;
         }
-        else if (g_stCellInfoReport.u16VCellTotle >= 4950)
+        else if (g_stCellInfoReport.u16VCellTotle >= 4600)
         {
             cur_level = 3;
         }
-        else if (g_stCellInfoReport.u16VCellTotle >= 4800)
+        else if (g_stCellInfoReport.u16VCellTotle >= 4450)
         {
             cur_level = 2;
         }
-        else if (g_stCellInfoReport.u16VCellTotle >= 4400)
+        else if (g_stCellInfoReport.u16VCellTotle >= 4100)
         {
             cur_level = 1;
         }
@@ -408,21 +408,21 @@ static void led_soc_update(void)
     }
     else
     {
-        if (g_stCellInfoReport.u16VCellTotle >= 5500)
+        if (g_stCellInfoReport.u16VCellTotle >= 5100)
             cur_level = 5;
-        else if (g_stCellInfoReport.u16VCellTotle >= 5220)
+        else if (g_stCellInfoReport.u16VCellTotle >= 4850)
         {
             cur_level = 4;
         }
-        else if (g_stCellInfoReport.u16VCellTotle >= 5050)
+        else if (g_stCellInfoReport.u16VCellTotle >= 4700)
         {
             cur_level = 3;
         }
-        else if (g_stCellInfoReport.u16VCellTotle >= 4950)
+        else if (g_stCellInfoReport.u16VCellTotle >= 4600)
         {
             cur_level = 2;
         }
-        else if (g_stCellInfoReport.u16VCellTotle >= 4650)
+        else if (g_stCellInfoReport.u16VCellTotle >= 4350)
         {
             cur_level = 1;
         }
