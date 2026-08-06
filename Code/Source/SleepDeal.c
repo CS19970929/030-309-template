@@ -993,7 +993,7 @@ void IsSleepStartUp(void)
 // Sleep_Mode标志-->SleepDeal_Normal(正常循环)-->SleepDeal_NormalQuit(跳转)-->唤醒进入相关循环函数-->SleepDeal_Continue(休眠)
 void App_SleepDeal(void)
 {
-	static uint8_t force_sleep_delay = 0;
+	static uint32_t force_sleep_delay = 0;
 	// if (!System_OnOFF_Func.bits.b1OnOFF_Sleep)
 	// {			// 有个疑问，是不是立刻关了，不需要复原呢，均衡是需要关掉复原。
 	// 	return; // Sleep的话，如果直接不进去，后续打开会接着上次的步伐

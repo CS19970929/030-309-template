@@ -108,17 +108,20 @@ void InitDevice(void)
 	InitADC();
 	InitData_SOC();
 	Init_ChargerLoad_Det();
+	InitHeat_Cool();
 #ifdef __FUNC__HEAT__
 	InitHeat_Cool();
 #endif
 	InitMosRelay_DOx();
 
+	//目前共10个task
 	SCH_Add_Task(App_AFEGet, 0, 200);
 	SCH_Add_Task(App_WarnCtrl, 8, 10);
 	SCH_Add_Task(App_AnlogCal, 2, 10);
 	SCH_Add_Task(App_SOC, 5, 200);
 	SCH_Add_Task(App_LogRecord, 6, 1000);
 	SCH_Add_Task(App_SleepDeal, 7, 1000);
+	SCH_Add_Task(App_Heat_Cool_Ctrl, 9, 1000);
 #ifdef __FUNC__HEAT__
 	SCH_Add_Task(App_Heat_Cool_Ctrl, 9, 1000);
 #endif // DEBUG

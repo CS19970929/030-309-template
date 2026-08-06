@@ -6,23 +6,12 @@ union HEAT_COOL_FAULT_FLAG Heat_Cool_FaultFlag;
 
 struct HEAT_COOL_ELEMENT Heat_Cool_Element;
 
+#if 0
 void Heat_Control(void)
 {
-	static UINT8 temp_Count = 0;
 	static uint16_t heat_Count = 0;
-	static UINT16 closeChgMosCount = 0;
 	static UINT8 dsg_Count = 0; // 放电时间计数
-
 	static uint8_t state_heat = 0;
-
-	if (!System_OnOFF_Func.bits.b1OnOFF_Heat)
-	{ // 没有这个功能，不进来
-		SystemStatus.bits.b1Status_Heat = 0;
-		MCUO_RELAY_HEAT = 0;
-
-		state_heat = 0;
-		return;
-	}
 
 	/* 加热电流设置为50A的时候关闭加热 */
 	if (Heat_Cool_Element.u16Heat_OpenCur == 500)
@@ -40,14 +29,10 @@ void Heat_Control(void)
 	case 0:
 		if ((g_stCellInfoReport.u16Ichg >= Heat_Cool_Element.u16Heat_OpenCur) && (g_stCellInfoReport.u16TempMin < Heat_Cool_Element.u16Heat_OpenTemp))
 		{
-			if (++temp_Count == 2)
-			{
-				temp_Count = 0;
-				SystemStatus.bits.b1Status_Heat = 1;
-				state_heat = 1;
+			SystemStatus.bits.b1Status_Heat = 1;
+			state_heat = 1;
 
-				Driver_Element.DriverForceExt.bits.b2_Force_MOS_CHG = FORCE_CLOSE_MODE;
-			}
+			Driver_Element.DriverForceExt.bits.b2_Force_MOS_CHG = FORCE_CLOSE_MODE;
 		}
 		break;
 	case 1:
@@ -204,7 +189,105 @@ void Heat_Control(void)
 
 	MCUO_RELAY_HEAT = SystemStatus.bits.b1Status_Heat;
 }
+#endif
 
+void Heat_Control(void)
+{
+#if 1
+	static uint16_t heat_Count = 0;
+	static UINT8 dsg_Count = 0; // 放电时间计数
+	static uint8_t state_heat = 0;
+
+	if (Heat_Cool_Element.u16Heat_OpenCur == 500)
+	{
+		SystemStatus.bits.b1Status_Heat = 0;
+		MCUO_RELAY_HEAT = 0;
+		// Driver_Element.DriverForceExt.bits.b2_Force_MOS_CHG = FORCE_KEEP_MODE;
+		state_heat = 0;
+		return;
+	}
+
+	SystemStatus.bits.b1Status_Heat = 0;
+
+	switch (state_heat)
+	{
+	case 0:
+		if (g_stCellInfoReport.u16TempMin < Heat_Cool_Element.u16Heat_OpenTemp)
+		{
+			if (g_stCellInfoReport.u16Ichg >= Heat_Cool_Element.u16Heat_OpenCur ||
+				(g_stCellInfoReport.unMdlFault_Third.bits.b1CellChgUtp) ||
+				(SH367309_Reg_Store.REG_BSTATUS2.bits.UTC && GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_0)))
+			{
+				state_heat = 1;
+				Driver_Element.DriverForceExt.bits.b2_Force_MOS_CHG = FORCE_CLOSE_MODE;
+			}
+		}
+		break;
+	case 1:
+		SystemStatus.bits.b1Status_Heat = 1;
+
+		if (g_stCellInfoReport.u16TempMin > Heat_Cool_Element.u16Heat_OpenTemp)
+		{
+			Driver_Element.DriverForceExt.bits.b2_Force_MOS_CHG = FORCE_KEEP_MODE;
+		}
+
+		if (g_stCellInfoReport.u16IDischg > 0)
+		{
+			SystemStatus.bits.b1Status_Heat = 0;
+			g_stCellInfoReport.unMdlFault_Third.bits.b1CellChgUtp = 0;
+			if (++dsg_Count >= 3)
+			{
+				dsg_Count = 0;
+				state_heat = 2;
+
+				Driver_Element.DriverForceExt.bits.b2_Force_MOS_CHG = FORCE_CLOSE_MODE;
+				Driver_Element.DriverForceExt.bits.b2_Force_MOS_DSG = FORCE_CLOSE_MODE;
+				System_ERROR_UserCallback(ERROR_HEAT);
+			}
+			else
+			{
+				Driver_Element.DriverForceExt.bits.b2_Force_MOS_CHG = FORCE_KEEP_MODE;
+				state_heat = 0;
+			}
+		}
+
+		if ((g_stCellInfoReport.u16TempMin > Heat_Cool_Element.u16Heat_CloseTemp))
+		{
+			Driver_Element.DriverForceExt.bits.b2_Force_MOS_CHG = FORCE_KEEP_MODE;
+
+			SystemStatus.bits.b1Status_Heat = 0;
+			state_heat = 0;
+		}
+		break;
+	case 2:
+		static uint8_t cnt_30s = 0;
+		if (++cnt_30s >= 28)
+		{
+			cnt_30s = 0;
+
+			state_heat = 3;
+			Driver_Element.DriverForceExt.bits.b2_Force_MOS_DSG = FORCE_KEEP_MODE;
+		}
+		break;
+	case 3:
+		if (g_stCellInfoReport.u16IDischg >= 10 || (g_stCellInfoReport.u16TempMin > (0 + 40) * 10))
+		{
+			// heat_err_state = 0;
+			Driver_Element.DriverForceExt.bits.b2_Force_MOS_CHG = FORCE_KEEP_MODE;
+
+			state_heat = 0;
+			System_ERROR_UserCallback(ERROR_REMOVE_HEAT);
+		}
+		break;
+
+	default:
+		break;
+	}
+
+#endif
+
+	MCUO_RELAY_HEAT = SystemStatus.bits.b1Status_Heat;
+}
 
 void InitHeat_Cool(void)
 {

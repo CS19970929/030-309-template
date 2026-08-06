@@ -69,7 +69,7 @@
 
 
 #define GPIO_HT_CHG           GPIOA
-#define PIN_HT_CHG            GPIO_Pin_12
+#define PIN_HT_CHG            GPIO_Pin_11
 
 
 #define TRANS_EN_485()    GPIO_WriteBit(GPIO_485_EN,PIN_485_EN,1);
