@@ -13,8 +13,8 @@
 CommPortContext g_comm_port1;
 CommPortContext g_comm_port2;
 static struct RS485MSG g_modbus_service_ctx;
-static void Comm_EnterCritical(void);
-static void Comm_ExitCritical(void);
+static uint32_t Comm_EnterCritical(void);
+static void Comm_ExitCritical(uint32_t primask);
 static int32_t Comm_GetRuntimeMs(void);
 static int32_t Comm_CheckElapsedMs(int32_t last_tick);
 static void Comm_SetRs485TxMode(CommPortContext *ctx);
@@ -97,7 +97,9 @@ static void Comm_PortFinishTx(CommPortContext *ctx)
 
 static void Comm_PortResetParser(CommPortContext *ctx)
 {
-    Comm_EnterCritical();
+    uint32_t primask;
+
+    primask = Comm_EnterCritical();
     ctx->active_protocol = PROTO_NONE;
     ctx->frame_ready_flag = 0;
     ctx->rx_len = 0;
@@ -106,15 +108,17 @@ static void Comm_PortResetParser(CommPortContext *ctx)
     ctx->ring_tail = 0;
     AsciiParser_Reset(&ctx->parser.ascii);
     ModbusRtuParser_Reset(&ctx->parser.modbus);
-    Comm_ExitCritical();
+    Comm_ExitCritical(primask);
 }
 
 static void Comm_PortFlushRxRing(CommPortContext *ctx)
 {
-    Comm_EnterCritical();
+    uint32_t primask;
+
+    primask = Comm_EnterCritical();
     ctx->ring_head = 0;
     ctx->ring_tail = 0;
-    Comm_ExitCritical();
+    Comm_ExitCritical(primask);
 }
 
 static void Comm_PortResetRx(CommPortContext *ctx)
@@ -481,14 +485,18 @@ void Comm_PortStartTx(CommPortContext *ctx, const uint8_t *data, uint16_t len)
     USART_ITConfig(ctx->instance, USART_IT_TXE, ENABLE);
 }
 
-static void Comm_EnterCritical(void)
+static uint32_t Comm_EnterCritical(void)
 {
-    DISABLE_INT();
+    uint32_t primask;
+
+    primask = __get_PRIMASK();
+    __disable_irq();
+    return primask;
 }
 
-static void Comm_ExitCritical(void)
+static void Comm_ExitCritical(uint32_t primask)
 {
-    ENABLE_INT();
+    __set_PRIMASK(primask);
 }
 
 static int32_t Comm_GetRuntimeMs(void)
