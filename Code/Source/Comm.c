@@ -219,9 +219,11 @@ static void Comm_PortFeedByte(CommPortContext *ctx, uint8_t byte)
         {
             ctx->rx_len = ctx->parser.ascii.length;
             ctx->frame_ready_flag = 1;
+            ctx->rx_frame_count++;
         }
         else if (result == PROTO_PARSE_FRAME_INVALID)
         {
+            ctx->parser_error_count++;
             Comm_PortResetParser(ctx);
         }
     }
@@ -232,9 +234,11 @@ static void Comm_PortFeedByte(CommPortContext *ctx, uint8_t byte)
         {
             ctx->rx_len = ctx->parser.modbus.length;
             ctx->frame_ready_flag = 1;
+            ctx->rx_frame_count++;
         }
         else if (result == PROTO_PARSE_FRAME_INVALID)
         {
+            ctx->parser_error_count++;
             Comm_PortResetParser(ctx);
         }
     }
@@ -285,6 +289,7 @@ static void Comm_PortCheckTimeout(CommPortContext *ctx)
     elapsed_ms = Comm_CheckElapsedMs(ctx->last_rx_tick);
     if ((elapsed_ms >= 0) && ((uint16_t)elapsed_ms >= ctx->rx_timeout_ms))
     {
+        ctx->rx_timeout_count++;
         Comm_PortResetParser(ctx);
     }
 }
@@ -358,6 +363,10 @@ static void Comm_PortDispatch(CommPortContext *ctx)
             if (frame_addr == SLAVE_ADDRESS)
             {
                 tx_len = Ascii_HandleFrame(ctx->parser.ascii.buffer, ctx->rx_len, ctx->tx_buf, MAX_FRAME_LEN);
+            }
+            else
+            {
+                ctx->address_ignore_count++;
             }
         }
         else
@@ -444,6 +453,8 @@ void Comm_PortIrqHandler(CommPortContext *ctx)
             {
                 rx_byte = (uint8_t)ctx->instance->RDR;
                 (void)rx_byte;
+                ctx->rx_byte_count++;
+                ctx->uart_error_discard_count++;
                 Comm_NotifyRxActivity(ctx->port_id);
                 ctx->last_rx_tick = Comm_GetRuntimeMs();
             }
@@ -457,6 +468,7 @@ void Comm_PortIrqHandler(CommPortContext *ctx)
         }
 
         rx_byte = (uint8_t)ctx->instance->RDR;
+        ctx->rx_byte_count++;
         Comm_NotifyRxActivity(ctx->port_id);
         ctx->last_rx_tick = Comm_GetRuntimeMs();
 
@@ -499,6 +511,7 @@ void Comm_PortStartTx(CommPortContext *ctx, const uint8_t *data, uint16_t len)
     USART_ClearFlag(ctx->instance, USART_FLAG_TC);
     ctx->tx_complete_pending = 0;
     ctx->tx_active = 1;
+    ctx->tx_frame_count++;
     Comm_SetRs485TxMode(ctx);
     if (ctx->is_rs485 != 0U)
     {

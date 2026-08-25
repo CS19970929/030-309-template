@@ -29,12 +29,22 @@ typedef struct {
     volatile uint8_t frame_ready_flag;
     volatile uint8_t tx_active;
     volatile uint8_t tx_complete_pending;
+
+    /* Runtime communication diagnostics. Cleared by Comm_PortInit(). */
+    volatile uint32_t rx_byte_count;
+    volatile uint32_t rx_frame_count;
+    volatile uint32_t tx_frame_count;
     volatile uint16_t error_count;
     volatile uint16_t overrun_count;
     volatile uint16_t frame_error_count;
     volatile uint16_t noise_error_count;
     volatile uint16_t parity_error_count;
     volatile uint16_t ring_overflow_count;
+    volatile uint16_t parser_error_count;
+    volatile uint16_t rx_timeout_count;
+    volatile uint16_t address_ignore_count;
+    volatile uint16_t uart_error_discard_count;
+
     volatile uint16_t rx_len;
     volatile uint16_t ring_head;
     volatile uint16_t ring_tail;
