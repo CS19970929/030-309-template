@@ -46,7 +46,7 @@ static uint8_t Comm_RingPushByte(CommPortContext *ctx, uint8_t byte)
         return 0;
     }
 
-    ctx->io_buf.ring_buf[ctx->ring_head] = byte;
+    ctx->rx_ring[ctx->ring_head] = byte;
     ctx->ring_head = next_head;
     return 1;
 }
@@ -58,7 +58,7 @@ static uint8_t Comm_RingPopByte(CommPortContext *ctx, uint8_t *byte)
         return 0;
     }
 
-    *byte = ctx->io_buf.ring_buf[ctx->ring_tail];
+    *byte = ctx->rx_ring[ctx->ring_tail];
     ctx->ring_tail = Comm_RingNext(ctx->ring_tail);
     return 1;
 }
@@ -352,17 +352,17 @@ static void Comm_PortDispatch(CommPortContext *ctx)
             frame_addr = (uint8_t)((addr_high << 4) | addr_low);
             if (frame_addr == SLAVE_ADDRESS)
             {
-                tx_len = Ascii_HandleFrame(ctx->parser.ascii.buffer, ctx->rx_len, ctx->io_buf.tx_buf, MAX_FRAME_LEN);
+                tx_len = Ascii_HandleFrame(ctx->parser.ascii.buffer, ctx->rx_len, ctx->tx_buf, MAX_FRAME_LEN);
             }
         }
         else
         {
-            tx_len = Ascii_HandleFrame(ctx->parser.ascii.buffer, ctx->rx_len, ctx->io_buf.tx_buf, MAX_FRAME_LEN);
+            tx_len = Ascii_HandleFrame(ctx->parser.ascii.buffer, ctx->rx_len, ctx->tx_buf, MAX_FRAME_LEN);
         }
     }
     else if (ctx->active_protocol == PROTO_MODBUS_RTU)
     {
-        tx_len = Modbus_ServiceHandleFrame(&g_modbus_service_ctx, ctx->parser.modbus.buffer, ctx->rx_len, ctx->io_buf.tx_buf, MAX_FRAME_LEN);
+        tx_len = Modbus_ServiceHandleFrame(&g_modbus_service_ctx, ctx->parser.modbus.buffer, ctx->rx_len, ctx->tx_buf, MAX_FRAME_LEN);
     }
 
     ctx->frame_ready_flag = 0;
@@ -373,7 +373,7 @@ static void Comm_PortDispatch(CommPortContext *ctx)
 
     if (tx_len > 0)
     {
-        Comm_PortStartTx(ctx, ctx->io_buf.tx_buf, tx_len);
+        Comm_PortStartTx(ctx, ctx->tx_buf, tx_len);
     }
 }
 
@@ -413,7 +413,7 @@ void Comm_PortIrqHandler(CommPortContext *ctx)
     {
         if (ctx->tx_pos < ctx->tx_len)
         {
-            ctx->instance->TDR = ctx->io_buf.tx_buf[ctx->tx_pos++];
+            ctx->instance->TDR = ctx->tx_buf[ctx->tx_pos++];
         }
         else
         {
@@ -461,9 +461,9 @@ void Comm_PortStartTx(CommPortContext *ctx, const uint8_t *data, uint16_t len)
         return;
     }
 
-    if (data != ctx->io_buf.tx_buf)
+    if (data != ctx->tx_buf)
     {
-        memcpy(ctx->io_buf.tx_buf, data, len);
+        memcpy(ctx->tx_buf, data, len);
     }
     ctx->tx_len = len;
     ctx->tx_pos = 0;

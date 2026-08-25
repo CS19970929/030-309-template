@@ -43,10 +43,8 @@ typedef struct {
     volatile int32_t last_rx_tick;
     volatile uint16_t rx_timeout_ms;
     volatile ProtocolType active_protocol;
-    union {
-        uint8_t ring_buf[COMM_RX_RING_SIZE];
-        uint8_t tx_buf[MAX_FRAME_LEN];
-    } io_buf;
+    uint8_t rx_ring[COMM_RX_RING_SIZE];
+    uint8_t tx_buf[MAX_FRAME_LEN];
     CommParserState parser;
 } CommPortContext;
 
