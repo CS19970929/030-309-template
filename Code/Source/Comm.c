@@ -68,12 +68,12 @@ static uint8_t Comm_RingPopByte(CommPortContext *ctx, uint8_t *byte)
 static void Comm_PortDisableRx(CommPortContext *ctx)
 {
     USART_ITConfig(ctx->instance, USART_IT_RXNE, DISABLE);
-    ctx->instance->CR1 &= ~(1 << 2);
+    ctx->instance->CR1 &= (uint32_t)~USART_CR1_RE;
 }
 
 static void Comm_PortEnableRx(CommPortContext *ctx)
 {
-    ctx->instance->CR1 |= (1 << 2);
+    ctx->instance->CR1 |= USART_CR1_RE;
     USART_ITConfig(ctx->instance, USART_IT_RXNE, ENABLE);
 }
 
@@ -177,8 +177,8 @@ static void Comm_PortInit(CommPortContext *ctx, USART_TypeDef *instance, uint8_t
     usart_init.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;
     USART_Init(instance, &usart_init);
 
-    instance->CR3 |= (1 << 0);
-    instance->CR3 &= ~(1 << 11);
+    instance->CR3 |= USART_CR3_EIE;
+    instance->CR3 &= (uint32_t)~USART_CR3_OVRDIS;
     USART_Cmd(instance, ENABLE);
     Comm_PortEnableRx(ctx);
 }
