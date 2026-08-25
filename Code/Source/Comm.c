@@ -83,8 +83,16 @@ static void Comm_PortDisableTxInterrupts(CommPortContext *ctx)
 
 static void Comm_PortFinishTx(CommPortContext *ctx)
 {
-    ctx->tx_switchback_pending = 1;
     Comm_PortDisableTxInterrupts(ctx);
+
+    if (ctx->is_rs485 != 0U)
+    {
+        Comm_SetRs485RxMode(ctx);
+    }
+
+    ctx->tx_active = 0;
+    Comm_PortEnableRx(ctx);
+    ctx->tx_switchback_pending = 1;
 }
 
 static void Comm_PortResetParser(CommPortContext *ctx)
@@ -249,16 +257,9 @@ static void Comm_PortProcessTxSwitchback(CommPortContext *ctx)
         return;
     }
 
-    if (ctx->is_rs485 != 0U)
-    {
-        Comm_DelayUs(COMM_RS485_TURNAROUND_US);
-        Comm_SetRs485RxMode(ctx);
-    }
-    ctx->tx_active = 0;
     ctx->tx_switchback_pending = 0;
     ctx->tx_len = 0;
     ctx->tx_pos = 0;
-    Comm_PortEnableRx(ctx);
     Comm_NotifyTxComplete();
 }
 
