@@ -74,7 +74,7 @@
 
 #define TRANS_EN_485()    GPIO_WriteBit(GPIO_485_EN,PIN_485_EN,1);
 #define RECV_EN_485()     GPIO_WriteBit(GPIO_485_EN,PIN_485_EN,0);
-#define TRANS_485_WAIT_COMPLETE()   while (!((USART1->ISR) & (1 << 7))) {}
+#define TRANS_485_WAIT_COMPLETE()   while ((USART1->ISR & USART_ISR_TC) == 0U) {}
 
 #endif
 
