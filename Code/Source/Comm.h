@@ -12,10 +12,10 @@ typedef enum {
     PROTO_ASCII
 } ProtocolType;
 
-#define COMM_RX_RING_SIZE           260
-#define COMM_RTU_RX_TIMEOUT_MS      20
-#define COMM_ASCII_RX_TIMEOUT_MS    100
-#define COMM_RS485_TURNAROUND_US    100
+#define COMM_RX_RING_SIZE                260
+#define COMM_RTU_RX_TIMEOUT_MS           20
+#define COMM_ASCII_RX_TIMEOUT_MS         100
+#define COMM_RS485_TX_ENABLE_DELAY_US    100
 
 typedef union {
     ModbusRtuParser modbus;
@@ -28,7 +28,7 @@ typedef struct {
     uint8_t is_rs485;
     volatile uint8_t frame_ready_flag;
     volatile uint8_t tx_active;
-    volatile uint8_t tx_switchback_pending;
+    volatile uint8_t tx_complete_pending;
     volatile uint16_t error_count;
     volatile uint16_t overrun_count;
     volatile uint16_t frame_error_count;

@@ -26,7 +26,7 @@ static void Comm_NotifyRxActivity(uint8_t port_id);
 static void Comm_NotifyTxComplete(void);
 static void Comm_PortResetParser(CommPortContext *ctx);
 static void Comm_PortFlushRxRing(CommPortContext *ctx);
-static void Comm_PortProcessTxSwitchback(CommPortContext *ctx);
+static void Comm_PortProcessTxComplete(CommPortContext *ctx);
 
 static uint16_t Comm_RingNext(uint16_t index)
 {
@@ -94,7 +94,7 @@ static void Comm_PortFinishTx(CommPortContext *ctx)
 
     ctx->tx_active = 0;
     Comm_PortEnableRx(ctx);
-    ctx->tx_switchback_pending = 1;
+    ctx->tx_complete_pending = 1;
 }
 
 static void Comm_PortResetParser(CommPortContext *ctx)
@@ -255,14 +255,14 @@ static void Comm_PortDrainRxRing(CommPortContext *ctx)
     }
 }
 
-static void Comm_PortProcessTxSwitchback(CommPortContext *ctx)
+static void Comm_PortProcessTxComplete(CommPortContext *ctx)
 {
-    if (ctx->tx_switchback_pending == 0)
+    if (ctx->tx_complete_pending == 0)
     {
         return;
     }
 
-    ctx->tx_switchback_pending = 0;
+    ctx->tx_complete_pending = 0;
     ctx->tx_len = 0;
     ctx->tx_pos = 0;
     Comm_NotifyTxComplete();
@@ -396,13 +396,13 @@ void Comm_InitAll(void)
 void Comm_PollAll(void)
 {
 #ifdef _COMMOM_UPPER_SCI1
-    Comm_PortProcessTxSwitchback(&g_comm_port1);
+    Comm_PortProcessTxComplete(&g_comm_port1);
     Comm_PortDrainRxRing(&g_comm_port1);
     Comm_PortCheckTimeout(&g_comm_port1);
     Comm_PortDispatch(&g_comm_port1);
 #endif
 #ifdef _COMMOM_UPPER_SCI2
-    Comm_PortProcessTxSwitchback(&g_comm_port2);
+    Comm_PortProcessTxComplete(&g_comm_port2);
     Comm_PortDrainRxRing(&g_comm_port2);
     Comm_PortCheckTimeout(&g_comm_port2);
     Comm_PortDispatch(&g_comm_port2);
@@ -497,12 +497,12 @@ void Comm_PortStartTx(CommPortContext *ctx, const uint8_t *data, uint16_t len)
 
     Comm_PortDisableTxInterrupts(ctx);
     USART_ClearFlag(ctx->instance, USART_FLAG_TC);
-    ctx->tx_switchback_pending = 0;
+    ctx->tx_complete_pending = 0;
     ctx->tx_active = 1;
     Comm_SetRs485TxMode(ctx);
     if (ctx->is_rs485 != 0U)
     {
-        Comm_DelayUs(COMM_RS485_TURNAROUND_US);
+        Comm_DelayUs(COMM_RS485_TX_ENABLE_DELAY_US);
     }
     USART_ITConfig(ctx->instance, USART_IT_TXE, ENABLE);
 }
