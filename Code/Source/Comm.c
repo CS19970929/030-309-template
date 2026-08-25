@@ -329,6 +329,9 @@ static uint8_t Comm_PortHandleErrors(CommPortContext *ctx)
 static void Comm_PortDispatch(CommPortContext *ctx)
 {
     uint16_t tx_len = 0;
+    uint8_t addr_high;
+    uint8_t addr_low;
+    uint8_t frame_addr;
 
     if (ctx->frame_ready_flag == 0)
     {
@@ -342,7 +345,20 @@ static void Comm_PortDispatch(CommPortContext *ctx)
 
     if (ctx->active_protocol == PROTO_ASCII)
     {
-        tx_len = Ascii_HandleFrame(ctx->parser.ascii.buffer, ctx->rx_len, ctx->io_buf.tx_buf, MAX_FRAME_LEN);
+        addr_high = Ascii_To_Hex(ctx->parser.ascii.buffer[3]);
+        addr_low = Ascii_To_Hex(ctx->parser.ascii.buffer[4]);
+        if ((addr_high != 0xFFU) && (addr_low != 0xFFU))
+        {
+            frame_addr = (uint8_t)((addr_high << 4) | addr_low);
+            if (frame_addr == SLAVE_ADDRESS)
+            {
+                tx_len = Ascii_HandleFrame(ctx->parser.ascii.buffer, ctx->rx_len, ctx->io_buf.tx_buf, MAX_FRAME_LEN);
+            }
+        }
+        else
+        {
+            tx_len = Ascii_HandleFrame(ctx->parser.ascii.buffer, ctx->rx_len, ctx->io_buf.tx_buf, MAX_FRAME_LEN);
+        }
     }
     else if (ctx->active_protocol == PROTO_MODBUS_RTU)
     {
