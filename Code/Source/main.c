@@ -93,8 +93,8 @@ void InitDevice(void)
 	if (OtherElement.u16Sys_PreChg_Time >= 1)
 	{
 		GPIO_WriteBit(GPIO_RES_EN, PIN_RES_EN, 1);
-		if (OtherElement.u16Sys_PreChg_Time > 1000)
-			OtherElement.u16Sys_PreChg_Time = 100;
+		if (OtherElement.u16Sys_PreChg_Time > 5000)
+			OtherElement.u16Sys_PreChg_Time = 5000;
 		__delay_ms(OtherElement.u16Sys_PreChg_Time - 1);
 		MCUO_AFE_CTLC = 1; // 刚上电，默认高阻态，所以不慌AFE刚开机瞬间打开MOS
 		__delay_ms(1);
