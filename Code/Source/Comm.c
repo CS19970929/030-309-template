@@ -460,7 +460,7 @@ void Comm_PortIrqHandler(CommPortContext *ctx)
         Comm_NotifyRxActivity(ctx->port_id);
         ctx->last_rx_tick = Comm_GetRuntimeMs();
 
-        if (ctx->tx_active == 0)
+        if ((ctx->tx_active == 0U) || (ctx->is_rs485 == 0U))
         {
             if (Comm_RingPushByte(ctx, rx_byte) == 0)
             {
@@ -487,8 +487,14 @@ void Comm_PortStartTx(CommPortContext *ctx, const uint8_t *data, uint16_t len)
     }
     ctx->tx_len = len;
     ctx->tx_pos = 0;
-    Comm_PortResetRx(ctx);
-    Comm_PortDisableRx(ctx);
+
+    Comm_PortResetParser(ctx);
+    if (ctx->is_rs485 != 0U)
+    {
+        Comm_PortFlushRxRing(ctx);
+        Comm_PortDisableRx(ctx);
+    }
+
     Comm_PortDisableTxInterrupts(ctx);
     USART_ClearFlag(ctx->instance, USART_FLAG_TC);
     ctx->tx_switchback_pending = 0;
