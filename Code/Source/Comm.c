@@ -10,6 +10,8 @@
 #include "modbus_service.h"
 #include "main.h"
 
+#define COMM_USART_ERROR_MASK (USART_ISR_ORE | USART_ISR_NE | USART_ISR_FE | USART_ISR_PE)
+
 CommPortContext g_comm_port1;
 CommPortContext g_comm_port2;
 static struct RS485MSG g_modbus_service_ctx;
@@ -104,8 +106,6 @@ static void Comm_PortResetParser(CommPortContext *ctx)
     ctx->frame_ready_flag = 0;
     ctx->rx_len = 0;
     ctx->rx_timeout_ms = 0;
-    ctx->ring_head = 0;
-    ctx->ring_tail = 0;
     AsciiParser_Reset(&ctx->parser.ascii);
     ModbusRtuParser_Reset(&ctx->parser.modbus);
     Comm_ExitCritical(primask);
@@ -124,6 +124,7 @@ static void Comm_PortFlushRxRing(CommPortContext *ctx)
 static void Comm_PortResetRx(CommPortContext *ctx)
 {
     Comm_PortResetParser(ctx);
+    Comm_PortFlushRxRing(ctx);
     Comm_PortDisableTxInterrupts(ctx);
 }
 
@@ -221,7 +222,7 @@ static void Comm_PortFeedByte(CommPortContext *ctx, uint8_t byte)
         }
         else if (result == PROTO_PARSE_FRAME_INVALID)
         {
-            Comm_PortResetRx(ctx);
+            Comm_PortResetParser(ctx);
         }
     }
     else if (ctx->active_protocol == PROTO_MODBUS_RTU)
@@ -234,7 +235,7 @@ static void Comm_PortFeedByte(CommPortContext *ctx, uint8_t byte)
         }
         else if (result == PROTO_PARSE_FRAME_INVALID)
         {
-            Comm_PortResetRx(ctx);
+            Comm_PortResetParser(ctx);
         }
     }
 }
@@ -288,46 +289,46 @@ static void Comm_PortCheckTimeout(CommPortContext *ctx)
     }
 }
 
-static uint8_t Comm_PortHandleErrors(CommPortContext *ctx)
+static uint8_t Comm_PortHandleErrors(CommPortContext *ctx, uint32_t isr)
 {
     uint8_t fault_count = 0;
-    uint32_t isr;
-
-    isr = ctx->instance->ISR;
+    uint32_t clear_mask = 0;
 
     if ((isr & USART_ISR_ORE) != 0U)
     {
-        ctx->instance->ICR = USART_ICR_ORECF;
+        clear_mask |= USART_ICR_ORECF;
         ctx->overrun_count++;
         fault_count++;
     }
     if ((isr & USART_ISR_NE) != 0U)
     {
-        ctx->instance->ICR = USART_ICR_NCF;
+        clear_mask |= USART_ICR_NCF;
         ctx->noise_error_count++;
         fault_count++;
     }
     if ((isr & USART_ISR_FE) != 0U)
     {
-        ctx->instance->ICR = USART_ICR_FECF;
+        clear_mask |= USART_ICR_FECF;
         ctx->frame_error_count++;
         fault_count++;
     }
     if ((isr & USART_ISR_PE) != 0U)
     {
-        ctx->instance->ICR = USART_ICR_PECF;
+        clear_mask |= USART_ICR_PECF;
         ctx->parity_error_count++;
         fault_count++;
     }
 
-    if (fault_count != 0)
+    if (fault_count != 0U)
     {
+        ctx->instance->ICR = clear_mask;
         ctx->error_count++;
         Comm_PortResetParser(ctx);
-        return 1;
+        Comm_PortFlushRxRing(ctx);
+        return 1U;
     }
 
-    return 0;
+    return 0U;
 }
 
 static void Comm_PortDispatch(CommPortContext *ctx)
@@ -433,9 +434,28 @@ void Comm_PortIrqHandler(CommPortContext *ctx)
         return;
     }
 
-    isr = ctx->instance->ISR;
-    while ((isr & USART_ISR_RXNE) != 0U)
+    for (;;)
     {
+        isr = ctx->instance->ISR;
+
+        if ((isr & COMM_USART_ERROR_MASK) != 0U)
+        {
+            if ((isr & USART_ISR_RXNE) != 0U)
+            {
+                rx_byte = (uint8_t)ctx->instance->RDR;
+                (void)rx_byte;
+                Comm_NotifyRxActivity(ctx->port_id);
+                ctx->last_rx_tick = Comm_GetRuntimeMs();
+            }
+            Comm_PortHandleErrors(ctx, isr);
+            continue;
+        }
+
+        if ((isr & USART_ISR_RXNE) == 0U)
+        {
+            break;
+        }
+
         rx_byte = (uint8_t)ctx->instance->RDR;
         Comm_NotifyRxActivity(ctx->port_id);
         ctx->last_rx_tick = Comm_GetRuntimeMs();
@@ -451,11 +471,7 @@ void Comm_PortIrqHandler(CommPortContext *ctx)
                 break;
             }
         }
-
-        isr = ctx->instance->ISR;
     }
-
-    Comm_PortHandleErrors(ctx);
 }
 
 void Comm_PortStartTx(CommPortContext *ctx, const uint8_t *data, uint16_t len)
