@@ -708,7 +708,7 @@ void DataLoad_CurrentCali_startup(void)
 		}
 
 		++su8_StartUp_CaliCnt;
-		__delay_ms(500);
+		__delay_ms(200);
 	}
 	// step 2
 	{

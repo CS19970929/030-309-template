@@ -98,6 +98,23 @@ void Refresh_Parameters(void)
 
 	AFE_ROM_PARAMETERS_Struction.m00H_01H.CTLC = 2;
 	// AFE_ROM_PARAMETERS_Struction.m00H_01H.CTLC = (0x00 >> 6);
+	AFE_ROM_PARAMETERS_Struction.m00H_01H.BAL = 0;
+	// temp = (OtherElement.u16Balance_OpenVoltage + 10) / 20;
+#ifdef TERNARYLI
+	temp = (4160 + 10) / 20;
+	if (temp > 0xFF)
+	{
+		temp = 0xFF;
+	}
+#elif (defined(LIFEPO))
+	temp = (3500 + 10) / 20;
+	if (temp > 0xFF)
+	{
+		temp = 0xFF;
+	}
+#endif
+
+	AFE_ROM_PARAMETERS_Struction.m08H_09H.BALV = (UINT8)temp;
 
 	AFE_ROM_PARAMETERS_Struction.m00H_01H.CN = g_tParam.other.u16Sys_SeriesNum % 16;
 
@@ -108,7 +125,7 @@ void Refresh_Parameters(void)
 	AFE_ROM_PARAMETERS_Struction.m04H_05H.OVRL = (4100 / 5) & 0x00FF;
 
 	AFE_ROM_PARAMETERS_Struction.m04H_05H.UVT = 0;
-	AFE_ROM_PARAMETERS_Struction.m06H_07H.UV = (2700 / 20) & 0x00FF;
+	AFE_ROM_PARAMETERS_Struction.m06H_07H.UV = (2400 / 20) & 0x00FF;
 	AFE_ROM_PARAMETERS_Struction.m06H_07H.UVR = (2800 / 20) & 0x00FF;
 
 	AFE_ROM_PARAMETERS_Struction.m0CH_0DH.OCD1V = 2;
@@ -119,13 +136,13 @@ void Refresh_Parameters(void)
 
 	InitShortCur();
 
-	AFE_TEMPERATURE[0] = (55 + 40);		 /* 充电高温保护 */
+	AFE_TEMPERATURE[0] = (55 + 40);	 /* 充电高温保护 */
 	AFE_TEMPERATURE[1] = (45 + 40);	 /* 充电高温保护恢复 */
-	AFE_TEMPERATURE[2] = (0 + 40);		 /* 充电低温保护 */
+	AFE_TEMPERATURE[2] = (0 + 40);	 /* 充电低温保护 */
 	AFE_TEMPERATURE[3] = (5 + 40);	 /* 充电低温保护恢复 */
 	AFE_TEMPERATURE[4] = (80 + 40);	 /* 放电高温保护 */
-	AFE_TEMPERATURE[5] = (70 + 40); /* 放电高温保护恢复 */
-	AFE_TEMPERATURE[6] = (-20 + 40);	 /* 放电低温保护 */
+	AFE_TEMPERATURE[5] = (70 + 40);	 /* 放电高温保护恢复 */
+	AFE_TEMPERATURE[6] = (-20 + 40); /* 放电低温保护 */
 	AFE_TEMPERATURE[7] = (-15 + 40); /* 放电低温保护恢复 */
 
 	for (i = 0; i < 8; i++)
