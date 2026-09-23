@@ -1,15 +1,15 @@
 /*
 *********************************************************************************************************
 *
-*	Ä£¿éÃû³Æ : Ó¦ÓÃ³ÌĞò²ÎÊıÄ£¿é
-*	ÎÄ¼şÃû³Æ : param.c
-*	°æ    ±¾ : V1.0
-*	Ëµ    Ã÷ : ¶ÁÈ¡ºÍ±£´æÓ¦ÓÃ³ÌĞòµÄ²ÎÊı
-*	ĞŞ¸Ä¼ÇÂ¼ :
-*		°æ±¾ºÅ  ÈÕÆÚ        ×÷Õß     ËµÃ÷
-*		V1.0    2013-01-01 armfly  ÕıÊ½·¢²¼
+*	æ¨¡å—åç§° : åº”ç”¨ç¨‹åºå‚æ•°æ¨¡å—
+*	æ–‡ä»¶åç§° : param.c
+*	ç‰ˆ    æœ¬ : V1.0
+*	è¯´    æ˜ : è¯»å–å’Œä¿å­˜åº”ç”¨ç¨‹åºçš„å‚æ•°
+*	ä¿®æ”¹è®°å½• :
+*		ç‰ˆæœ¬å·  æ—¥æœŸ        ä½œè€…     è¯´æ˜
+*		V1.0    2013-01-01 armfly  æ­£å¼å‘å¸ƒ
 *
-*	Copyright (C), 2012-2013, °²¸»À³µç×Ó www.armfly.com
+*	Copyright (C), 2012-2013, å®‰å¯Œè±ç”µå­ www.armfly.com
 *
 *********************************************************************************************************
 */
@@ -21,45 +21,32 @@
 
 PARAM_T g_tParam;
 
-/* ½«16KB Ò»¸öÉÈÇøµÄ¿Õ¼äÔ¤Áô³öÀ´×öÎª²ÎÊıÇø For MDK */
+/* å°†16KB ä¸€ä¸ªæ‰‡åŒºçš„ç©ºé—´é¢„ç•™å‡ºæ¥åšä¸ºå‚æ•°åŒº For MDK */
 // const uint8_t para_flash_area[16*1024] __attribute__((at(ADDR_FLASH_SECTOR_3)));
 
 /*
 *********************************************************************************************************
-*	º¯ Êı Ãû: LoadParam
-*	¹¦ÄÜËµÃ÷: ´ÓFlash¶Á²ÎÊıµ½g_tParam
-*	ĞÎ    ²Î£ºÎŞ
-*	·µ »Ø Öµ: ÎŞ
+*	å‡½ æ•° å: LoadParam
+*	åŠŸèƒ½è¯´æ˜: ä»Flashè¯»å‚æ•°åˆ°g_tParam
+*	å½¢    å‚ï¼šæ— 
+*	è¿” å› å€¼: æ— 
 *********************************************************************************************************
 */
 void LoadParam(void)
 {
 	// sys_time.test_sizeof_g_tParam = sizeof(g_tParam);
 #ifdef PARAM_SAVE_TO_FLASH
-	/* ¶ÁÈ¡CPU FlashÖĞµÄ²ÎÊı */
-	bsp_ReadCpuFlash(PARAM_ADDR, (uint8_t *)&g_tParam, sizeof(PARAM_T));
+	/* è¯»å–CPU Flashä¸­çš„å‚æ•° */
+	bsp_ReadCpuFlash(PARAM_ADDR, (uint16_t *)&g_tParam, sizeof(PARAM_T) / sizeof(uint16_t));
 #endif
-	{
-		g_u32CS_Res_AFE = ((UINT32)g_tParam.other.u16Sys_CS_Res_Num * 1000) / g_tParam.other.u16Sys_CS_Res;
-		curr_offset = g_tParam.current_offset_309;
-		if ((curr_offset & 0x8000) == 0)
-		{
-			OffsetValue_CHG = (UINT32)curr_offset * 200 * g_u32CS_Res_AFE / (21470);
-		}
-		else
-		{
-			OffsetValue_DSG = (UINT32)((UINT16)(0xFFFF - curr_offset + 1)) * 200 * g_u32CS_Res_AFE / (21470); // mA
-		}
-	}
-
-	ReadEEPROM_EventRecord_Parameters();
-
 #ifdef PARAM_SAVE_TO_EEPROM
-	/* ¶ÁÈ¡EEPROMÖĞµÄ²ÎÊı */
+	/* è¯»å–EEPROMä¸­çš„å‚æ•° */
 	ee_ReadBytes((uint8_t *)&g_tParam, PARAM_ADDR, sizeof(PARAM_T));
 #endif
 
-	/* Ìî³äÈ±Ê¡²ÎÊı */
+	ReadEEPROM_EventRecord_Parameters();
+
+	/* å¡«å……ç¼ºçœå‚æ•° */
 	if (g_tParam.ParamVer != PARAM_VER)
 	{
 		PARAM_T Param_default = {
@@ -91,8 +78,22 @@ void LoadParam(void)
 
 		EEPROM_ResetData_EventRecord_ToDefault();
 
-		SaveParam(); /* ½«ĞÂ²ÎÊıĞ´ÈëFlash */
+		SaveParam(); /* å°†æ–°å‚æ•°å†™å…¥Flash */
 		MCU_RESET();
+	}
+
+	/* å‚æ•°ç¡®è®¤æœ‰æ•ˆåï¼Œå†è®¡ç®—ä¾èµ–å‚æ•°çš„è¿è¡Œæ—¶å˜é‡ */
+	g_u32CS_Res_AFE = ((UINT32)g_tParam.other.u16Sys_CS_Res_Num * 1000) / g_tParam.other.u16Sys_CS_Res;
+	curr_offset = g_tParam.current_offset_309;
+	OffsetValue_CHG = 0;
+	OffsetValue_DSG = 0;
+	if ((curr_offset & 0x8000) == 0)
+	{
+		OffsetValue_CHG = (UINT32)curr_offset * 200 * g_u32CS_Res_AFE / (21470);
+	}
+	else
+	{
+		OffsetValue_DSG = (UINT32)((UINT16)(0xFFFF - curr_offset + 1)) * 200 * g_u32CS_Res_AFE / (21470); // mA
 	}
 
 	// if(g_tParam.protect != PRT_E2ROMParas)
@@ -115,25 +116,25 @@ void LoadParam(void)
 
 /*
 *********************************************************************************************************
-*	º¯ Êı Ãû: SaveParam
-*	¹¦ÄÜËµÃ÷: ½«È«¾Ö±äÁ¿g_tParam Ğ´Èëµ½CPUÄÚ²¿Flash
-*	ĞÎ    ²Î: ÎŞ
-*	·µ »Ø Öµ: ÎŞ
+*	å‡½ æ•° å: SaveParam
+*	åŠŸèƒ½è¯´æ˜: å°†å…¨å±€å˜é‡g_tParam å†™å…¥åˆ°CPUå†…éƒ¨Flash
+*	å½¢    å‚: æ— 
+*	è¿” å› å€¼: æ— 
 *********************************************************************************************************
 */
 void SaveParam(void)
 {
 #ifdef PARAM_SAVE_TO_FLASH
-	/* ½«È«¾ÖµÄ²ÎÊı±äÁ¿±£´æµ½ CPU Flash */
-	bsp_WriteCpuFlash(PARAM_ADDR, (unsigned char *)&g_tParam, sizeof(PARAM_T));
+	/* å°†å…¨å±€çš„å‚æ•°å˜é‡ä¿å­˜åˆ° CPU Flash */
+	bsp_WriteCpuFlash(PARAM_ADDR, (uint16_t *)&g_tParam, sizeof(PARAM_T) / sizeof(uint16_t));
 #endif
 
 #ifdef PARAM_SAVE_TO_EEPROM
-	/* ½«È«¾ÖµÄ²ÎÊı±äÁ¿±£´æµ½EEPROM */
+	/* å°†å…¨å±€çš„å‚æ•°å˜é‡ä¿å­˜åˆ°EEPROM */
 	ee_WriteBytes((uint8_t *)&g_tParam, PARAM_ADDR, sizeof(PARAM_T));
 #endif
 
 	// LoadParam();
 }
 
-/***************************** °²¸»À³µç×Ó www.armfly.com (END OF FILE) *********************************/
+/***************************** å®‰å¯Œè±ç”µå­ www.armfly.com (END OF FILE) *********************************/
