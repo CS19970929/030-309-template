@@ -142,10 +142,10 @@ void App_LogRecord(void)
 		return;
 	}
 
-	if (gu8_Reset_EventRecord)
-	{
-		return;
-	}
+	// if (gu8_Reset_EventRecord)
+	// {
+	// 	return;
+	// }
 
 	++su32_Interval_S_Tcnt;
 
